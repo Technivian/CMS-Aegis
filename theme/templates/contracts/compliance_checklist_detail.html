@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ checklist.name }}{% endblock %}
+
+{% block page_title %}
+{{ checklist.name }}
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'contracts:compliance_checklist_update' checklist.pk %}" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 shadow-sm">Edit Checklist</a>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Checklist Details -->
+    <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md h-fit">
+        <h3 class="text-lg font-bold mb-4">Details</h3>
+        <div class="space-y-4">
+            <div>
+                <p class="text-sm font-semibold text-gray-600">Regulation</p>
+                <p>{{ checklist.regulation }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-600">Status</p>
+                <p>{{ checklist.get_status_display }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-600">Due Date</p>
+                <p>{{ checklist.due_date|default:"N/A" }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-600">Reviewed By</p>
+                <p>{{ checklist.reviewed_by.username|default:"N/A" }}</p>
+            </div>
+            {% if checklist.attachments %}
+            <div>
+                <p class="text-sm font-semibold text-gray-600">Attachment</p>
+                <a href="{{ checklist.attachments.url }}" class="text-blue-600 hover:underline" target="_blank">View Attachment</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Checklist Items -->
+    <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+        <h3 class="text-lg font-bold mb-4">Checklist Items</h3>
+        <div class="space-y-3">
+            {% for item in checklist.items.all %}
+                <div class="flex items-center justify-between p-3 rounded-md {% if item.is_checked %}bg-green-50{% else %}bg-gray-50{% endif %}">
+                    <span class="{% if item.is_checked %}line-through text-gray-500{% endif %}">{{ item.text }}</span>
+                    <form action="{% url 'contracts:toggle_checklist_item' item.pk %}" method="post">
+                        {% csrf_token %}
+                        <input type="checkbox" onchange="this.form.submit()" {% if item.is_checked %}checked{% endif %}
+                               class="h-6 w-6 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    </form>
+                </div>
+            {% empty %}
+                <p class="text-gray-500 italic">No items have been added to this checklist yet.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Add Item Form -->
+        <div class="mt-6 pt-6 border-t">
+            <h4 class="text-md font-bold mb-2">Add New Item</h4>
+            <form action="{% url 'contracts:add_checklist_item' checklist.pk %}" method="post" class="flex items-center space-x-2">
+                {% csrf_token %}
+                <div class="flex-grow">
+                    {{ item_form.text }}
+                </div>
+                <button type="submit" class="bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700">Add</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

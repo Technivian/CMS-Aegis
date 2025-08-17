@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Legal Task{% else %}New Legal Task{% endif %}{% endblock %}
+
+{% block page_title %}
+{% if form.instance.pk %}Edit Legal Task{% else %}New Legal Task{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="bg-white p-8 rounded-lg shadow-md">
+    <form method="post">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="md:col-span-2">
+                <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700">Title</label>
+                {{ form.title }}
+            </div>
+            <div>
+                <label for="{{ form.task_type.id_for_label }}" class="block text-sm font-medium text-gray-700">Task Type</label>
+                {{ form.task_type }}
+            </div>
+            <div>
+                <label for="{{ form.priority.id_for_label }}" class="block text-sm font-medium text-gray-700">Priority</label>
+                {{ form.priority }}
+            </div>
+            <div class="md:col-span-2">
+                <label for="{{ form.subject.id_for_label }}" class="block text-sm font-medium text-gray-700">Subject / Description</label>
+                {{ form.subject }}
+            </div>
+            <div>
+                <label for="{{ form.assigned_to.id_for_label }}" class="block text-sm font-medium text-gray-700">Assigned To</label>
+                {{ form.assigned_to }}
+            </div>
+            <div>
+                <label for="{{ form.due_date.id_for_label }}" class="block text-sm font-medium text-gray-700">Due Date</label>
+                {{ form.due_date }}
+            </div>
+             <div>
+                <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700">Status</label>
+                {{ form.status }}
+            </div>
+            <div class="flex items-center">
+                {{ form.is_recurring }}
+                <label for="{{ form.is_recurring.id_for_label }}" class="ml-2 block text-sm text-gray-900">Is this a recurring task?</label>
+            </div>
+        </div>
+        <div class="mt-8 flex justify-end space-x-4">
+            <a href="{% url 'contracts:legal_task_board' %}" class="bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300">Cancel</a>
+            <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">Save Task</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

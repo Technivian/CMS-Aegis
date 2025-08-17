@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Trademark Request{% else %}New Trademark Request{% endif %}{% endblock %}
+
+{% block page_title %}
+{% if form.instance.pk %}Edit Trademark Request{% else %}New Trademark Request{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="bg-white p-8 rounded-lg shadow-md">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label for="{{ form.region.id_for_label }}" class="block text-sm font-medium text-gray-700">Region</label>
+                {{ form.region }}
+            </div>
+            <div>
+                <label for="{{ form.class_number.id_for_label }}" class="block text-sm font-medium text-gray-700">Class Number(s)</label>
+                {{ form.class_number }}
+            </div>
+             <div>
+                <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700">Status</label>
+                {{ form.status }}
+            </div>
+            <div>
+                <label for="{{ form.renewal_deadline.id_for_label }}" class="block text-sm font-medium text-gray-700">Renewal Deadline</label>
+                {{ form.renewal_deadline }}
+            </div>
+            <div class="md:col-span-2">
+                <label for="{{ form.documents.id_for_label }}" class="block text-sm font-medium text-gray-700">Documents</label>
+                {{ form.documents }}
+            </div>
+        </div>
+        <div class="mt-8 flex justify-end space-x-4">
+            <a href="{% url 'contracts:trademark_request_list' %}" class="bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300">Cancel</a>
+            <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">Save Request</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Database
+db.sqlite3
+
+# Node / Frontend
+/theme/node_modules
+/theme/package-lock.json

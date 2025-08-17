@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Checklist{% else %}New Compliance Checklist{% endif %}{% endblock %}
+
+{% block page_title %}
+{% if form.instance.pk %}Edit Compliance Checklist{% else %}New Compliance Checklist{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="bg-white p-8 rounded-lg shadow-md">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="md:col-span-2">
+                <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700">Checklist Name</label>
+                {{ form.name }}
+            </div>
+            <div class="md:col-span-2">
+                <label for="{{ form.regulation.id_for_label }}" class="block text-sm font-medium text-gray-700">Regulation</label>
+                {{ form.regulation }}
+            </div>
+            <div>
+                <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700">Status</label>
+                {{ form.status }}
+            </div>
+            <div>
+                <label for="{{ form.due_date.id_for_label }}" class="block text-sm font-medium text-gray-700">Due Date</label>
+                {{ form.due_date }}
+            </div>
+            <div>
+                <label for="{{ form.reviewed_by.id_for_label }}" class="block text-sm font-medium text-gray-700">Reviewed By</label>
+                {{ form.reviewed_by }}
+            </div>
+            <div>
+                <label for="{{ form.attachments.id_for_label }}" class="block text-sm font-medium text-gray-700">Attachment (Optional)</label>
+                {{ form.attachments }}
+            </div>
+        </div>
+        <div class="mt-8 flex justify-end space-x-4">
+            <a href="{% url 'contracts:compliance_checklist_list' %}" class="bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300">Cancel</a>
+            <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">Save Checklist</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

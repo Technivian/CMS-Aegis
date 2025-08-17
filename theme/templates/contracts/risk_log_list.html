@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Risk Log{% endblock %}
+
+{% block page_title %}
+Risk Log
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'contracts:risk_log_create' %}" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 shadow-sm">New Risk</a>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-lg">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">Title</th>
+                    <th scope="col" class="px-6 py-3">Risk Level</th>
+                    <th scope="col" class="px-6 py-3">Mitigation Status</th>
+                    <th scope="col" class="px-6 py-3">Owner</th>
+                    <th scope="col" class="px-6 py-3">Linked Contract</th>
+                    <th scope="col" class="px-6 py-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for risk in risk_logs %}
+                    <tr class="bg-white border-b hover:bg-gray-50">
+                        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                            {{ risk.title }}
+                        </th>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 text-xs font-semibold leading-tight rounded-full
+                                {% if risk.risk_level == 'HIGH' %} bg-red-100 text-red-700 {% endif %}
+                                {% if risk.risk_level == 'MEDIUM' %} bg-yellow-100 text-yellow-700 {% endif %}
+                                {% if risk.risk_level == 'LOW' %} bg-green-100 text-green-700 {% endif %}
+                            ">{{ risk.get_risk_level_display }}</span>
+                        </td>
+                        <td class="px-6 py-4">{{ risk.get_mitigation_status_display }}</td>
+                        <td class="px-6 py-4">{{ risk.owner.username|default:"N/A" }}</td>
+                        <td class="px-6 py-4">
+                            {% if risk.linked_contract %}
+                                <a href="{% url 'contracts:contract_detail' risk.linked_contract.pk %}" class="text-blue-600 hover:underline">{{ risk.linked_contract.title }}</a>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <a href="{% url 'contracts:risk_log_update' risk.pk %}" class="font-medium text-blue-600 hover:underline">Edit</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-600">No risks have been logged yet.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

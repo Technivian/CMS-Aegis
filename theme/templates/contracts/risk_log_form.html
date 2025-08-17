@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Risk{% else %}Log New Risk{% endif %}{% endblock %}
+
+{% block page_title %}
+{% if form.instance.pk %}Edit Risk{% else %}Log a New Risk{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="bg-white p-8 rounded-lg shadow-md">
+    <form method="post">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="md:col-span-2">
+                <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700">Title</label>
+                {{ form.title }}
+            </div>
+            <div class="md:col-span-2">
+                <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700">Description</label>
+                {{ form.description }}
+            </div>
+             <div>
+                <label for="{{ form.risk_level.id_for_label }}" class="block text-sm font-medium text-gray-700">Risk Level</label>
+                {{ form.risk_level }}
+            </div>
+            <div>
+                <label for="{{ form.mitigation_status.id_for_label }}" class="block text-sm font-medium text-gray-700">Mitigation Status</label>
+                {{ form.mitigation_status }}
+            </div>
+            <div>
+                <label for="{{ form.owner.id_for_label }}" class="block text-sm font-medium text-gray-700">Owner</label>
+                {{ form.owner }}
+            </div>
+            <div>
+                <label for="{{ form.linked_contract.id_for_label }}" class="block text-sm font-medium text-gray-700">Linked Contract (Optional)</label>
+                {{ form.linked_contract }}
+            </div>
+            <div class="md:col-span-2">
+                <label for="{{ form.mitigation_steps.id_for_label }}" class="block text-sm font-medium text-gray-700">Mitigation Steps</label>
+                {{ form.mitigation_steps }}
+            </div>
+        </div>
+        <div class="mt-8 flex justify-end space-x-4">
+            <a href="{% url 'contracts:risk_log_list' %}" class="bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300">Cancel</a>
+            <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">Save Risk</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

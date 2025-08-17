@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Contract{% else %}New Contract{% endif %}{% endblock %}
+
+{% block page_title %}
+{% if form.instance.pk %}Edit Contract{% else %}New Contract{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="bg-white p-8 rounded-lg shadow-md">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 gap-6">
+            <div>
+                <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700">Title</label>
+                {{ form.title }}
+            </div>
+            <div>
+                <label for="{{ form.counterparty.id_for_label }}" class="block text-sm font-medium text-gray-700">Counterparty</label>
+                {{ form.counterparty }}
+            </div>
+            <div>
+                <label for="{{ form.contract_type.id_for_label }}" class="block text-sm font-medium text-gray-700">Contract Type</label>
+                {{ form.contract_type }}
+            </div>
+            <div>
+                <label for="{{ form.jurisdiction.id_for_label }}" class="block text-sm font-medium text-gray-700">Jurisdiction</label>
+                {{ form.jurisdiction }}
+            </div>
+            <div>
+                <label for="{{ form.value.id_for_label }}" class="block text-sm font-medium text-gray-700">Value</label>
+                {{ form.value }}
+            </div>
+            <div>
+                <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700">Status</label>
+                {{ form.status }}
+            </div>
+            <div>
+                <label for="{{ form.milestone_date.id_for_label }}" class="block text-sm font-medium text-gray-700">Milestone Date</label>
+                {{ form.milestone_date }}
+            </div>
+            <div>
+                <label for="{{ form.tags.id_for_label }}" class="block text-sm font-medium text-gray-700">Tags</label>
+                {{ form.tags }}
+                <p class="text-sm text-gray-500 mt-1">Hold down "Control", or "Command" on a Mac, to select more than one.</p>
+            </div>
+        </div>
+        <div class="mt-8 flex justify-end space-x-4">
+            <a href="{% if form.instance.pk %}{% url 'contracts:contract_detail' form.instance.pk %}{% else %}{% url 'contracts:contract_list' %}{% endif %}" class="bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300">Cancel</a>
+            <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">Save Contract</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
