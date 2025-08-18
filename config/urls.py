@@ -24,6 +24,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('admin/', admin.site.urls),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('profile/', views.profile, name='profile'),
     path('contracts/', include('contracts.urls', namespace='contracts')),
     path('accounts/register/', views.SignUpView.as_view(), name='register'),
     path('accounts/', include('django.contrib.auth.urls')),

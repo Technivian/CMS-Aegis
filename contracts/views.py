@@ -76,6 +76,24 @@ def dashboard(request):
     return render(request, 'dashboard.html', context)
 
 
+@login_required
+def profile(request):
+    # User statistics
+    user_contracts = Contract.objects.filter(created_by=request.user)
+    user_workflows = Workflow.objects.filter(created_by=request.user)
+    user_tasks = LegalTask.objects.filter(assigned_to=request.user)
+    user_risks = RiskLog.objects.filter(owner=request.user)
+
+    context = {
+        'total_contracts': user_contracts.count(),
+        'active_workflows': user_workflows.filter(status='ACTIVE').count(),
+        'pending_tasks': user_tasks.filter(status__in=['TODO', 'IN_PROGRESS']).count(),
+        'high_risk_items': user_risks.filter(risk_level='HIGH').count(),
+        'recent_contracts': user_contracts.order_by('-updated_at')[:5],
+    }
+    return render(request, 'profile.html', context)
+
+
 # --- Contract Views ---
 class ContractListView(LoginRequiredMixin, ListView):
     model = Contract
