@@ -93,6 +93,22 @@
             </div>
             <div class="flex items-center space-x-4">
                 {% if user.is_authenticated %}
+                    <!-- Action Buttons -->
+                    <div class="flex items-center space-x-3">
+                        <a href="{% url 'contracts:contract_create' %}" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-teal-500 flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            <span>New Contract</span>
+                        </a>
+                        <a href="{% url 'contracts:workflow_create' %}" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            <span>Start Workflow</span>
+                        </a>
+                    </div>
+                    <!-- User Menu -->
                     <div class="flex items-center space-x-3">
                         <a href="{% url 'profile' %}" class="flex items-center space-x-2 hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors">
                             <span class="text-sm text-primary-700 font-medium">{{ user.first_name|default:user.username }}</span>
