@@ -6,17 +6,7 @@
 <div class="flex h-screen bg-gray-50">
     <!-- Left Sidebar -->
     <div class="w-80 bg-white border-r border-gray-200 flex flex-col">
-        <!-- Navigation Tabs -->
-        <div class="border-b border-gray-200">
-            <nav class="flex space-x-8 px-6 py-4">
-                <a href="{% url 'dashboard' %}" class="text-teal-600 border-b-2 border-teal-600 pb-2 px-1 text-sm font-medium">Dashboard</a>
-                <a href="{% url 'contracts:contract_list' %}" class="text-gray-500 hover:text-gray-700 pb-2 px-1 text-sm font-medium">Contracts</a>
-                <a href="{% url 'contracts:legal_task_board' %}" class="text-gray-500 hover:text-gray-700 pb-2 px-1 text-sm font-medium">Legal Tasks</a>
-                <a href="{% url 'contracts:risk_log_list' %}" class="text-gray-500 hover:text-gray-700 pb-2 px-1 text-sm font-medium">Risks</a>
-                <a href="{% url 'contracts:compliance_checklist_list' %}" class="text-gray-500 hover:text-gray-700 pb-2 px-1 text-sm font-medium">Compliance</a>
-                <a href="{% url 'contracts:trademark_request_list' %}" class="text-gray-500 hover:text-gray-700 pb-2 px-1 text-sm font-medium">Trademarks</a>
-            </nav>
-        </div>
+        
 
         <!-- Views Section -->
         <div class="p-6 border-b border-gray-200">
@@ -141,6 +131,12 @@
                 <div class="flex items-center space-x-4">
                     <a href="{% url 'contracts:contract_create' %}" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md text-sm font-medium">
                         + New Contract
+                    </a>
+                    <a href="{% url 'contracts:workflow_create' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        <span>Start Workflow</span>
                     </a>
                 </div>
                 <div class="flex items-center space-x-4">

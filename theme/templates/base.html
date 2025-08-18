@@ -147,34 +147,6 @@
             </nav>
         </div>
     </div>
-
-    <!-- Page Header with Breadcrumb and Start Workflow Button -->
-    <div class="bg-white border-b border-gray-200 px-6 py-4">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <h1 class="text-xl font-semibold text-gray-900">
-                    {% if request.resolver_match.url_name == 'dashboard' %}Dashboard
-                    {% elif 'contract' in request.resolver_match.url_name %}Contracts
-                    {% elif 'legal_task' in request.resolver_match.url_name %}Legal Tasks
-                    {% elif 'risk' in request.resolver_match.url_name %}Risks
-                    {% elif 'compliance' in request.resolver_match.url_name %}Compliance
-                    {% elif 'trademark' in request.resolver_match.url_name %}Trademarks
-                    {% elif 'workflow' in request.resolver_match.url_name %}Workflow Designer
-                    {% elif request.resolver_match.url_name == 'repository' %}Repository
-                    {% elif request.resolver_match.url_name == 'profile' %}Profile
-                    {% else %}Bolton CLM{% endif %}
-                </h1>
-            </div>
-            <div class="flex items-center space-x-3">
-                <a href="{% url 'contracts:workflow_create' %}" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                    </svg>
-                    <span>Start Workflow</span>
-                </a>
-            </div>
-        </div>
-    </div>
     {% endif %}
 
     <!-- Main Content -->
