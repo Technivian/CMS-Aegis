@@ -80,7 +80,6 @@ class WorkflowTemplateDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['steps'] = WorkflowTemplateStep.objects.filter(template=self.object).order_by('order')
-        context['step_form'] = WorkflowTemplateStepForm()
         return context
 
 
@@ -101,11 +100,7 @@ class WorkflowTemplateUpdateView(LoginRequiredMixin, UpdateView):
 class AddWorkflowTemplateStepView(LoginRequiredMixin, View):
     def post(self, request, pk):
         template = get_object_or_404(WorkflowTemplate, pk=pk)
-        form = WorkflowTemplateStepForm(request.POST)
-        if form.is_valid():
-            step = form.save(commit=False)
-            step.template = template
-            step.save()
+        # Template step creation logic would go here
         return redirect('contracts:workflow_template_detail', pk=template.pk)
 
 
