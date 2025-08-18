@@ -33,31 +33,34 @@ def index(request):
 
 @login_required
 def dashboard(request):
-    # Contract data
+    # Contract data - show all contracts, not just user's
+    all_contracts = Contract.objects.all()
     user_contracts = Contract.objects.filter(created_by=request.user)
-    status_counts = {item['status']: item['count'] for item in user_contracts.values('status').annotate(count=Count('status'))}
+    status_counts = {item['status']: item['count'] for item in all_contracts.values('status').annotate(count=Count('status'))}
 
     pipeline_stages = [
         ('DRAFT', 'Draft'),
         ('INTERNAL_REVIEW', 'Internal Review'),
         ('NEGOTIATION', 'Negotiation'),
         ('SIGNATURE', 'Signature'),
+        ('EXECUTION', 'Execution'),
+        ('RENEWAL_TERMINATION', 'Renewal/Termination'),
     ]
     pipeline_data = [(display, status_counts.get(key, 0)) for key, display in pipeline_stages]
 
     # Milestone data
-    upcoming_milestones = user_contracts.filter(
+    upcoming_milestones = all_contracts.filter(
         milestone_date__gte=date.today(),
         milestone_date__lte=date.today() + timedelta(days=30)
     ).order_by('milestone_date')
-    overdue_milestones = user_contracts.filter(
+    overdue_milestones = all_contracts.filter(
         milestone_date__lt=date.today()
     ).exclude(
         status__in=[Contract.ContractStatus.RENEWAL_TERMINATION]
     ).order_by('milestone_date')
 
-    # Risk data
-    top_risks = RiskLog.objects.filter(risk_level='HIGH', owner=request.user).order_by('-updated_at')[:3]
+    # Risk data - show all high risks
+    top_risks = RiskLog.objects.filter(risk_level='HIGH').order_by('-updated_at')[:5]
 
     # Compliance data
     upcoming_checklists = ComplianceChecklist.objects.filter(
@@ -65,17 +68,34 @@ def dashboard(request):
         due_date__lte=date.today() + timedelta(days=30)
     ).order_by('due_date')
 
-    # Recent contracts for main view
-    recent_contracts = user_contracts.order_by('-created_at')[:10]
+    # Workflow data
+    try:
+        active_workflows = Workflow.objects.filter(status='ACTIVE').count()
+        pending_tasks = LegalTask.objects.filter(status__in=['TODO', 'IN_PROGRESS']).count()
+    except:
+        active_workflows = 0
+        pending_tasks = 0
+
+    # Trademark data
+    trademark_requests = TrademarkRequest.objects.all().count()
+    pending_trademarks = TrademarkRequest.objects.filter(status__in=['PENDING', 'FILED', 'IN_REVIEW']).count()
+
+    # Recent contracts for main view - show all recent contracts
+    recent_contracts = all_contracts.order_by('-created_at')[:12]
 
     context = {
-        'total_contracts': user_contracts.count(),
+        'total_contracts': all_contracts.count(),
+        'user_contracts_count': user_contracts.count(),
         'pipeline_data': pipeline_data,
         'upcoming_milestones': upcoming_milestones,
         'overdue_milestones': overdue_milestones,
         'top_risks': top_risks,
         'upcoming_checklists': upcoming_checklists,
         'recent_contracts': recent_contracts,
+        'active_workflows': active_workflows,
+        'pending_tasks': pending_tasks,
+        'trademark_requests': trademark_requests,
+        'pending_trademarks': pending_trademarks,
     }
     return render(request, 'dashboard.html', context)
 
