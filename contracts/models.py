@@ -267,7 +267,7 @@ class Workflow(models.Model):
 
     name = models.CharField(max_length=200)
     regulation = models.CharField(max_length=200)
-    status = models.CharField(max_length=20, choices=ComplianceStatus.choices, default=ComplianceStatus.NOT_STARTED)
+    status = models.CharField(max_length=20, choices=ComplianceChecklist.ComplianceStatus.choices, default=ComplianceChecklist.ComplianceStatus.NOT_STARTED)
     reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_checklists')
     due_date = models.DateField(null=True, blank=True)
     attachments = models.FileField(upload_to='compliance_attachments/', blank=True, null=True)
