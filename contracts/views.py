@@ -114,7 +114,7 @@ class ContractUpdateView(LoginRequiredMixin, UpdateView):
     model = Contract
     template_name = 'contracts/contract_form.html'
     fields = ['title', 'counterparty', 'contract_type', 'jurisdiction', 'value', 'status', 'milestone_date', 'tags']
-    success_url = reverse_lazy('contract_list')
+    success_url = reverse_lazy('contracts:contract_list')
 
     def get_queryset(self):
         return Contract.objects.filter(created_by=self.request.user)

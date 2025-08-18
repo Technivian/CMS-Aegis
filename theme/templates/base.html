@@ -12,7 +12,7 @@
                 window.history.back();
             }
         }
-        
+
         function goForward() {
             window.history.forward();
         }
@@ -28,7 +28,7 @@
                         <!-- Bolton logo based on provided image -->
                         <!-- Blue background with architectural element -->
                         <rect x="0" y="8" width="40" height="32" fill="#1e40af" rx="3"/>
-                        
+
                         <!-- White architectural lines -->
                         <g fill="white" stroke="white" stroke-width="0.5">
                             <!-- Vertical columns -->
@@ -38,7 +38,7 @@
                             <rect x="20" y="12" width="2" height="20"/>
                             <rect x="24" y="12" width="2" height="20"/>
                             <rect x="28" y="12" width="2" height="20"/>
-                            
+
                             <!-- Horizontal elements -->
                             <rect x="6" y="14" width="28" height="1"/>
                             <rect x="6" y="18" width="28" height="1"/>
@@ -46,7 +46,7 @@
                             <rect x="6" y="26" width="28" height="1"/>
                             <rect x="6" y="30" width="28" height="1"/>
                         </g>
-                        
+
                         <!-- Large 'B' overlay -->
                         <text x="15" y="30" fill="white" font-family="Arial Black, sans-serif" font-size="16" font-weight="900">B</text>
 
@@ -98,7 +98,7 @@
                 <a href="{% url 'dashboard' %}" class="py-4 px-1 border-b-2 {% if request.resolver_match.url_name == 'dashboard' %}border-primary-600 text-primary-700{% else %}border-transparent text-muted hover:text-primary-700 hover:border-border{% endif %} font-medium text-sm focus:outline-none focus:ring-2 focus:ring-primary rounded-t-xl">
                     Dashboard
                 </a>
-                <a href="{% url 'contract_list' %}" class="py-4 px-1 border-b-2 {% if 'contract' in request.resolver_match.url_name %}border-primary-600 text-primary-700{% else %}border-transparent text-muted hover:text-primary-700 hover:border-border{% endif %} font-medium text-sm focus:outline-none focus:ring-2 focus:ring-primary rounded-t-xl">
+                <a href="{% url 'contracts:contract_list' %}" class="py-4 px-1 border-b-2 {% if 'contract' in request.resolver_match.url_name %}border-primary-600 text-primary-700{% else %}border-transparent text-muted hover:text-primary-700 hover:border-border{% endif %} font-medium text-sm focus:outline-none focus:ring-2 focus:ring-primary rounded-t-xl">
                     Contracts
                 </a>
                 <a href="{% url 'legal_task_board' %}" class="py-4 px-1 border-b-2 {% if 'legal_task' in request.resolver_match.url_name %}border-primary-600 text-primary-700{% else %}border-transparent text-muted hover:text-primary-700 hover:border-border{% endif %} font-medium text-sm focus:outline-none focus:ring-2 focus:ring-primary rounded-t-xl">
