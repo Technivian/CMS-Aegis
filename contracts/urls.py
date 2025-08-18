@@ -8,7 +8,8 @@ from .views import (
     ComplianceChecklistUpdateView, ToggleChecklistItemView, AddChecklistItemView,
     ContractDetailView, ContractCreateView, ContractUpdateView,
     AddNegotiationNoteView, WorkflowDashboardView, WorkflowDetailView,
-    StartWorkflowView, UpdateWorkflowStepView, WorkflowTemplateListView
+    WorkflowCreateView, WorkflowStepUpdateView, WorkflowStepCompleteView,
+    WorkflowTemplateListView
 )
 
 app_name = 'contracts'
@@ -37,12 +38,12 @@ urlpatterns = [
     path('compliance/<int:pk>/toggle-item/<int:item_pk>/', ToggleChecklistItemView.as_view(), name='toggle_checklist_item'),
 
     # Workflow URLs
-    path('workflow-dashboard/', views.WorkflowDashboardView.as_view(), name='workflow_dashboard'),
-    path('workflows/<int:pk>/', views.WorkflowDetailView.as_view(), name='workflow_detail'),
-    path('workflows/create/', views.WorkflowCreateView.as_view(), name='workflow_create'),
-    path('workflows/step/<int:pk>/update/', views.WorkflowStepUpdateView.as_view(), name='update_workflow_step'),
-    path('workflows/step/<int:pk>/complete/', views.WorkflowStepCompleteView.as_view(), name='complete_workflow_step'),
-    path('workflow-templates/', views.WorkflowTemplateListView.as_view(), name='workflow_template_list'),
+    path('workflow-dashboard/', WorkflowDashboardView.as_view(), name='workflow_dashboard'),
+    path('workflows/<int:pk>/', WorkflowDetailView.as_view(), name='workflow_detail'),
+    path('workflows/create/', WorkflowCreateView.as_view(), name='workflow_create'),
+    path('workflows/step/<int:pk>/update/', WorkflowStepUpdateView.as_view(), name='update_workflow_step'),
+    path('workflows/step/<int:pk>/complete/', WorkflowStepCompleteView.as_view(), name='complete_workflow_step'),
+    path('workflow-templates/', WorkflowTemplateListView.as_view(), name='workflow_template_list'),
 
     # Contracts
     path('<int:pk>/', ContractDetailView.as_view(), name='contract_detail'),
