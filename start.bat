@@ -1,5 +1,7 @@
 @echo off
-SETLOCAL
+SETLOCAL ENABLEEXTENSIONS
+SETLOCAL ENABLEDELAYEDEXPANSION
+set ERRLEVEL=0
 
 echo =============================
 echo 🔁 Activating virtual environment...
