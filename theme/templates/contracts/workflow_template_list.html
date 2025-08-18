@@ -56,6 +56,25 @@
                     </a>
                 </div>
             </div>
+        <div class="mt-4">
+                <h4 class="text-sm font-medium text-gray-900 mb-2">Steps:</h4>
+                {% for step in template.template_steps.all|slice:":3" %}
+                    <div class="text-sm text-gray-600">{{ step.order }}. {{ step.get_step_type_display }}</div>
+                {% endfor %}
+                {% if template.template_steps.count > 3 %}
+                    <div class="text-sm text-gray-500">+ {{ template.template_steps.count|add:"-3" }} more</div>
+                {% endif %}
+            </div>
+
+            <div class="flex justify-between items-center mt-4">
+                <span class="text-xs text-gray-500">
+                    Created {{ template.created_at|date:"M d, Y" }}
+                </span>
+                <a href="{% url 'contracts:workflow_create' %}?template={{ template.pk }}" 
+                   class="text-teal-600 hover:text-teal-800 text-sm font-medium">
+                    Use Template
+                </a>
+            </div>
         </div>
         {% empty %}
         <div class="col-span-full text-center py-12">
@@ -68,18 +87,3 @@
     </div>
 </div>
 {% endblock %} %}
-                    <div class="text-sm text-gray-600">{{ step.order }}. {{ step.get_step_type_display }}</div>
-                {% endfor %}
-                {% if template.template_steps.count > 3 %}
-                    <div class="text-sm text-gray-500">+ {{ template.template_steps.count|add:"-3" }} more</div>
-                {% endif %}
-            </div>
-        </div>
-        {% empty %}
-        <div class="col-span-full text-center py-12">
-            <p class="text-gray-500">No workflow templates available.</p>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-{% endblock %}

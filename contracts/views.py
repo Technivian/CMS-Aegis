@@ -6,8 +6,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
 from datetime import date, timedelta
 from django.db.models import Q
+from django.contrib import messages
+from django.core.paginator import Paginator
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
-from .forms import RegistrationForm, NegotiationThreadForm, ChecklistItemForm
+from .forms import RegistrationForm, NegotiationThreadForm, ChecklistItemForm, WorkflowForm, WorkflowTemplateForm
 from .models import (
     Contract, Note, TrademarkRequest, LegalTask, RiskLog, ComplianceChecklist, ChecklistItem,
     Workflow, WorkflowTemplate, WorkflowTemplateStep, WorkflowStep
@@ -82,7 +86,7 @@ def profile(request):
     user_contracts = Contract.objects.filter(created_by=request.user)
     user_tasks = LegalTask.objects.filter(assigned_to=request.user)
     user_risks = RiskLog.objects.filter(owner=request.user)
-    
+
     # Handle workflows safely in case table doesn't exist yet
     try:
         user_workflows = Workflow.objects.filter(created_by=request.user)
@@ -326,15 +330,50 @@ class WorkflowTemplateListView(LoginRequiredMixin, ListView):
         return WorkflowTemplate.objects.filter(is_active=True)
 
 
-class WorkflowTemplateCreateView(LoginRequiredMixin, CreateView):
-    model = WorkflowTemplate
-    template_name = 'contracts/workflow_template_form.html'
-    fields = ['name', 'description', 'contract_type']
-    success_url = reverse_lazy('contracts:workflow_template_list')
+@login_required
+def workflow_create(request):
+    if request.method == 'POST':
+        form = WorkflowForm(request.POST)
+        if form.is_valid():
+            workflow = form.save(commit=False)
+            workflow.created_by = request.user
+            workflow.save()
+            messages.success(request, 'Workflow created successfully!')
+            return redirect('contracts:workflow_dashboard')
+    else:
+        form = WorkflowForm()
+        # Pre-populate template if provided in URL
+        template_id = request.GET.get('template')
+        if template_id:
+            try:
+                template = WorkflowTemplate.objects.get(pk=template_id)
+                form.fields['template'].initial = template
+            except WorkflowTemplate.DoesNotExist:
+                pass
 
-    def form_valid(self, form):
-        form.instance.created_by = self.request.user
-        return super().form_valid(form)
+    return render(request, 'contracts/workflow_form.html', {'form': form})
+
+
+@login_required
+def workflow_template_create(request):
+    if request.method == 'POST':
+        form = WorkflowTemplateForm(request.POST)
+        if form.is_valid():
+            template = form.save(commit=False)
+            template.created_by = request.user
+            template.save()
+            messages.success(request, 'Workflow template created successfully!')
+            return redirect('contracts:workflow_template_list')
+    else:
+        form = WorkflowTemplateForm()
+
+    return render(request, 'contracts/workflow_template_form.html', {'form': form})
+
+
+@login_required
+def workflow_template_list(request):
+    templates = WorkflowTemplate.objects.filter(is_active=True).order_by('-created_at')
+    return render(request, 'contracts/workflow_template_list.html', {'templates': templates})
 
 
 class WorkflowDetailView(LoginRequiredMixin, DetailView):
@@ -342,6 +381,13 @@ class WorkflowDetailView(LoginRequiredMixin, DetailView):
     template_name = 'contracts/workflow_detail.html'
     context_object_name = 'workflow'
 
+    def get_queryset(self):
+        return Workflow.objects.filter(created_by=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['workflow_steps'] = self.object.workflow_steps.order_by('order')
+        return context
 
 
 class RepositoryView(LoginRequiredMixin, TemplateView):
@@ -349,16 +395,16 @@ class RepositoryView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
+
         # Get all contracts for the user
         user_contracts = Contract.objects.filter(created_by=self.request.user)
-        
+
         # Apply filters
         status_filter = self.request.GET.get('status')
         contract_type_filter = self.request.GET.get('contract_type')
         search_query = self.request.GET.get('search')
         view_filter = self.request.GET.get('view')
-        
+
         # Handle special saved views
         if view_filter == 'japan_uk_deals':
             # Example: filter for specific jurisdictions
@@ -366,24 +412,24 @@ class RepositoryView(LoginRequiredMixin, TemplateView):
                 jurisdiction__in=['JP', 'UK'],
                 status__in=['NEGOTIATION', 'SIGNATURE', 'EXECUTION']
             )
-        
+
         if status_filter:
             user_contracts = user_contracts.filter(status=status_filter)
         if contract_type_filter:
             user_contracts = user_contracts.filter(contract_type=contract_type_filter)
         if search_query:
             user_contracts = user_contracts.filter(
-                Q(title__icontains=search_query) | 
+                Q(title__icontains=search_query) |
                 Q(counterparty__icontains=search_query)
             )
-        
+
         # Order by creation date
         user_contracts = user_contracts.order_by('-created_at')
-        
+
         # Get filter counts
         status_counts = Contract.objects.filter(created_by=self.request.user).values('status').annotate(count=Count('status'))
         type_counts = Contract.objects.filter(created_by=self.request.user).values('contract_type').annotate(count=Count('contract_type'))
-        
+
         context.update({
             'contracts': user_contracts,
             'total_contracts': Contract.objects.filter(created_by=self.request.user).count(),
@@ -395,15 +441,7 @@ class RepositoryView(LoginRequiredMixin, TemplateView):
             'contract_statuses': Contract.ContractStatus.choices,
             'contract_types': Contract.ContractType.choices,
         })
-        
-        return context
 
-    def get_queryset(self):
-        return Workflow.objects.filter(created_by=self.request.user)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['workflow_steps'] = self.object.workflow_steps.order_by('order')
         return context
 
 
@@ -416,7 +454,7 @@ class WorkflowCreateView(LoginRequiredMixin, CreateView):
     def get_initial(self):
         initial = super().get_initial()
         template_type = self.request.GET.get('template')
-        
+
         # Pre-select template based on URL parameter
         if template_type:
             template_mapping = {
@@ -434,13 +472,13 @@ class WorkflowCreateView(LoginRequiredMixin, CreateView):
                     initial['name'] = f"New {template_name} Workflow"
                 except WorkflowTemplate.DoesNotExist:
                     pass
-        
+
         return initial
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         workflow = form.save()
-        
+
         # If a template is selected, create workflow steps from template
         if workflow.template:
             for template_step in workflow.template.template_steps.all():
@@ -456,9 +494,9 @@ class WorkflowCreateView(LoginRequiredMixin, CreateView):
             if first_step:
                 workflow.current_step = first_step
                 workflow.save()
-        
+
         return redirect(self.success_url)
-    
+
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         # Filter contracts to only show user's contracts that don't already have workflows
@@ -477,7 +515,7 @@ class WorkflowStepUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         return WorkflowStep.objects.filter(workflow__created_by=self.request.user)
-    
+
     def get_success_url(self):
         return reverse_lazy('contracts:workflow_detail', kwargs={'pk': self.object.workflow.pk})
 
