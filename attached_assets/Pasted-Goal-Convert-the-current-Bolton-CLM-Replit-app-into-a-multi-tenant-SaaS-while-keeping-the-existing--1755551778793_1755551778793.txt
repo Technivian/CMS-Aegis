@@ -1,0 +1,150 @@
+Goal: Convert the current Bolton CLM Replit app into a multi-tenant SaaS while keeping the existing UI/UX and styles untouched. Add a backend API, orgs/roles, auth, billing, storage, and tests. Do not remove or rename current components or routes.
+
+0) Guardrails
+
+Keep all current front-end files and tokens.
+
+Put new code in a monorepo layout:
+
+/apps/web     (existing React + Tailwind app)
+/apps/api     (Fastify/Node API)
+/packages/ui  (shared Button/Chip/Badge already themed)
+/packages/types (shared TS types)
+
+
+Add feature flags in packages/types/config.ts:
+
+export const SAAS_MODE = true;            // enable SaaS features
+export const TEST_MODE = true;            // safe mocks for e2e
+
+1) Auth (organizations + users)
+
+Use Clerk (or Auth0 if you prefer) for hosted auth. Add orgs/teams feature.
+
+Front end: OrganizationSwitcher, UserButton, and guards (SignedIn, SignedOut).
+
+API: verify Clerk JWT middleware, extract orgId and userId from claims on every request.
+
+2) Database (Postgres + Prisma)
+
+Use Neon (or Supabase) Postgres; add Prisma with the schema below.
+
+Every business table carries tenantId (the org). Add a compound unique index where needed.
+
+model Organization { id String @id @default(cuid()) name String users OrganizationUser[] createdAt DateTime @default(now()) }
+model OrganizationUser { id String @id @default(cuid()) userId String tenantId String role Role @default(VIEWER) @@index([tenantId, userId]) }
+enum Role { VIEWER EDITOR ADMIN }
+
+model Contract { id String @id @default(cuid()) tenantId String title String counterparty String? status String @default("DRAFT") hint String? updatedAt DateTime @updatedAt createdAt DateTime @default(now()) }
+model Template { id String @id @default(cuid()) tenantId String name String body Json? tags String[] @default([]) }
+model Clause { id String @id @default(cuid()) tenantId String title String body String tags String[] @default([]) }
+model Obligation { id String @id @default(cuid()) tenantId String title String dueAt DateTime ownerId String? status String @default("OPEN") }
+model AuditLog { id String @id @default(cuid()) tenantId String actorId String action String target String meta Json? createdAt DateTime @default(now()) }
+model FileObject { id String @id @default(cuid()) tenantId String name String url String size Int contentType String createdAt DateTime @default(now()) }
+
+
+Add a Prisma middleware that automatically injects tenantId in writes and scopes reads by tenantId from the JWT; throw if missing.
+
+3) API (Fastify)
+
+Endpoints: /contracts, /templates, /clauses, /obligations, /files, /me.
+
+All routes use auth middleware and the Prisma multi-tenant guard.
+
+Bulk endpoints: POST /contracts/bulk-update, GET /contracts/export.csv.
+
+Emit AuditLog entries on create/update/delete.
+
+Pagination, search (q), filter params (status/type/people/date), and sorting.
+
+Return shapes that match the existing front-end types; DO NOT break the UI.
+
+4) Billing (Stripe)
+
+Stripe Billing in test mode. On first login for an org, create a Customer and Stripe Portal link.
+
+Plans:
+
+Starter (free): 3 users, 100 contracts, attachments up to 50 MB total.
+
+Pro ($49/mo): 50 users, 10k contracts, 50 GB storage.
+
+Enterprise (contact).
+
+Add a subscriptions table or store subscription state in Organization via Stripe webhooks:
+
+customer.subscription.created|updated|deleted → update entitlements.
+
+Add entitlement checks middleware: block over-limit actions with a 402-style error the UI can show (“upgrade” CTA).
+
+5) Storage
+
+Use S3-compatible storage (Cloudflare R2 or B2). Signed upload/download URLs via API.
+
+All objects are namespaced by tenantId/.
+
+6) Front-end wiring (non-breaking)
+
+Keep the current Bolton theme and pages.
+
+Create a services/ layer in /apps/web that calls the API and preserves the existing shapes already used by the repository page.
+
+Add Org switcher to the top bar; Billing/Plan to settings.
+
+Show a small usage meter in the sidebar (contracts used / plan limit).
+
+7) RBAC & invites
+
+Invite flow: org admins can invite users by email, set role {viewer, editor, admin}.
+
+UI disables bulk actions for non-editors; server double-checks roles.
+
+8) Observability & jobs
+
+Add pino logging, request IDs, and a simple queue using Bree or BullMQ (with Upstash Redis) for async tasks (CSV export, reminders).
+
+Cron job for obligation reminders (daily) that writes to AuditLog.
+
+9) Tests & scripts
+
+Vitest + RTL on the web app: repository flows, drawer deep-link, wizard, invites, plan gating.
+
+API tests with Vitest + supertest for auth/tenant scoping and Stripe webhook signature verification (use test helper).
+
+Playwright e2e (TEST_MODE=true): sign in → create org → create contract → bulk update → export CSV → create template → insert clause → upload file → create obligation → see reminder on dashboard.
+
+npm scripts:
+
+"dev": "turbo run dev", "build": "turbo run build",
+
+"test": "turbo run test", "e2e": "playwright test",
+
+"db:push": "prisma migrate dev".
+
+10) Env & README
+
+Add .env.example with:
+
+DATABASE_URL=
+CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+S3_ENDPOINT=  S3_REGION=  S3_ACCESS_KEY_ID=  S3_SECRET_ACCESS_KEY=  S3_BUCKET=
+
+
+Write a README with local dev steps, how to run migrations, seed data, start API+web together, and how to switch TEST_MODE off.
+
+11) Acceptance
+
+Existing UI renders unchanged (Bolton theme).
+
+Multi-tenant auth works (org switcher + org-scoped data).
+
+Stripe test checkout & portal work; plan limits enforced.
+
+File uploads work via signed URLs.
+
+All tests green (vitest + playwright).
+
+Provide seed data to demo the app and a short GIF walkthrough.

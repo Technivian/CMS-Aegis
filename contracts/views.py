@@ -34,6 +34,58 @@ class ContractListView(LoginRequiredMixin, ListView):
     context_object_name = 'contracts'
     paginate_by = 25
 
+class WorkflowDetailView(LoginRequiredMixin, DetailView):
+    model = Workflow
+    template_name = 'contracts/workflow_detail.html'
+    context_object_name = 'workflow'
+
+class WorkflowCreateView(LoginRequiredMixin, CreateView):
+    model = Workflow
+    form_class = WorkflowForm
+    template_name = 'contracts/workflow_form.html'
+    success_url = reverse_lazy('contracts:workflow_dashboard')
+
+class WorkflowTemplateListView(LoginRequiredMixin, ListView):
+    model = WorkflowTemplate
+    template_name = 'contracts/workflow_template_list.html'
+    context_object_name = 'workflow_templates'
+
+class WorkflowTemplateCreateView(LoginRequiredMixin, CreateView):
+    model = WorkflowTemplate
+    form_class = WorkflowTemplateForm
+    template_name = 'contracts/workflow_template_form.html'
+    success_url = reverse_lazy('contracts:workflow_template_list')
+
+class ComplianceChecklistUpdateView(LoginRequiredMixin, UpdateView):
+    model = ComplianceChecklist
+    form_class = ComplianceChecklistForm
+    template_name = 'contracts/compliance_checklist_form.html'
+    success_url = reverse_lazy('contracts:compliance_checklist_list')
+
+class ToggleChecklistItemView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        item = get_object_or_404(ChecklistItem, pk=pk)
+        item.is_completed = not item.is_completed
+        item.save()
+        return redirect('contracts:compliance_checklist_detail', pk=item.checklist.pk)
+
+class AddChecklistItemView(LoginRequiredMixin, CreateView):
+    model = ChecklistItem
+    form_class = ChecklistItemForm
+    template_name = 'contracts/checklist_item_form.html'
+    
+    def form_valid(self, form):
+        form.instance.checklist_id = self.kwargs['checklist_pk']
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('contracts:compliance_checklist_detail', kwargs={'pk': self.kwargs['checklist_pk']})
+
+class RepositoryView(LoginRequiredMixin, ListView):
+    model = Contract
+    template_name = 'contracts/repository.html'
+    context_object_name = 'contracts'
+
 class ContractDetailView(LoginRequiredMixin, DetailView):
     model = Contract
     template_name = 'contracts/contract_detail.html'
@@ -339,6 +391,94 @@ class DueDiligenceCreateView(LoginRequiredMixin, CreateView):
     form_class = DueDiligenceProcessForm
     template_name = 'contracts/due_diligence_form.html'
     success_url = reverse_lazy('contracts:due_diligence_list')
+
+class DueDiligenceDetailView(LoginRequiredMixin, DetailView):
+    model = DueDiligenceProcess
+    template_name = 'contracts/due_diligence_detail.html'
+    context_object_name = 'process'
+
+class DueDiligenceUpdateView(LoginRequiredMixin, UpdateView):
+    model = DueDiligenceProcess
+    form_class = DueDiligenceProcessForm
+    template_name = 'contracts/due_diligence_form.html'
+    success_url = reverse_lazy('contracts:due_diligence_list')
+
+class AddDueDiligenceItemView(LoginRequiredMixin, CreateView):
+    model = DueDiligenceTask
+    form_class = DueDiligenceTaskForm
+    template_name = 'contracts/dd_task_form.html'
+    
+    def form_valid(self, form):
+        form.instance.process_id = self.kwargs['process_pk']
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('contracts:due_diligence_detail', kwargs={'pk': self.kwargs['process_pk']})
+
+class AddDueDiligenceRiskView(LoginRequiredMixin, CreateView):
+    model = DueDiligenceRisk
+    form_class = DueDiligenceRiskForm
+    template_name = 'contracts/dd_risk_form.html'
+    
+    def form_valid(self, form):
+        form.instance.process_id = self.kwargs['process_pk']
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('contracts:due_diligence_detail', kwargs={'pk': self.kwargs['process_pk']})
+
+class BudgetListView(LoginRequiredMixin, ListView):
+    model = Budget
+    template_name = 'contracts/budget_list.html'
+    context_object_name = 'budgets'
+
+class BudgetCreateView(LoginRequiredMixin, CreateView):
+    model = Budget
+    form_class = BudgetForm
+    template_name = 'contracts/budget_form.html'
+    success_url = reverse_lazy('contracts:budget_list')
+
+class BudgetDetailView(LoginRequiredMixin, DetailView):
+    model = Budget
+    template_name = 'contracts/budget_detail.html'
+    context_object_name = 'budget'
+
+class BudgetUpdateView(LoginRequiredMixin, UpdateView):
+    model = Budget
+    form_class = BudgetForm
+    template_name = 'contracts/budget_form.html'
+    success_url = reverse_lazy('contracts:budget_list')
+
+class AddExpenseView(LoginRequiredMixin, CreateView):
+    model = BudgetExpense
+    form_class = BudgetExpenseForm
+    template_name = 'contracts/expense_form.html'
+    
+    def form_valid(self, form):
+        form.instance.budget_id = self.kwargs['budget_pk']
+        form.instance.created_by = self.request.user
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('contracts:budget_detail', kwargs={'pk': self.kwargs['budget_pk']})
+
+def workflow_create(request):
+    return redirect('contracts:workflow_dashboard')
+
+def workflow_template_create(request):
+    return redirect('contracts:workflow_template_list')
+
+def workflow_template_list(request):
+    return redirect('contracts:workflow_template_list')
+
+def toggle_dd_item(request, pk):
+    task = get_object_or_404(DueDiligenceTask, pk=pk)
+    if task.status == 'COMPLETED':
+        task.status = 'PENDING'
+    else:
+        task.status = 'COMPLETED'
+    task.save()
+    return redirect('contracts:due_diligence_detail', pk=task.process.pk)
 
 class DueDiligenceDetailView(LoginRequiredMixin, DetailView):
     model = DueDiligenceProcess
