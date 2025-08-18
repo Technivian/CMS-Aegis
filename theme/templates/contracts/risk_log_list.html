@@ -7,11 +7,34 @@ Risk Log
 {% endblock %}
 
 {% block page_actions %}
-<a href="{% url 'contracts:risk_log_create' %}" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 shadow-sm">New Risk</a>
+<a href="{% url 'contracts:risk_log_create' %}" class="btn-primary shadow-sm">New Risk</a>
 {% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-lg shadow-lg">
+<div class="space-y-6">
+    <!-- Search and Filters -->
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Search risks..." class="input-field w-full">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Risk Level</label>
+                <select name="risk_level" class="input-field w-full">
+                    <option value="">All Levels</option>
+                    <option value="HIGH" {% if request.GET.risk_level == 'HIGH' %}selected{% endif %}>High</option>
+                    <option value="MEDIUM" {% if request.GET.risk_level == 'MEDIUM' %}selected{% endif %}>Medium</option>
+                    <option value="LOW" {% if request.GET.risk_level == 'LOW' %}selected{% endif %}>Low</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="btn-primary w-full">Apply Filters</button>
+            </div>
+        </form>
+    </div>
+
+<div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
     <div class="overflow-x-auto">
         <table class="w-full text-sm text-left text-gray-500">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50">
@@ -58,5 +81,6 @@ Risk Log
             </tbody>
         </table>
     </div>
+</div>
 </div>
 {% endblock %}

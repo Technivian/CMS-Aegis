@@ -187,7 +187,21 @@ class TrademarkRequestListView(LoginRequiredMixin, ListView):
     context_object_name = 'trademark_requests'
 
     def get_queryset(self):
-        return TrademarkRequest.objects.filter(owner=self.request.user)
+        queryset = TrademarkRequest.objects.all()
+        
+        search_query = self.request.GET.get('search')
+        status = self.request.GET.get('status')
+        
+        if search_query:
+            queryset = queryset.filter(
+                Q(region__icontains=search_query) |
+                Q(class_number__icontains=search_query)
+            )
+        
+        if status:
+            queryset = queryset.filter(status=status)
+            
+        return queryset.order_by('-request_date')
 
 
 class TrademarkRequestDetailView(LoginRequiredMixin, DetailView):
@@ -261,7 +275,21 @@ class RiskLogListView(LoginRequiredMixin, ListView):
     context_object_name = 'risk_logs'
 
     def get_queryset(self):
-        return RiskLog.objects.all()
+        queryset = RiskLog.objects.all()
+        
+        search_query = self.request.GET.get('search')
+        risk_level = self.request.GET.get('risk_level')
+        
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(description__icontains=search_query)
+            )
+        
+        if risk_level:
+            queryset = queryset.filter(risk_level=risk_level)
+            
+        return queryset.order_by('-created_at')
 
 
 class RiskLogCreateView(LoginRequiredMixin, CreateView):
@@ -283,6 +311,23 @@ class ComplianceChecklistListView(LoginRequiredMixin, ListView):
     model = ComplianceChecklist
     template_name = 'contracts/compliance_checklist_list.html'
     context_object_name = 'checklists'
+
+    def get_queryset(self):
+        queryset = ComplianceChecklist.objects.all()
+        
+        search_query = self.request.GET.get('search')
+        status = self.request.GET.get('status')
+        
+        if search_query:
+            queryset = queryset.filter(
+                Q(name__icontains=search_query) |
+                Q(regulation__icontains=search_query)
+            )
+        
+        if status:
+            queryset = queryset.filter(status=status)
+            
+        return queryset.order_by('-created_at')
 
 
 class ComplianceChecklistDetailView(LoginRequiredMixin, DetailView):
@@ -334,10 +379,33 @@ class WorkflowDashboardView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_workflows = Workflow.objects.filter(created_by=self.request.user)
-        context['workflows'] = user_workflows
-        context['active_workflows'] = user_workflows.filter(status='ACTIVE')
-        context['workflow_templates'] = WorkflowTemplate.objects.filter(created_by=self.request.user)
+        
+        # Get all workflows, not just user's
+        workflows = Workflow.objects.all()
+        
+        # Apply filters
+        search_query = self.request.GET.get('search')
+        status_filter = self.request.GET.get('status')
+        contract_type_filter = self.request.GET.get('contract_type')
+        
+        if search_query:
+            workflows = workflows.filter(
+                Q(name__icontains=search_query) |
+                Q(contract__title__icontains=search_query) |
+                Q(contract__counterparty__icontains=search_query)
+            )
+        
+        if status_filter:
+            workflows = workflows.filter(status=status_filter)
+            
+        if contract_type_filter:
+            workflows = workflows.filter(contract__contract_type=contract_type_filter)
+        
+        workflows = workflows.order_by('-started_at')
+        
+        context['workflows'] = workflows
+        context['active_workflows'] = workflows.filter(status='ACTIVE')
+        context['workflow_templates'] = WorkflowTemplate.objects.filter(is_active=True)
         return context
 
 

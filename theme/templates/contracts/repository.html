@@ -1,185 +1,152 @@
-
 {% extends 'base.html' %}
 
 {% block title %}Repository{% endblock %}
 
+{% block page_title %}
+Contract Repository
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'contracts:contract_create' %}" class="btn-primary shadow-sm">New Contract</a>
+{% endblock %}
+
 {% block content %}
-<div class="flex h-screen bg-gray-50">
-    <!-- Left Sidebar -->
-    <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <!-- Views Section -->
-        <div class="p-4 border-b border-gray-200">
-            <h3 class="text-sm font-medium text-gray-900 mb-3">VIEWS</h3>
-            <div class="space-y-1">
-                <a href="{% url 'contracts:repository' %}" class="flex items-center justify-between px-3 py-2 text-sm bg-blue-50 text-blue-700 rounded-md">
-                    <div class="flex items-center">
-                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                        <span>Active (21) whenever Agreements</span>
-                    </div>
-                </a>
-                <a href="{% url 'contracts:repository' %}" class="flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
-                    <div class="flex items-center">
-                        <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                        <span>NDA Releases</span>
-                    </div>
-                </a>
+<div class="space-y-6">
+    <!-- Search and Filters -->
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Search contracts..." class="input-field w-full">
             </div>
-        </div>
-
-        <!-- Filters Section -->
-        <div class="p-4 border-b border-gray-200">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-medium text-gray-900">Filters</h3>
-                <a href="{% url 'contracts:repository' %}" class="text-sm text-blue-600 hover:text-blue-700">Reset</a>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <select name="status" class="input-field w-full">
+                    <option value="">All Statuses</option>
+                    {% for value, label in contract_statuses %}
+                        <option value="{{ value }}" {% if current_status_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            
-            <form method="get" id="filter-form">
-                <!-- Record type filter -->
-                <div class="mb-4">
-                    <label class="block text-xs font-medium text-gray-700 mb-2">Record type</label>
-                    <select class="w-full text-sm border border-gray-300 rounded-md px-3 py-2" name="contract_type" onchange="document.getElementById('filter-form').submit();">
-                        <option value="">All Types</option>
-                        {% for type_key, type_display in contract_types %}
-                        <option value="{{ type_key }}" {% if current_type_filter == type_key %}selected{% endif %}>
-                            {{ type_display }} ({{ type_counts.type_key|default:0 }})
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- Document text filter -->
-                <div class="mb-4">
-                    <label class="block text-xs font-medium text-gray-700 mb-2">Document text</label>
-                    <input type="text" placeholder="Add keyword search" class="w-full text-sm border border-gray-300 rounded-md px-3 py-2" name="search" value="{{ search_query|default:'' }}" onchange="document.getElementById('filter-form').submit();">
-                </div>
-
-                <!-- Agreement Status -->
-                <div class="mb-4">
-                    <label class="block text-xs font-medium text-gray-700 mb-2">Agreement Status</label>
-                    <div class="space-y-2">
-                        {% for status_key, status_display in contract_statuses %}
-                        <label class="flex items-center">
-                            <input type="radio" name="status" class="text-blue-600 mr-2" value="{{ status_key }}" {% if current_status_filter == status_key %}checked{% endif %} onchange="document.getElementById('filter-form').submit();">
-                            <span class="text-sm text-gray-700">{{ status_display }} ({{ status_counts.status_key|default:0 }})</span>
-                        </label>
-                        {% endfor %}
-                    </div>
-                </div>
-            </form>
-
-            <!-- Agreement Expiration Date -->
-            <div class="mb-4">
-                <label class="block text-xs font-medium text-gray-700 mb-2">Agreement Expiration Date</label>
-                <div class="space-y-2">
-                    <label class="flex items-center">
-                        <input type="radio" name="expiration" class="text-blue-600 mr-2" value="yes">
-                        <span class="text-sm text-gray-700">Yes</span>
-                    </label>
-                    <label class="flex items-center">
-                        <input type="radio" name="expiration" class="text-blue-600 mr-2" value="no">
-                        <span class="text-sm text-gray-700">No</span>
-                    </label>
-                </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                <select name="contract_type" class="input-field w-full">
+                    <option value="">All Types</option>
+                    {% for value, label in contract_types %}
+                        <option value="{{ value }}" {% if current_type_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
             </div>
+            <div class="flex items-end">
+                <button type="submit" class="btn-primary w-full">Apply Filters</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Saved Views -->
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <div class="flex items-center space-x-4">
+            <span class="text-sm font-medium text-gray-700">Saved Views:</span>
+            <a href="{% url 'contracts:repository' %}?view=japan_uk_deals" class="chip chip-inactive text-sm">Japan/UK Deals</a>
+            <a href="{% url 'contracts:repository' %}?status=NEGOTIATION" class="chip chip-inactive text-sm">In Negotiation</a>
+            <a href="{% url 'contracts:repository' %}?status=SIGNATURE" class="chip chip-inactive text-sm">Pending Signature</a>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col">
-        <!-- Header -->
-        <div class="bg-white border-b border-gray-200 px-6 py-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <h1 class="text-xl font-semibold text-gray-900">Repository</h1>
-                    <div class="flex items-center space-x-2">
-                        <button class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-                            <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
-                            </svg>
-                            Columns
-                        </button>
-                        <button class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">Export</button>
-                        <button class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">Create Scheduled Reminder</button>
-                    </div>
-                </div>
-                <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                    <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                    </svg>
-                    Upload Records
-                </button>
-            </div>
-        </div>
-
-        <!-- Search Bar -->
-        <div class="bg-white border-b border-gray-200 px-6 py-3">
-            <form method="get" class="flex items-center">
-                <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-                <input type="text" name="search" placeholder="Search records" class="flex-1 border-0 focus:ring-0 text-sm" value="{{ search_query|default:'' }}">
-                <button type="submit" class="ml-2 px-3 py-1 bg-blue-600 text-white rounded-md text-sm">Search</button>
-            </form>
-        </div>
-
-        <!-- Table -->
-        <div class="flex-1 overflow-auto bg-white">
-            <table class="w-full text-sm">
-                <thead class="bg-gray-50 border-b border-gray-200 sticky top-0">
+    <!-- Contracts Table -->
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Record Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Counterparty Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Record Type</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agreement Date</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Region</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Redlined</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Projected Spend</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Terms</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Including Data</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contract</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Counterparty</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200">
+                <tbody class="bg-white divide-y divide-gray-200">
                     {% for contract in contracts %}
                     <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">
-                            <a href="{% url 'contracts:contract_detail' contract.pk %}" class="text-blue-600 hover:text-blue-800 font-medium">
-                                {{ contract.title }}
-                            </a>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">{{ contract.title }}</div>
+                                <div class="text-sm text-gray-500">Created {{ contract.created_at|date:"M d, Y" }}</div>
+                            </div>
                         </td>
-                        <td class="px-6 py-4 text-gray-900">{{ contract.counterparty }}</td>
-                        <td class="px-6 py-4 text-gray-900">{{ contract.get_contract_type_display }}</td>
-                        <td class="px-6 py-4 text-gray-900">{{ contract.created_at|date:"F j, Y" }}</td>
-                        <td class="px-6 py-4 text-gray-900">{{ contract.get_jurisdiction_display }}</td>
-                        <td class="px-6 py-4">
-                            {% if contract.status == 'NEGOTIATION' %}
-                                <span class="text-green-600">Yes</span>
-                            {% else %}
-                                <span class="text-gray-400">No</span>
-                            {% endif %}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ contract.counterparty }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ contract.get_contract_type_display }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if contract.status == 'DRAFT' %}bg-gray-100 text-gray-800
+                                {% elif contract.status == 'INTERNAL_REVIEW' %}bg-yellow-100 text-yellow-800
+                                {% elif contract.status == 'NEGOTIATION' %}bg-blue-100 text-blue-800
+                                {% elif contract.status == 'SIGNATURE' %}bg-purple-100 text-purple-800
+                                {% elif contract.status == 'EXECUTION' %}bg-green-100 text-green-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ contract.get_status_display }}
+                            </span>
                         </td>
-                        <td class="px-6 py-4 text-gray-900">
-                            {% if contract.value %}
-                                ${{ contract.value|floatformat:2 }}
-                            {% else %}
-                                -
-                            {% endif %}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {% if contract.value %}${{ contract.value|floatformat:2 }}{% else %}—{% endif %}
                         </td>
-                        <td class="px-6 py-4 text-gray-900">Net 30</td>
-                        <td class="px-6 py-4 text-gray-900">-</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ contract.updated_at|date:"M d, Y" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex space-x-2">
+                                <a href="{% url 'contracts:contract_detail' contract.pk %}" class="text-blue-600 hover:text-blue-900">View</a>
+                                <a href="{% url 'contracts:contract_update' contract.pk %}" class="text-blue-600 hover:text-blue-900">Edit</a>
+                            </div>
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="9" class="px-6 py-8 text-center text-gray-500">
-                            No contracts found. <a href="{% url 'contracts:contract_create' %}" class="text-blue-600 hover:text-blue-800">Create your first contract</a>
+                        <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                            No contracts found. <a href="{% url 'contracts:contract_create' %}" class="text-blue-600 hover:text-blue-800">Create your first contract</a>.
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="text-sm font-medium text-gray-500">Total Contracts</div>
+            <div class="text-2xl font-bold text-gray-900">{{ total_contracts }}</div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="text-sm font-medium text-gray-500">By Status</div>
+            <div class="mt-2 space-y-1">
+                {% for status, count in status_counts.items %}
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">{{ status }}</span>
+                    <span class="font-medium">{{ count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="text-sm font-medium text-gray-500">By Type</div>
+            <div class="mt-2 space-y-1">
+                {% for type, count in type_counts.items %}
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">{{ type }}</span>
+                    <span class="font-medium">{{ count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="text-sm font-medium text-gray-500">Quick Actions</div>
+            <div class="mt-2 space-y-2">
+                <a href="{% url 'contracts:contract_create' %}" class="block text-sm text-blue-600 hover:text-blue-800">New Contract</a>
+                <a href="{% url 'contracts:workflow_create' %}" class="block text-sm text-blue-600 hover:text-blue-800">Start Workflow</a>
+            </div>
         </div>
     </div>
 </div>

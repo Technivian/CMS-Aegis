@@ -13,3 +13,29 @@
         <a href="{% url 'contracts:legal_task_update' task.pk %}" class="font-medium text-blue-600 hover:underline">Edit</a>
     </div>
 </div>
+<div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+    <div class="flex items-start justify-between mb-2">
+        <h4 class="font-medium text-gray-900 text-sm">{{ task.title }}</h4>
+        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+            {% if task.priority == 'HIGH' %}bg-red-100 text-red-700
+            {% elif task.priority == 'MEDIUM' %}bg-yellow-100 text-yellow-700
+            {% else %}bg-green-100 text-green-700{% endif %}">
+            {{ task.get_priority_display }}
+        </span>
+    </div>
+    {% if task.subject %}
+    <p class="text-sm text-gray-600 mb-3">{{ task.subject|truncatewords:15 }}</p>
+    {% endif %}
+    <div class="flex items-center justify-between text-xs text-gray-500">
+        <span>{{ task.assigned_to.username|default:"Unassigned" }}</span>
+        {% if task.due_date %}
+        <span class="{% if task.due_date < today %}text-red-600{% endif %}">Due {{ task.due_date|date:"M d" }}</span>
+        {% endif %}
+    </div>
+    <div class="mt-3 flex space-x-2">
+        <a href="{% url 'contracts:legal_task_update' task.pk %}" class="text-blue-600 hover:text-blue-800 text-xs">Edit</a>
+        {% if task.status != 'DONE' %}
+        <button onclick="updateTaskStatus({{ task.id }}, 'DONE')" class="text-green-600 hover:text-green-800 text-xs">Complete</button>
+        {% endif %}
+    </div>
+</div>

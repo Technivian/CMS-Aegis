@@ -11,18 +11,112 @@ Legal Task Board
 {% endblock %}
 
 {% block content %}
-<div class="flex space-x-4 overflow-x-auto p-2">
-    {% for status_display, tasks in tasks_by_status %}
+<div class="space-y-6">
+    <!-- Filters -->
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <div class="flex items-center space-x-4">
+            <span class="text-sm font-medium text-gray-700">Filter by:</span>
+            <select id="priority-filter" class="chip chip-inactive text-sm">
+                <option value="">All Priorities</option>
+                <option value="HIGH">High</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="LOW">Low</option>
+            </select>
+            <input type="text" id="task-search" placeholder="Search tasks..." class="input-field w-64 text-sm">
+        </div>
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="flex space-x-4 overflow-x-auto p-2">
+        {% for status_display, tasks in tasks_by_status %}
         <div class="w-80 bg-gray-100 rounded-lg p-4 flex-shrink-0">
-            <h3 class="font-bold text-lg mb-4 text-gray-700">{{ status_display }}</h3>
-            <div class="space-y-4">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-lg text-gray-700">{{ status_display }}</h3>
+                <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full">{{ tasks|length }}</span>
+            </div>
+            <div class="space-y-3" data-status="{{ tasks.0.status }}">
                 {% for task in tasks %}
-                    {% include "contracts/_task_card.html" with task=task %}
+                <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer" data-task-id="{{ task.id }}" data-priority="{{ task.priority }}">
+                    <div class="flex items-start justify-between mb-2">
+                        <h4 class="font-medium text-gray-900 text-sm">{{ task.title }}</h4>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                            {% if task.priority == 'HIGH' %}bg-red-100 text-red-700
+                            {% elif task.priority == 'MEDIUM' %}bg-yellow-100 text-yellow-700
+                            {% else %}bg-green-100 text-green-700{% endif %}">
+                            {{ task.get_priority_display }}
+                        </span>
+                    </div>
+                    {% if task.subject %}
+                    <p class="text-sm text-gray-600 mb-3">{{ task.subject|truncatewords:15 }}</p>
+                    {% endif %}
+                    <div class="flex items-center justify-between text-xs text-gray-500">
+                        <span>{{ task.assigned_to.username|default:"Unassigned" }}</span>
+                        {% if task.due_date %}
+                        <span class="{% if task.due_date < today %}text-red-600{% endif %}">Due {{ task.due_date|date:"M d" }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="mt-3 flex space-x-2">
+                        <a href="{% url 'contracts:legal_task_update' task.pk %}" class="text-blue-600 hover:text-blue-800 text-xs">Edit</a>
+                        <button onclick="updateTaskStatus({{ task.id }}, 'DONE')" class="text-green-600 hover:text-green-800 text-xs">Complete</button>
+                    </div>
+                </div>
                 {% empty %}
+                <div class="text-center py-8">
                     <p class="text-sm text-gray-500 italic">No tasks in this column.</p>
+                    {% if status_display == 'To Do' %}
+                    <a href="{% url 'contracts:legal_task_create' %}" class="text-blue-600 hover:text-blue-800 text-sm mt-2 inline-block">Add a task</a>
+                    {% endif %}
+                </div>
                 {% endfor %}
             </div>
         </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
 </div>
+
+<script>
+function updateTaskStatus(taskId, newStatus) {
+    fetch(`/contracts/legal-tasks/${taskId}/update-status/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Filter functionality
+document.getElementById('priority-filter').addEventListener('change', function() {
+    filterTasks();
+});
+
+document.getElementById('task-search').addEventListener('input', function() {
+    filterTasks();
+});
+
+function filterTasks() {
+    const priorityFilter = document.getElementById('priority-filter').value;
+    const searchTerm = document.getElementById('task-search').value.toLowerCase();
+    const taskCards = document.querySelectorAll('[data-task-id]');
+    
+    taskCards.forEach(card => {
+        const priority = card.getAttribute('data-priority');
+        const title = card.querySelector('h4').textContent.toLowerCase();
+        const subject = card.querySelector('p') ? card.querySelector('p').textContent.toLowerCase() : '';
+        
+        const matchesPriority = !priorityFilter || priority === priorityFilter;
+        const matchesSearch = !searchTerm || title.includes(searchTerm) || subject.includes(searchTerm);
+        
+        card.style.display = (matchesPriority && matchesSearch) ? 'block' : 'none';
+    });
+}
+</script>
 {% endblock %}

@@ -363,48 +363,57 @@ document.addEventListener('click', function(event) {
 function collapseViews() {
     const viewsList = document.querySelector('.space-y-1');
     const toggle = document.getElementById('views-toggle');
-    const svg = toggle.querySelector('svg path');
     
-    if (viewsList.style.display === 'none') {
-        viewsList.style.display = 'block';
-        svg.setAttribute('d', 'M19 9l-7 7-7-7');
-        toggle.title = 'Collapse views';
-    } else {
-        viewsList.style.display = 'none';
-        svg.setAttribute('d', 'M9 5l7 7-7 7');
-        toggle.title = 'Expand views';
+    if (viewsList && toggle) {
+        const svg = toggle.querySelector('svg path');
+        
+        if (viewsList.style.display === 'none') {
+            viewsList.style.display = 'block';
+            if (svg) svg.setAttribute('d', 'M19 9l-7 7-7-7');
+            toggle.title = 'Collapse views';
+        } else {
+            viewsList.style.display = 'none';
+            if (svg) svg.setAttribute('d', 'M9 5l7 7-7 7');
+            toggle.title = 'Expand views';
+        }
     }
 }
 
 function collapseRepository() {
     const repositoryList = document.getElementById('repository-list');
     const toggle = document.getElementById('repository-toggle');
-    const svg = toggle.querySelector('svg path');
     
-    if (repositoryList && repositoryList.style.display === 'none') {
-        repositoryList.style.display = 'block';
-        if (svg) svg.setAttribute('d', 'M19 9l-7 7-7-7');
-        toggle.title = 'Collapse repository';
-    } else if (repositoryList) {
-        repositoryList.style.display = 'none';
-        if (svg) svg.setAttribute('d', 'M9 5l7 7-7 7');
-        toggle.title = 'Expand repository';
+    if (repositoryList && toggle) {
+        const svg = toggle.querySelector('svg path');
+        
+        if (repositoryList.style.display === 'none') {
+            repositoryList.style.display = 'block';
+            if (svg) svg.setAttribute('d', 'M19 9l-7 7-7-7');
+            toggle.title = 'Collapse repository';
+        } else {
+            repositoryList.style.display = 'none';
+            if (svg) svg.setAttribute('d', 'M9 5l7 7-7 7');
+            toggle.title = 'Expand repository';
+        }
     }
 }
 
 function collapseWorkflows() {
     const workflowsList = document.getElementById('workflows-list');
     const toggle = document.getElementById('workflows-toggle');
-    const svg = toggle.querySelector('svg path');
     
-    if (workflowsList && workflowsList.style.display === 'none') {
-        workflowsList.style.display = 'block';
-        if (svg) svg.setAttribute('d', 'M19 9l-7 7-7-7');
-        toggle.title = 'Collapse actions';
-    } else if (workflowsList) {
-        workflowsList.style.display = 'none';
-        if (svg) svg.setAttribute('d', 'M9 5l7 7-7 7');
-        toggle.title = 'Expand actions';
+    if (workflowsList && toggle) {
+        const svg = toggle.querySelector('svg path');
+        
+        if (workflowsList.style.display === 'none') {
+            workflowsList.style.display = 'block';
+            if (svg) svg.setAttribute('d', 'M19 9l-7 7-7-7');
+            toggle.title = 'Collapse actions';
+        } else {
+            workflowsList.style.display = 'none';
+            if (svg) svg.setAttribute('d', 'M9 5l7 7-7 7');
+            toggle.title = 'Expand actions';
+        }
     }
 }
 </script>
