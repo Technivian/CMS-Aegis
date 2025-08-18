@@ -47,7 +47,7 @@
         </div>
         <div class="mt-8 flex justify-end space-x-4">
             <a href="{% if form.instance.pk %}{% url 'contracts:contract_detail' form.instance.pk %}{% else %}{% url 'contracts:contract_list' %}{% endif %}" class="bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300">Cancel</a>
-            <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">Save Contract</button>
+            <button type="submit" class="btn-primary">Save Contract</button>
         </div>
     </form>
 </div>

@@ -4,19 +4,23 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 set ERRLEVEL=0
 
 echo =============================
-echo 🔁 Activating virtual environment...
+echo 🔁 Checking Python version...
+echo =============================
+python --version | findstr "3.11" >nul || (
+    echo ❌ Python 3.11 is required. Current version:
+    python --version
+    pause
+    exit /b 1
+)
+
+echo =============================
+echo 🐍 Activating virtual environment...
 echo =============================
 IF NOT EXIST venv (
     echo ⚠️ Virtual environment not found. Creating one...
-    python -m venv venv >nul 2>&1
+    python -m venv venv
 )
-
 call venv\Scripts\activate.bat
-
-echo =============================
-echo 🔄 Stashing local tracked changes...
-echo =============================
-git stash push -k
 
 echo =============================
 echo ⬇️ Pulling latest changes from main...
@@ -24,9 +28,13 @@ echo =============================
 git pull origin main
 
 echo =============================
-echo 🔁 Re-applying stashed changes (if any)...
+echo 🔍 Checking for uncommitted changes...
 echo =============================
-git stash pop || echo No stash to pop
+git diff --quiet || (
+    echo ⚠️ You have local changes. Please commit or stash manually.
+    pause
+    exit /b 1
+)
 
 echo =============================
 echo 📦 Installing dependencies...
@@ -43,9 +51,8 @@ python manage.py migrate
 echo =============================
 echo 🚀 Starting Django server...
 echo =============================
-python manage.py runserver
-
 start http://127.0.0.1:8000/
+python manage.py runserver
 
 ENDLOCAL
 pause
