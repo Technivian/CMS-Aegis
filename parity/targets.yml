@@ -1,0 +1,91 @@
+
+# Feature Parity Targets - behaviors to match (no proprietary code)
+
+repository_ironclad_like:
+  filter_chips:
+    - status: "Multi-select status filter chips"
+    - type: "Contract type filter chips" 
+    - counterparty: "Counterparty filter chips"
+    - people: "People/assignee filter chips"
+    - date: "Date range filter chips"
+  
+  saved_views:
+    - create: "Star/save custom filter combinations"
+    - rename: "Rename saved views"
+    - delete: "Delete saved views"
+    - persistence: "Store in localStorage with key bolton:views:v1"
+  
+  bulk_operations:
+    - selection: "Checkbox per row + select all on page"
+    - sticky_bar: "Bulk action bar appears when items selected"
+    - change_status: "Bulk change status operation"
+    - assign_to_me: "Bulk assign to current user"
+    - export_csv: "Export selected contracts to CSV"
+  
+  details_drawer:
+    - right_side: "Non-blocking drawer slides from right"
+    - deep_link: "URL ?contractId=123 opens specific contract"
+    - esc_close: "Escape key closes drawer"
+    - activity_feed: "Show contract activity/audit log"
+  
+  search_sort_pagination:
+    - debounced_search: "300ms debounced search"
+    - sort_options: "Sort by Updated/Title/Status"
+    - page_size: "25/50/100 items per page controls"
+  
+  keyboard_shortcuts:
+    - focus_search: "/ key focuses search input"
+    - new_contract: "n key opens new contract wizard"
+    - close_drawer: "esc key closes drawer"
+    - select_all: "shift+a selects all on current page"
+  
+  permissions:
+    - viewer: "View-only access to contracts"
+    - editor: "Can edit contracts and assignments"
+    - admin: "Full access including bulk operations"
+
+mochadocs_like_essentials:
+  templates:
+    - create_template: "Create new contract templates"
+    - edit_template: "Edit existing templates"
+    - insert_clauses: "Insert clauses from library into templates"
+    - template_library: "Browse and manage template library"
+  
+  clause_library:
+    - clause_tags: "Tag clauses for categorization"
+    - clause_search: "Search clauses by content/tags"
+    - insert_into_contract: "Insert clauses into active contracts"
+    - clause_versioning: "Track clause versions and changes"
+  
+  obligations_tracker:
+    - key_dates: "Track important contract dates"
+    - obligation_owners: "Assign obligations to team members"
+    - reminders: "Set up obligation reminders"
+    - dashboard_timeline: "Show obligations on dashboard timeline"
+  
+  attachments:
+    - drag_drop: "Drag and drop file attachments (mocked)"
+    - attachment_list: "List contract attachments"
+    - attachment_preview: "Preview attachment contents"
+  
+  audit_log:
+    - contract_activity: "Track all contract changes"
+    - user_attribution: "Show who made each change"
+    - timestamp_tracking: "When changes were made"
+    - activity_feed: "Display in contract details drawer"
+
+user_experience:
+  navigation:
+    - top_tabs: "Templates, Clauses, Obligations in main nav"
+    - sidebar_counts: "Show counts for each section"
+    - breadcrumbs: "Clear navigation breadcrumbs"
+  
+  wizards:
+    - new_contract: "3-step wizard: Basics → Counterparty → Attachments"
+    - new_template: "Template creation wizard"
+    - obligation_setup: "Obligation creation wizard"
+  
+  responsive_design:
+    - mobile_friendly: "Works on mobile devices"
+    - desktop_optimized: "Optimized for desktop workflows"
+    - consistent_bolton_theme: "Maintains Bolton branding throughout"

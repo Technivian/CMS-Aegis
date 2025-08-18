@@ -57,3 +57,63 @@ urlpatterns = [
     path('<int:pk>/edit/', ContractUpdateView.as_view(), name='contract_update'),
     path('<int:pk>/add_note/', AddNegotiationNoteView.as_view(), name='add_negotiation_note'),
 ]
+from django.urls import path
+from . import views
+
+app_name = 'contracts'
+
+urlpatterns = [
+    # Existing URLs
+    path('', views.ContractListView.as_view(), name='contract_list'),
+    path('<int:pk>/', views.ContractDetailView.as_view(), name='contract_detail'),
+    path('new/', views.ContractCreateView.as_view(), name='contract_create'),
+    path('<int:pk>/edit/', views.ContractUpdateView.as_view(), name='contract_update'),
+    path('<int:pk>/add_note/', views.AddNegotiationNoteView.as_view(), name='add_negotiation_note'),
+    
+    # Repository URL (alias for contract list with enhanced features)
+    path('repository/', views.ContractListView.as_view(), name='repository'),
+    
+    # Bulk operations
+    path('bulk-update/', views.BulkUpdateView.as_view(), name='bulk_update'),
+    
+    # Templates
+    path('templates/', views.TemplateListView.as_view(), name='template_list'),
+    path('templates/create/', views.TemplateCreateView.as_view(), name='template_create'),
+    path('templates/<str:pk>/', views.TemplateDetailView.as_view(), name='template_detail'),
+    
+    # Clause Library  
+    path('clauses/', views.ClauseLibraryView.as_view(), name='clause_library'),
+    path('clauses/create/', views.ClauseCreateView.as_view(), name='clause_create'),
+    
+    # Obligations
+    path('obligations/', views.ObligationListView.as_view(), name='obligation_list'),
+    path('obligations/create/', views.ObligationCreateView.as_view(), name='obligation_create'),
+    path('obligations/<str:pk>/', views.ObligationDetailView.as_view(), name='obligation_detail'),
+    
+    # Workflow URLs
+    path('workflow-dashboard/', views.WorkflowDashboardView.as_view(), name='workflow_dashboard'),
+    path('workflows/<int:pk>/', views.WorkflowDetailView.as_view(), name='workflow_detail'),
+    path('workflows/create/', views.WorkflowCreateView.as_view(), name='workflow_create'),
+    path('workflows/step/<int:pk>/update/', views.WorkflowStepUpdateView.as_view(), name='update_workflow_step'),
+    path('workflows/step/<int:pk>/complete/', views.WorkflowStepCompleteView.as_view(), name='complete_workflow_step'),
+    path('workflow-templates/', views.WorkflowTemplateListView.as_view(), name='workflow_template_list'),
+    path('workflow-templates/create/', views.WorkflowTemplateCreateView.as_view(), name='workflow_template_create'),
+    
+    # Risk Management
+    path('risks/', views.RiskLogListView.as_view(), name='risk_log_list'),
+    path('risks/create/', views.RiskLogCreateView.as_view(), name='risk_log_create'),
+    
+    # Compliance
+    path('compliance/', views.ComplianceChecklistListView.as_view(), name='compliance_checklist_list'),
+    path('compliance/create/', views.ComplianceChecklistCreateView.as_view(), name='compliance_checklist_create'),
+    path('compliance/<int:pk>/', views.ComplianceChecklistDetailView.as_view(), name='compliance_checklist_detail'),
+    
+    # Trademarks
+    path('trademarks/', views.TrademarkRequestListView.as_view(), name='trademark_request_list'),
+    path('trademarks/create/', views.TrademarkRequestCreateView.as_view(), name='trademark_request_create'),
+    path('trademarks/<int:pk>/', views.TrademarkRequestDetailView.as_view(), name='trademark_request_detail'),
+    
+    # Legal Tasks
+    path('legal-tasks/', views.LegalTaskBoardView.as_view(), name='legal_task_board'),
+    path('legal-tasks/create/', views.LegalTaskCreateView.as_view(), name='legal_task_create'),
+]

@@ -1,0 +1,509 @@
+
+{% extends "base.html" %}
+
+{% block title %}Obligations Tracker{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-primary-700">Obligations Tracker</h1>
+            <p class="text-muted mt-1">Track key dates, deliverables, and obligations</p>
+        </div>
+        <button class="btn-primary flex items-center space-x-2" onclick="openNewObligationModal()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            <span>New Obligation</span>
+        </button>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="text-sm font-medium text-gray-500">Total Obligations</div>
+            <div class="text-2xl font-bold text-gray-900" id="total-count">0</div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="text-sm font-medium text-gray-500">Due This Week</div>
+            <div class="text-2xl font-bold text-warning" id="due-week-count">0</div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="text-sm font-medium text-gray-500">Overdue</div>
+            <div class="text-2xl font-bold text-danger" id="overdue-count">0</div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="text-sm font-medium text-gray-500">Completed</div>
+            <div class="text-2xl font-bold text-success" id="completed-count">0</div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+        <div class="flex items-center space-x-4">
+            <div class="flex-1">
+                <input type="text" id="obligation-search" placeholder="Search obligations..." 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+            </div>
+            <select id="status-filter" class="px-3 py-2 border border-gray-300 rounded-md">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="overdue">Overdue</option>
+            </select>
+            <select id="priority-filter" class="px-3 py-2 border border-gray-300 rounded-md">
+                <option value="">All Priorities</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Timeline View Toggle -->
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center space-x-2">
+            <button id="list-view-btn" onclick="switchView('list')" class="btn-outline btn-sm active">List View</button>
+            <button id="timeline-view-btn" onclick="switchView('timeline')" class="btn-outline btn-sm">Timeline View</button>
+        </div>
+        <div class="text-sm text-gray-500">
+            <span id="obligations-count">0</span> obligations
+        </div>
+    </div>
+
+    <!-- List View -->
+    <div id="list-view" class="bg-white rounded-lg border border-gray-200">
+        <div class="divide-y divide-gray-200" id="obligations-list">
+            <!-- Obligations will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Timeline View -->
+    <div id="timeline-view" class="hidden">
+        <div id="timeline-container">
+            <!-- Timeline will be rendered here -->
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="text-center py-12 hidden">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v11a2 2 0 002 2h6l3.5-3.5a1.5 1.5 0 000-2.121L12 10.5V9a2 2 0 00-2-2z"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No obligations found</h3>
+        <p class="mt-1 text-sm text-gray-500">Get started by creating your first obligation.</p>
+        <div class="mt-6">
+            <button class="btn-primary" onclick="openNewObligationModal()">New Obligation</button>
+        </div>
+    </div>
+</div>
+
+<!-- New Obligation Modal -->
+<div id="new-obligation-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Create New Obligation</h3>
+            <button onclick="closeNewObligationModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <form id="new-obligation-form">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <input type="text" name="title" required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea name="description" rows="3" required
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                        <input type="date" name="due_date" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                        <select name="priority" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Related Contract</label>
+                    <select name="contract_id" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <option value="">Select a contract</option>
+                        <option value="contract-1">Software License Agreement</option>
+                        <option value="contract-2">Service Agreement</option>
+                        <option value="contract-3">Partnership Agreement</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reminder (days before due)</label>
+                    <input type="number" name="reminder_days" value="7" min="0" max="365"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button type="button" onclick="closeNewObligationModal()" class="btn-ghost">Cancel</button>
+                <button type="submit" class="btn-primary">Create Obligation</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let obligations = [];
+let currentView = 'list';
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadObligations();
+    setupEventListeners();
+    updateStats();
+});
+
+function setupEventListeners() {
+    document.getElementById('obligation-search').addEventListener('input', debounce(filterObligations, 300));
+    document.getElementById('status-filter').addEventListener('change', filterObligations);
+    document.getElementById('priority-filter').addEventListener('change', filterObligations);
+    document.getElementById('new-obligation-form').addEventListener('submit', handleNewObligation);
+}
+
+function loadObligations() {
+    const today = new Date();
+    const futureDate = (days) => new Date(today.getTime() + days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const pastDate = (days) => new Date(today.getTime() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
+    obligations = [
+        {
+            id: 'obl-1',
+            title: 'Contract Renewal Review',
+            description: 'Review terms for annual renewal',
+            due_date: futureDate(30),
+            contract_id: 'contract-1',
+            assigned_to: 'admin',
+            priority: 'high',
+            status: 'pending',
+            created_at: new Date().toISOString()
+        },
+        {
+            id: 'obl-2',
+            title: 'Insurance Certificate Update',
+            description: 'Obtain updated insurance certificate',
+            due_date: futureDate(15),
+            contract_id: 'contract-2',
+            assigned_to: 'admin',
+            priority: 'medium',
+            status: 'pending',
+            created_at: new Date().toISOString()
+        },
+        {
+            id: 'obl-3',
+            title: 'Performance Review',
+            description: 'Quarterly performance review meeting',
+            due_date: futureDate(7),
+            contract_id: 'contract-3',
+            assigned_to: 'admin',
+            priority: 'medium',
+            status: 'in_progress',
+            created_at: new Date().toISOString()
+        },
+        {
+            id: 'obl-4',
+            title: 'Payment Due',
+            description: 'Monthly service fee payment',
+            due_date: futureDate(3),
+            contract_id: 'contract-1',
+            assigned_to: 'admin',
+            priority: 'high',
+            status: 'pending',
+            created_at: new Date().toISOString()
+        },
+        {
+            id: 'obl-5',
+            title: 'Compliance Audit',
+            description: 'Annual compliance audit required',
+            due_date: pastDate(5),
+            contract_id: 'contract-4',
+            assigned_to: 'admin',
+            priority: 'critical',
+            status: 'overdue',
+            created_at: new Date().toISOString()
+        }
+    ];
+    
+    renderObligations(obligations);
+}
+
+function renderObligations(obligationsToRender) {
+    if (currentView === 'list') {
+        renderListView(obligationsToRender);
+    } else {
+        renderTimelineView(obligationsToRender);
+    }
+    
+    document.getElementById('obligations-count').textContent = obligationsToRender.length;
+}
+
+function renderListView(obligationsToRender) {
+    const list = document.getElementById('obligations-list');
+    const emptyState = document.getElementById('empty-state');
+    
+    if (obligationsToRender.length === 0) {
+        list.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+    }
+    
+    emptyState.classList.add('hidden');
+    
+    list.innerHTML = obligationsToRender.map(obligation => {
+        const priorityColors = {
+            low: 'bg-gray-100 text-gray-800',
+            medium: 'bg-blue-100 text-blue-800',
+            high: 'bg-orange-100 text-orange-800',
+            critical: 'bg-red-100 text-red-800'
+        };
+        
+        const statusColors = {
+            pending: 'bg-yellow-100 text-yellow-800',
+            in_progress: 'bg-blue-100 text-blue-800',
+            completed: 'bg-green-100 text-green-800',
+            overdue: 'bg-red-100 text-red-800'
+        };
+        
+        const daysUntilDue = Math.ceil((new Date(obligation.due_date) - new Date()) / (1000 * 60 * 60 * 24));
+        
+        return `
+            <div class="p-6 hover:bg-gray-50">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <h3 class="text-lg font-medium text-gray-900">${obligation.title}</h3>
+                            <span class="inline-block px-2 py-1 rounded text-xs font-medium ${priorityColors[obligation.priority]}">${obligation.priority.toUpperCase()}</span>
+                            <span class="inline-block px-2 py-1 rounded text-xs font-medium ${statusColors[obligation.status]}">${obligation.status.replace('_', ' ').toUpperCase()}</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">${obligation.description}</p>
+                        <div class="flex items-center space-x-4 text-sm text-gray-500">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                Due: ${new Date(obligation.due_date).toLocaleDateString()}
+                                ${daysUntilDue < 0 ? `(${Math.abs(daysUntilDue)} days overdue)` : daysUntilDue === 0 ? '(Today)' : `(in ${daysUntilDue} days)`}
+                            </div>
+                            ${obligation.contract_id ? `<div>Contract: ${obligation.contract_id}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 ml-4">
+                        <button onclick="updateObligationStatus('${obligation.id}', 'completed')" 
+                                class="btn-outline btn-sm ${obligation.status === 'completed' ? 'hidden' : ''}">
+                            Mark Complete
+                        </button>
+                        <button onclick="editObligation('${obligation.id}')" class="text-gray-400 hover:text-primary-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderTimelineView(obligationsToRender) {
+    const container = document.getElementById('timeline-container');
+    
+    // Group obligations by month
+    const grouped = obligationsToRender.reduce((acc, obligation) => {
+        const month = new Date(obligation.due_date).toISOString().slice(0, 7);
+        if (!acc[month]) acc[month] = [];
+        acc[month].push(obligation);
+        return acc;
+    }, {});
+    
+    container.innerHTML = Object.entries(grouped)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([month, monthObligations]) => `
+            <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">${new Date(month + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</h3>
+                <div class="space-y-3">
+                    ${monthObligations.map(obligation => `
+                        <div class="flex items-center space-x-4 p-4 bg-white rounded-lg border border-gray-200">
+                            <div class="flex-shrink-0 w-12 text-center">
+                                <div class="text-lg font-bold text-gray-900">${new Date(obligation.due_date).getDate()}</div>
+                                <div class="text-xs text-gray-500">${new Date(obligation.due_date).toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-medium text-gray-900">${obligation.title}</h4>
+                                <p class="text-sm text-gray-600">${obligation.description}</p>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <span class="inline-block px-2 py-1 rounded text-xs font-medium ${getStatusColor(obligation.status)}">${obligation.status.replace('_', ' ').toUpperCase()}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+}
+
+function getStatusColor(status) {
+    const colors = {
+        pending: 'bg-yellow-100 text-yellow-800',
+        in_progress: 'bg-blue-100 text-blue-800',
+        completed: 'bg-green-100 text-green-800',
+        overdue: 'bg-red-100 text-red-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+}
+
+function updateStats() {
+    const today = new Date();
+    const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    
+    const stats = {
+        total: obligations.length,
+        dueThisWeek: obligations.filter(o => {
+            const dueDate = new Date(o.due_date);
+            return dueDate >= today && dueDate <= weekFromNow && o.status !== 'completed';
+        }).length,
+        overdue: obligations.filter(o => new Date(o.due_date) < today && o.status !== 'completed').length,
+        completed: obligations.filter(o => o.status === 'completed').length
+    };
+    
+    document.getElementById('total-count').textContent = stats.total;
+    document.getElementById('due-week-count').textContent = stats.dueThisWeek;
+    document.getElementById('overdue-count').textContent = stats.overdue;
+    document.getElementById('completed-count').textContent = stats.completed;
+}
+
+function filterObligations() {
+    const searchTerm = document.getElementById('obligation-search').value.toLowerCase();
+    const statusFilter = document.getElementById('status-filter').value;
+    const priorityFilter = document.getElementById('priority-filter').value;
+    
+    let filtered = obligations.filter(obligation => {
+        const matchesSearch = obligation.title.toLowerCase().includes(searchTerm) || 
+                            obligation.description.toLowerCase().includes(searchTerm);
+        
+        const matchesStatus = !statusFilter || obligation.status === statusFilter;
+        const matchesPriority = !priorityFilter || obligation.priority === priorityFilter;
+        
+        return matchesSearch && matchesStatus && matchesPriority;
+    });
+    
+    renderObligations(filtered);
+}
+
+function switchView(view) {
+    currentView = view;
+    
+    document.getElementById('list-view-btn').classList.toggle('active', view === 'list');
+    document.getElementById('timeline-view-btn').classList.toggle('active', view === 'timeline');
+    
+    document.getElementById('list-view').classList.toggle('hidden', view !== 'list');
+    document.getElementById('timeline-view').classList.toggle('hidden', view !== 'timeline');
+    
+    renderObligations(obligations);
+}
+
+function openNewObligationModal() {
+    document.getElementById('new-obligation-modal').classList.remove('hidden');
+    document.querySelector('input[name="title"]').focus();
+}
+
+function closeNewObligationModal() {
+    document.getElementById('new-obligation-modal').classList.add('hidden');
+    document.getElementById('new-obligation-form').reset();
+}
+
+function handleNewObligation(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    const newObligation = {
+        id: `obl-${Date.now()}`,
+        title: formData.get('title'),
+        description: formData.get('description'),
+        due_date: formData.get('due_date'),
+        contract_id: formData.get('contract_id'),
+        assigned_to: 'current_user',
+        priority: formData.get('priority'),
+        status: 'pending',
+        created_at: new Date().toISOString()
+    };
+    
+    obligations.unshift(newObligation);
+    renderObligations(obligations);
+    updateStats();
+    closeNewObligationModal();
+    
+    showToast('Obligation created successfully!', 'success');
+}
+
+function updateObligationStatus(obligationId, newStatus) {
+    const obligation = obligations.find(o => o.id === obligationId);
+    if (obligation) {
+        obligation.status = newStatus;
+        renderObligations(obligations);
+        updateStats();
+        showToast(`Obligation marked as ${newStatus.replace('_', ' ')}!`, 'success');
+    }
+}
+
+function editObligation(obligationId) {
+    showToast('Obligation editing coming soon!', 'info');
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 ${
+        type === 'success' ? 'bg-green-500' : 
+        type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+    }`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'n' && !e.target.matches('input, textarea')) {
+        e.preventDefault();
+        openNewObligationModal();
+    }
+    if (e.key === 'Escape') {
+        closeNewObligationModal();
+    }
+});
+</script>
+{% endblock %}
