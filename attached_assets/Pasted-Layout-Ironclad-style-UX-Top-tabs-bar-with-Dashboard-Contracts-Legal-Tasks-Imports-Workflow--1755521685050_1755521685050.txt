@@ -1,0 +1,79 @@
+Layout (Ironclad-style UX)
+
+Top tabs bar with: Dashboard, Contracts, Legal Tasks, Imports, Workflow Designer, Insights, Obligations, Entities.
+
+Left sidebar with sections and counts:
+
+Views: Starred, All
+
+Repository: Draft, Internal Review, Negotiation, Signature, Executed, Upcoming deadlines, Duplicates, Updated predictions
+
+Workflows: In progress, Assigned to me, Needs my signature, Owned by me
+
+Main content:
+
+Header: “All Contracts” + “New Contract” button (accent style).
+
+Filter chips row (Ironclad pattern): Current Status, Type, Counterparty, People, Date; chips are toggles with filled state when active.
+
+Repository list: rows with
+
+left: contract title + counterparty (truncate)
+
+right: status badge (Draft, Active, Inactive, Unverified) and a secondary hint (e.g., Review, Expiring • 60d).
+
+Pagination bottom-right (“Prev/Next”), summary text “1–50 of N contracts”.
+
+3) Components (use shadcn/ui style but hand-rolled with Tailwind)
+
+Create reusable components in /src/components:
+
+TopTabs.tsx, Sidebar.tsx, Chip.tsx, Badge.tsx, Button.tsx, SearchInput.tsx, Toolbar.tsx, ListRow.tsx, Pagination.tsx, KPI.tsx.
+
+Button styles: primary (blue), accent (yellow), ghost, outline.
+
+Badge palette:
+
+Draft: bg #eef2ff, text #1e40af
+
+Active: bg #e6f6ee, text #0f766e
+
+Inactive: bg #f3f4f6, text #4b5563
+
+Unverified: bg #fff7dc, text #92400e
+
+4) Styling details (Bolton look)
+
+Plenty of white space, light gray separators, rounded-xl cards, images/illustrations use rounded-2xl masks.
+
+Primary underlines for active tabs (thin 2px, primary-500).
+
+Hover states: subtle translate-y-[1px] and shadow-md for clickable cards.
+
+Page background uses bg-[var(--color-bg)].
+
+5) Interactions
+
+Chips toggle and update the list (local mock state).
+
+Search input debounces and filters mock data.
+
+Sidebar counts update based on filters.
+
+Keep code ready to swap to real API later (types + RepositoryService.ts with mock data).
+
+6) Scaffolding
+
+Create pages: /contracts (repository), /dashboard (KPI cards + links), /legal-tasks.
+
+Default route → /contracts.
+
+Provide sample mock data (20–30 contracts) with varied statuses and hints (e.g., “Review”, “Expiring • 60d”).
+
+7) Deliverables
+
+Tailwind configured with the Bolton-themed palette (via CSS vars).
+
+A polished UI that visually reads like Bolton (blue/yellow/airy surfaces/rounded corners) but behaves like Ironclad (tabs, sidebar repo, chips, badges, list, pagination).
+
+Clear README explaining how to adjust tokens and extend components.
