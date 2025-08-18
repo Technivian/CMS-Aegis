@@ -9,11 +9,11 @@
         {% csrf_token %}
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            {{ form.username.as_widget(attrs={'class': 'input', 'placeholder': 'Email'}) }}
+            {{ form.username }}
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            {{ form.password.as_widget(attrs={'class': 'input', 'placeholder': 'Password'}) }}
+            {{ form.password }}
         </div>
         <div class="flex items-center gap-2">
             <input id="remember" name="remember" type="checkbox" class="h-4 w-4 border-gray-300 rounded">
