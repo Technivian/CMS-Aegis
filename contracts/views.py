@@ -354,6 +354,16 @@ def workflow_create(request):
     return render(request, 'contracts/workflow_form.html', {'form': form})
 
 
+class WorkflowTemplateCreateView(LoginRequiredMixin, CreateView):
+    model = WorkflowTemplate
+    template_name = 'contracts/workflow_template_form.html'
+    fields = ['name', 'description', 'contract_type']
+    success_url = reverse_lazy('contracts:workflow_template_list')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super().form_valid(form)
+
 @login_required
 def workflow_template_create(request):
     if request.method == 'POST':

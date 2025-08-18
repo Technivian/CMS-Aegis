@@ -39,7 +39,9 @@ urlpatterns = [
     path('compliance/', ComplianceChecklistListView.as_view(), name='compliance_checklist_list'),
     path('compliance/create/', ComplianceChecklistCreateView.as_view(), name='compliance_checklist_create'),
     path('compliance/<int:pk>/', ComplianceChecklistDetailView.as_view(), name='compliance_checklist_detail'),
+    path('compliance/<int:pk>/edit/', ComplianceChecklistUpdateView.as_view(), name='compliance_checklist_update'),
     path('compliance/<int:pk>/toggle-item/<int:item_pk>/', ToggleChecklistItemView.as_view(), name='toggle_checklist_item'),
+    path('compliance/<int:pk>/add-item/', AddChecklistItemView.as_view(), name='add_checklist_item'),
 
     # Workflow URLs
     path('workflow-dashboard/', WorkflowDashboardView.as_view(), name='workflow_dashboard'),
