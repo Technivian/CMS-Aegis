@@ -50,6 +50,7 @@ urlpatterns = [
     path('workflow-templates/', WorkflowTemplateListView.as_view(), name='workflow_template_list'),
 
     # Contracts
+    path('', ContractListView.as_view(), name='contract_list'),
     path('<int:pk>/', ContractDetailView.as_view(), name='contract_detail'),
     path('new/', ContractCreateView.as_view(), name='contract_create'),
     path('<int:pk>/edit/', ContractUpdateView.as_view(), name='contract_update'),
