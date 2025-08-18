@@ -11,43 +11,80 @@ My Contracts
 {% endblock %}
 
 {% block content %}
-<div class="card-section">
-    <div class="overflow-x-auto">
-        <table class="table-base">
-            <thead class="table-head">
-                <tr>
-                    <th scope="col" class="px-6 py-3">Title</th>
-                    <th scope="col" class="px-6 py-3">Counterparty</th>
-                    <th scope="col" class="px-6 py-3">Status</th>
-                    <th scope="col" class="px-6 py-3">Value</th>
-                    <th scope="col" class="px-6 py-3">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for contract in contracts %}
-                    <tr class="table-row">
-                        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                            {{ contract.title }}
-                        </th>
-                        <td class="px-6 py-4">{{ contract.counterparty }}</td>
-                        <td class="px-6 py-4">
-                            <span class="badge badge-success">
-                                {{ contract.get_status_display }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">${{ contract.value|default:"N/A" }}</td>
-                        <td class="px-6 py-4">
-                            <a href="{% url 'contracts:contract_detail' contract.pk %}" class="font-medium text-blue-600 hover:underline">View</a>
-                            <a href="{% url 'contracts:contract_update' contract.pk %}" class="font-medium text-blue-600 hover:underline ml-4">Edit</a>
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="5" class="px-6 py-4 text-center text-gray-600">You have not created any contracts yet.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+	<aside class="light-aside md:col-span-1">
+		<h3 class="text-sm font-semibold text-slate-700 mb-2">Views</h3>
+		<nav class="space-y-1 text-sm">
+			<a class="flex items-center justify-between px-2 py-2 rounded hover:bg-gray-50" href="#">
+				<span>All</span><span class="text-gray-500">0</span>
+			</a>
+			<a class="flex items-center justify-between px-2 py-2 rounded hover:bg-gray-50" href="#">
+				<span>Starred contracts</span><span class="text-gray-500">0</span>
+			</a>
+		</nav>
+	</aside>
+
+	<section class="md:col-span-3">
+		<div class="card-section mb-4">
+			<div class="top-tabs">
+				<a class="top-tab top-tab-active" href="#">All</a>
+				<a class="top-tab" href="#">Active</a>
+				<a class="top-tab" href="#">Drafts</a>
+			</div>
+			<div class="mt-3 flex flex-wrap gap-2">
+				<button class="chip chip-active">Current status</button>
+				<button class="chip">Type</button>
+				<button class="chip">Counterparty</button>
+				<button class="chip">People</button>
+				<button class="chip">Date</button>
+				<button class="chip">All</button>
+			</div>
+		</div>
+
+		<div class="card-section p-0 overflow-hidden">
+			<div class="table-container rounded-none border-0 shadow-none">
+				<table class="table-base">
+					<thead class="table-head">
+						<tr>
+							<th scope="col" class="px-6 py-3">Contract</th>
+							<th scope="col" class="px-6 py-3">Counterparty</th>
+							<th scope="col" class="px-6 py-3">Current Status</th>
+							<th scope="col" class="px-6 py-3">Value</th>
+							<th scope="col" class="px-6 py-3">Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for contract in contracts %}
+						<tr class="table-row">
+							<th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+								{{ contract.title }}
+							</th>
+							<td class="px-6 py-4">{{ contract.counterparty }}</td>
+							<td class="px-6 py-4">
+								<span class="status-badge">{{ contract.get_status_display }}</span>
+							</td>
+							<td class="px-6 py-4">${{ contract.value|default:"N/A" }}</td>
+							<td class="px-6 py-4">
+								<a href="{% url 'contracts:contract_detail' contract.pk %}" class="font-medium text-blue-600 hover:underline">View</a>
+								<a href="{% url 'contracts:contract_update' contract.pk %}" class="font-medium text-blue-600 hover:underline ml-4">Edit</a>
+							</td>
+						</tr>
+						{% empty %}
+						<tr>
+							<td colspan="5" class="px-6 py-4 text-center text-gray-600">You have not created any contracts yet.</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			<div class="pagination-bar">
+				<div>1–50 of {{ contracts|length }} contracts</div>
+				<div class="flex items-center gap-2">
+					<button class="btn-ghost">Prev</button>
+					<button class="btn-ghost">Next</button>
+				</div>
+			</div>
+		</div>
+	</section>
 </div>
 {% endblock %}

@@ -18,24 +18,3 @@
     </div>
 </body>
 </html>
-
-<!DOCTYPE html>
-<html lang="en">
-{% load static %}
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Bolton Adhesives CLM{% endblock %}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/dist/styles.css' %}">
-</head>
-<body class="bg-surface font-sans text-slate-800">
-    <div class="flex items-center justify-center min-h-screen bg-slate-100">
-        <div class="w-full max-w-md">
-            {% block content %}{% endblock %}
-        </div>
-    </div>
-</body>
-</html>
