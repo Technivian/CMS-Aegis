@@ -172,28 +172,17 @@
                             <a href="{% url 'contracts:workflow_create' %}?template=procurement" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                 Procurement | Vendor Agreement
                             </a>
-                        </div>
-                    </div>
-                </div>
-                <!-- More Button -->
-                <div class="relative">
-                    <button onclick="toggleMoreDropdown()" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 flex items-center space-x-2">
-                        <span>More</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </button>
-                    <div id="more-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
-                        <div class="py-1">
-                            <a href="{% url 'contracts:contract_create' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                New Contract
-                            </a>
-                            <a href="{% url 'contracts:workflow_template_create' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                New Template
-                            </a>
-                            <a href="{% url 'contracts:legal_task_create' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                New Task
-                            </a>
+                            <div class="border-t border-gray-200 mt-2 pt-2">
+                                <a href="{% url 'contracts:contract_create' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    New Contract
+                                </a>
+                                <a href="{% url 'contracts:workflow_template_create' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    New Template
+                                </a>
+                                <a href="{% url 'contracts:legal_task_create' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    New Task
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -365,37 +354,16 @@ function closeViewModal() {
 
 function toggleWorkflowDropdown() {
     const dropdown = document.getElementById('workflow-dropdown');
-    const moreDropdown = document.getElementById('more-dropdown');
-    
-    // Close other dropdown
-    moreDropdown.classList.add('hidden');
-    // Toggle this dropdown
-    dropdown.classList.toggle('hidden');
-}
-
-function toggleMoreDropdown() {
-    const dropdown = document.getElementById('more-dropdown');
-    const workflowDropdown = document.getElementById('workflow-dropdown');
-    
-    // Close other dropdown
-    workflowDropdown.classList.add('hidden');
-    // Toggle this dropdown
     dropdown.classList.toggle('hidden');
 }
 
 // Close dropdowns when clicking outside
 document.addEventListener('click', function(event) {
     const workflowDropdown = document.getElementById('workflow-dropdown');
-    const moreDropdown = document.getElementById('more-dropdown');
     const workflowButton = event.target.closest('button[onclick="toggleWorkflowDropdown()"]');
-    const moreButton = event.target.closest('button[onclick="toggleMoreDropdown()"]');
     
     if (!workflowButton && !workflowDropdown.contains(event.target)) {
         workflowDropdown.classList.add('hidden');
-    }
-    
-    if (!moreButton && !moreDropdown.contains(event.target)) {
-        moreDropdown.classList.add('hidden');
     }
 });
 
