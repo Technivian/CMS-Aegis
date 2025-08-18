@@ -1,0 +1,108 @@
+Goal: Keep the current Bolton-themed UI exactly as is (tokens, Button, routes, components). Add Ironclad-like interactions behind a feature flag and adapters so nothing breaks.
+
+Guardrails (non-breaking)
+
+Do not remove/rename existing exports, routes, or CSS tokens.
+
+Add a feature flag: IRONCLAD_MODE=true in src/config.ts. All new behavior must check this flag.
+
+Add a typed service interface RepositoryService and implement MockRepositoryService so existing code keeps working. No direct fetches from components.
+
+Write tests for existing flows and new flows; don’t change snapshots unless necessary.
+
+Data contracts
+
+Create src/domain/contracts.ts:
+
+export type ContractStatus = "DRAFT"|"ACTIVE"|"INACTIVE"|"UNVERIFIED";
+export interface Contract { id:string; title:string; counterparty?:string; status:ContractStatus; hint?:string; updatedAt:string; }
+export interface RepositoryService {
+  list(params:{q?:string; status?:ContractStatus[]; type?:string[]; people?:string[]; dateFrom?:string; dateTo?:string; sort?:string; page?:number; pageSize?:number;}): Promise<{rows:Contract[]; total:number;}>;
+  get(id:string):Promise<Contract>;
+  update(id:string, patch:Partial<Contract>):Promise<Contract>;
+  bulkUpdate(ids:string[], patch:Partial<Contract>):Promise<void>;
+  create(payload:Partial<Contract>):Promise<Contract>;
+}
+
+
+Implement src/services/repository.mock.ts with in-memory data and latency simulation.
+
+State (no rewrites)
+
+If no global store exists, add Zustand store src/store/repository.ts to hold filters, selection, pagination, drawer state. Components use this store—not props drilling.
+
+Ironclad-like features (MVP)
+
+Filter chips with saved views
+
+Chips: Status, Type, Counterparty, People, Date. Multi-select, clearable.
+
+Add “Save view / Star view”. Persist to localStorage (SavedView{ id,name,query }).
+
+Counts in the left sidebar must reflect current filters.
+
+List + bulk selection bar
+
+Checkbox per row + “select all on page”.
+
+Sticky bulk-action bar appears when selection > 0: Change status, Assign to me, Export CSV.
+
+Bulk actions call RepositoryService.bulkUpdate (mock OK), show toast, optimistic update with rollback on error.
+
+Right-side Details Drawer
+
+Clicking a row opens a non-blocking drawer from the right with summary, metadata, activity.
+
+URL becomes /contracts?contractId=xyz. Refresh preserves the open drawer. Esc closes it.
+
+New Contract wizard
+
+3 steps: Basics → Counterparty → Attachments. Uses RepositoryService.create.
+
+On success: toast + navigate to drawer of the new contract.
+
+Search, sort, pagination
+
+Debounced search (300ms).
+
+Sort menu (Updated desc, Status, Title).
+
+Keep existing pagination UI; add page size control (25/50/100).
+
+Keyboard shortcuts
+
+/ focus search, n new contract, esc close drawer, shift+a select all rows on page.
+
+Permissions stub
+
+currentUser.role drives which bulk actions are enabled (stub roles: viewer, editor, admin).
+
+Integration points
+
+Add src/services/index.ts exporting a getRepositoryService() that returns the mock for now.
+
+Update repository page/components to call the service via the store. Do not change visual styling; reuse current components (Button, Chip, Badge).
+
+Tests (must pass)
+
+Vitest + RTL:
+
+Rendering repository with default filters shows rows and counts.
+
+Chip toggling updates list and URL query.
+
+Bulk select → change status → rows update optimistically → rollback on forced error.
+
+Drawer opens on row click and deep-links via contractId.
+
+Playwright (happy path): open each route, run the shortcuts, create a contract in wizard, perform a bulk action; assert no console errors.
+
+Acceptance criteria
+
+With IRONCLAD_MODE=false: app behaves exactly as today.
+
+With IRONCLAD_MODE=true: all features above work; no visual regressions to the Bolton theme; routes/exports unchanged; tests green.
+
+Include a short README section: flags, services, and how to switch real API later.
+
+Implement, commit, and show me the updated UI plus test summary.
