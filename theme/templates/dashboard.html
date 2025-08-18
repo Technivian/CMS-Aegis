@@ -23,7 +23,7 @@
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-sm font-medium text-gray-900">Views</h3>
                 <div class="flex items-center space-x-2">
-                    <button onclick="toggleViews()" class="p-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 rounded" title="Add view">
+                    <button onclick="addNewView()" class="p-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 rounded" title="Add view">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
@@ -135,11 +135,10 @@
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col">
-        <!-- Header -->
+        <!-- Filters and Actions -->
         <div class="bg-white border-b border-gray-200 px-6 py-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-4">
-                    <h1 class="text-2xl font-semibold text-gray-900">All Contracts</h1>
                     <a href="{% url 'contracts:contract_create' %}" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md text-sm font-medium">
                         + New Contract
                     </a>
@@ -231,9 +230,23 @@
 </div>
 
 <script>
-function toggleViews() {
-    // Add functionality for creating new views
-    alert('Add new view functionality would go here');
+function addNewView() {
+    const viewName = prompt('Enter view name:');
+    if (viewName && viewName.trim()) {
+        const viewsList = document.querySelector('.space-y-1');
+        const newView = document.createElement('div');
+        newView.className = 'flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded';
+        newView.innerHTML = `
+            <div class="flex items-center">
+                <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span>${viewName.trim()}</span>
+            </div>
+            <span class="text-xs text-gray-500">0</span>
+        `;
+        viewsList.appendChild(newView);
+    }
 }
 
 function collapseViews() {

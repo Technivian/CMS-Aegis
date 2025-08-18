@@ -41,3 +41,61 @@
     </div>
 </div>
 {% endblock %}
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Update{% else %}Create{% endif %} Workflow{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-8 px-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">
+            {% if object %}Update{% else %}Create{% endif %} Workflow
+        </h2>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="space-y-6">
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Workflow Name
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.contract.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Contract
+                    </label>
+                    {{ form.contract }}
+                    {% if form.contract.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.contract.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.template.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Template (Optional)
+                    </label>
+                    {{ form.template }}
+                    {% if form.template.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.template.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3 mt-6">
+                <a href="{% url 'contracts:workflow_dashboard' %}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md">
+                    {% if object %}Update{% else %}Create{% endif %} Workflow
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
