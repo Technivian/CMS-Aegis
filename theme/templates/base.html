@@ -10,17 +10,21 @@
             theme: {
                 extend: {
                     colors: {
-                        teal: {
-                            50: '#f0fdfa',
-                            100: '#ccfbf1',
-                            200: '#99f6e4',
-                            300: '#5eead4',
-                            400: '#2dd4bf',
-                            500: '#14b8a6',
-                            600: '#0d9488',
-                            700: '#0f766e',
-                            800: '#115e59',
-                            900: '#134e4a',
+                        bolton: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        yellow: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
                         }
                     }
                 }
@@ -33,17 +37,26 @@
     <div class="bg-white border-b border-gray-200">
         <div class="flex items-center justify-between px-6 py-4">
             <div class="flex items-center">
-                <svg width="120" height="40" viewBox="0 0 120 40" class="mr-2">
-                    <!-- Blue square with B and 3 -->
-                    <rect x="0" y="8" width="24" height="24" fill="#1E40AF" rx="2"/>
-                    <text x="4" y="22" fill="white" font-family="Arial, sans-serif" font-size="10" font-weight="bold">B</text>
-                    <text x="14" y="28" fill="white" font-family="Arial, sans-serif" font-size="8" font-weight="bold">3</text>
+                <svg width="140" height="40" viewBox="0 0 140 40" class="mr-2">
+                    <!-- Bolton logo recreation -->
+                    <!-- Yellow square -->
+                    <rect x="0" y="8" width="24" height="24" fill="#f59e0b" rx="1"/>
+                    
+                    <!-- Blue icon inside yellow square -->
+                    <g fill="#1e40af">
+                        <!-- Building/structure icon -->
+                        <rect x="4" y="14" width="3" height="12"/>
+                        <rect x="8" y="12" width="3" height="14"/>
+                        <rect x="12" y="16" width="3" height="10"/>
+                        <rect x="16" y="18" width="3" height="8"/>
+                        <rect x="4" y="11" width="15" height="2"/>
+                    </g>
 
                     <!-- BOLTON text -->
-                    <text x="30" y="16" fill="#1E40AF" font-family="Arial, sans-serif" font-size="10" font-weight="bold" letter-spacing="0.5">BOLTON</text>
+                    <text x="30" y="18" fill="#1e40af" font-family="Arial, sans-serif" font-size="12" font-weight="bold" letter-spacing="0.5">BOLTON</text>
 
                     <!-- CLM text -->
-                    <text x="30" y="28" fill="#1E40AF" font-family="Arial, sans-serif" font-size="10" font-weight="bold" letter-spacing="0.5">CLM</text>
+                    <text x="30" y="30" fill="#1e40af" font-family="Arial, sans-serif" font-size="10" font-weight="normal" letter-spacing="0.5">CLM</text>
                 </svg>
             </div>
             <div class="flex items-center space-x-4">
@@ -58,7 +71,7 @@
                 {% else %}
                     <div class="flex items-center space-x-4">
                         <a href="{% url 'login' %}" class="text-sm text-gray-700 hover:text-gray-900">Login</a>
-                        <a href="{% url 'register' %}" class="bg-teal-600 text-white px-4 py-2 rounded-md text-sm hover:bg-teal-700">Sign up</a>
+                        <a href="{% url 'register' %}" class="bg-bolton-600 text-white px-4 py-2 rounded-md text-sm hover:bg-bolton-700">Sign up</a>
                     </div>
                 {% endif %}
             </div>
