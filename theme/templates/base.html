@@ -101,10 +101,10 @@
                 <a href="{% url 'contracts:contract_list' %}" class="py-4 px-1 border-b-2 {% if 'contract' in request.resolver_match.url_name %}border-primary-600 text-primary-700{% else %}border-transparent text-muted hover:text-primary-700 hover:border-border{% endif %} font-medium text-sm focus:outline-none focus:ring-2 focus:ring-primary rounded-t-xl">
                     Contracts
                 </a>
-                <a href="{% url 'legal_task_board' %}" class="py-4 px-1 border-b-2 {% if 'legal_task' in request.resolver_match.url_name %}border-primary-600 text-primary-700{% else %}border-transparent text-muted hover:text-primary-700 hover:border-border{% endif %} font-medium text-sm focus:outline-none focus:ring-2 focus:ring-primary rounded-t-xl">
+                <a href="{% url 'contracts:legal_task_board' %}" class="py-4 px-1 border-b-2 {% if 'legal_task' in request.resolver_match.url_name %}border-primary-600 text-primary-700{% else %}border-transparent text-muted hover:text-primary-700 hover:border-border{% endif %} font-medium text-sm focus:outline-none focus:ring-2 focus:ring-primary rounded-t-xl">
                     Legal Tasks
                 </a>
-                <a href="{% url 'repository' %}" class="py-4 px-1 border-b-2 {% if request.resolver_match.url_name == 'repository' %}border-primary-600 text-primary-700{% else %}border-transparent text-muted hover:text-primary-700 hover:border-border{% endif %} font-medium text-sm focus:outline-none focus:ring-2 focus:ring-primary rounded-t-xl">
+                <a href="{% url 'contracts:repository' %}" class="py-4 px-1 border-b-2 {% if request.resolver_match.url_name == 'repository' %}border-primary-600 text-primary-700{% else %}border-transparent text-muted hover:text-primary-700 hover:border-border{% endif %} font-medium text-sm focus:outline-none focus:ring-2 focus:ring-primary rounded-t-xl">
                     Repository
                 </a>
                 <a href="{% url 'workflow_dashboard' %}" class="py-4 px-1 border-b-2 {% if 'workflow' in request.resolver_match.url_name %}border-primary-600 text-primary-700{% else %}border-transparent text-muted hover:text-primary-700 hover:border-border{% endif %} font-medium text-sm focus:outline-none focus:ring-2 focus:ring-primary rounded-t-xl">
