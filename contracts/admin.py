@@ -1,8 +1,8 @@
 from django.contrib import admin
 from .models import (
-    Contract, Tag, Note, WorkflowStep, ContractVersion, NegotiationThread,
-    TrademarkRequest, LegalTask, RiskLog, ComplianceChecklist, ChecklistItem,
-    DueDiligence, DueDiligenceItem, DueDiligenceRisk, Budget, Expense
+    TrademarkRequest, LegalTask, RiskLog, ComplianceChecklist,
+    Workflow, WorkflowTemplate, WorkflowTemplateStep, WorkflowStep, ChecklistItem,
+    DueDiligenceProcess, DueDiligenceTask, DueDiligenceRisk, Budget, BudgetExpense
 )
 
 @admin.register(RiskLog)
@@ -40,8 +40,8 @@ class DueDiligenceRiskInline(admin.TabularInline):
     model = DueDiligenceRisk
     extra = 1
 
-@admin.register(DueDiligence)
-class DueDiligenceAdmin(admin.ModelAdmin):
+@admin.register(DueDiligenceProcess)
+class DueDiligenceProcessAdmin(admin.ModelAdmin):
     list_display = ('title', 'target_company', 'transaction_type', 'status', 'expected_closing', 'created_by')
     list_filter = ('transaction_type', 'status', 'created_at')
     search_fields = ('title', 'target_company')
@@ -56,7 +56,7 @@ class DueDiligenceRiskAdmin(admin.ModelAdmin):
     autocomplete_fields = ['due_diligence', 'owner']
 
 class ExpenseInline(admin.TabularInline):
-    model = Expense
+    model = BudgetExpense
     extra = 1
 
 @admin.register(Budget)
@@ -67,8 +67,8 @@ class BudgetAdmin(admin.ModelAdmin):
     autocomplete_fields = ['owner', 'created_by']
     inlines = [ExpenseInline]
 
-@admin.register(Expense)
-class ExpenseAdmin(admin.ModelAdmin):
+@admin.register(BudgetExpense)
+class BudgetExpenseAdmin(admin.ModelAdmin):
     list_display = ('description', 'budget', 'category', 'amount', 'expense_date', 'created_by')
     list_filter = ('category', 'expense_date', 'budget')
     search_fields = ('description', 'vendor')
@@ -101,32 +101,27 @@ class NegotiationThreadInline(admin.TabularInline):
     autocomplete_fields = ['author']
     ordering = ['-timestamp']
 
-@admin.register(Contract)
-class ContractAdmin(admin.ModelAdmin):
-    list_display = ('title', 'counterparty', 'status', 'contract_type', 'created_by', 'updated_at')
-    list_filter = ('status', 'contract_type', 'jurisdiction')
-    search_fields = ('title', 'counterparty')
+@admin.register(Workflow)
+class WorkflowAdmin(admin.ModelAdmin):
+    list_display = ('title', 'status', 'created_at', 'updated_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('title', 'description')
     readonly_fields = ('created_by', 'created_at', 'updated_at')
-    autocomplete_fields = ['tags', 'created_by']
-    inlines = [WorkflowStepInline, ContractVersionInline, NegotiationThreadInline]
+    autocomplete_fields = ['created_by']
 
+@admin.register(WorkflowTemplate)
+class WorkflowTemplateAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'created_at')
+    search_fields = ('name', 'description')
+    readonly_fields = ('created_by', 'created_at')
+    autocomplete_fields = ['created_by']
 
-@admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
-    search_fields = ('name',)
-
-
-@admin.register(Note)
-class NoteAdmin(admin.ModelAdmin):
-    list_display = ('contract', 'created_by', 'timestamp')
-    list_filter = ('timestamp', 'created_by')
-    search_fields = ('text', 'contract__title')
-    readonly_fields = ('created_by', 'timestamp')
-    autocomplete_fields = ['contract', 'created_by']
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('contract', 'created_by')
-
+@admin.register(WorkflowTemplateStep)
+class WorkflowTemplateStepAdmin(admin.ModelAdmin):
+    list_display = ('template', 'step_name', 'order')
+    list_filter = ('template',)
+    search_fields = ('step_name', 'description')
+    autocomplete_fields = ['template']
 
 @admin.register(WorkflowStep)
 class WorkflowStepAdmin(admin.ModelAdmin):
