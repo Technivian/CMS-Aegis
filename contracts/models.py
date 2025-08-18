@@ -202,6 +202,17 @@ class ComplianceChecklist(models.Model):
         IN_PROGRESS = 'IN_PROGRESS', 'In Progress'
         COMPLETE = 'COMPLETE', 'Complete'
 
+    name = models.CharField(max_length=200)
+    regulation = models.CharField(max_length=200)
+    status = models.CharField(max_length=20, choices=ComplianceStatus.choices, default=ComplianceStatus.NOT_STARTED)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_checklists')
+    due_date = models.DateField(null=True, blank=True)
+    attachments = models.FileField(upload_to='compliance_attachments/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
 
 
 class WorkflowTemplate(models.Model):
@@ -247,6 +258,7 @@ class Workflow(models.Model):
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     projected_completion = models.DateField(null=True, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_workflows')
 
     def __str__(self):
         return f'{self.name} - {self.contract.title}'
@@ -264,18 +276,6 @@ class Workflow(models.Model):
         if self.current_step:
             return self.current_step.get_step_type_display()
         return "Not Started"
-
-    name = models.CharField(max_length=200)
-    regulation = models.CharField(max_length=200)
-    status = models.CharField(max_length=20, choices=ComplianceChecklist.ComplianceStatus.choices, default=ComplianceChecklist.ComplianceStatus.NOT_STARTED)
-    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_checklists')
-    due_date = models.DateField(null=True, blank=True)
-    attachments = models.FileField(upload_to='compliance_attachments/', blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.name
 
 
 class ChecklistItem(models.Model):

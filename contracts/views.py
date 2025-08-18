@@ -10,7 +10,7 @@ from django.db.models import Q
 from .forms import RegistrationForm, NegotiationThreadForm, ChecklistItemForm
 from .models import (
     Contract, Note, TrademarkRequest, LegalTask, RiskLog, ComplianceChecklist, ChecklistItem,
-    Workflow, WorkflowTemplate, WorkflowTemplateStep
+    Workflow, WorkflowTemplate, WorkflowTemplateStep, WorkflowStep
 )
 
 
@@ -281,79 +281,30 @@ class AddChecklistItemView(LoginRequiredMixin, View):
         return redirect('contracts:compliance_checklist_detail', pk=checklist.pk)
 
 # --- Workflow Views ---
+class WorkflowDashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'contracts/workflow_dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_workflows = Workflow.objects.filter(created_by=self.request.user)
+        context['workflows'] = user_workflows
+        context['active_workflows'] = user_workflows.filter(status='ACTIVE')
+        context['workflow_templates'] = WorkflowTemplate.objects.filter(created_by=self.request.user)
+        return context
+
+
 class WorkflowTemplateListView(LoginRequiredMixin, ListView):
     model = WorkflowTemplate
-    template_name = 'workflows/workflow_template_list.html'
-    context_object_name = 'workflow_templates'
+    template_name = 'contracts/workflow_template_list.html'
+    context_object_name = 'templates'
 
     def get_queryset(self):
         return WorkflowTemplate.objects.filter(created_by=self.request.user)
-
-
-class WorkflowTemplateDetailView(LoginRequiredMixin, DetailView):
-    model = WorkflowTemplate
-    template_name = 'workflows/workflow_template_detail.html'
-    context_object_name = 'workflow_template'
-
-    def get_queryset(self):
-        return WorkflowTemplate.objects.filter(created_by=self.request.user)
-
-
-class WorkflowTemplateCreateView(LoginRequiredMixin, CreateView):
-    model = WorkflowTemplate
-    template_name = 'workflows/workflow_template_form.html'
-    fields = ['name', 'description']
-    success_url = reverse_lazy('workflows:workflow_template_list')
-
-    def form_valid(self, form):
-        form.instance.created_by = self.request.user
-        return super().form_valid(form)
-
-
-class WorkflowTemplateUpdateView(LoginRequiredMixin, UpdateView):
-    model = WorkflowTemplate
-    template_name = 'workflows/workflow_template_form.html'
-    fields = ['name', 'description']
-    success_url = reverse_lazy('workflows:workflow_template_list')
-
-    def get_queryset(self):
-        return WorkflowTemplate.objects.filter(created_by=self.request.user)
-
-
-class WorkflowTemplateStepCreateView(LoginRequiredMixin, CreateView):
-    model = WorkflowTemplateStep
-    template_name = 'workflows/workflow_template_step_form.html'
-    fields = ['name', 'description', 'order', 'responsible_role']
-    success_url = reverse_lazy('workflows:workflow_template_detail', kwargs={'pk': lambda: WorkflowTemplateStep.objects.get(pk=self.object.pk).template.pk})
-
-    def form_valid(self, form):
-        template = get_object_or_404(WorkflowTemplate, pk=self.kwargs['template_pk'])
-        form.instance.template = template
-        return super().form_valid(form)
-
-
-class WorkflowTemplateStepUpdateView(LoginRequiredMixin, UpdateView):
-    model = WorkflowTemplateStep
-    template_name = 'workflows/workflow_template_step_form.html'
-    fields = ['name', 'description', 'order', 'responsible_role']
-    success_url = reverse_lazy('workflows:workflow_template_detail', kwargs={'pk': lambda: WorkflowTemplateStep.objects.get(pk=self.object.pk).template.pk})
-
-    def get_queryset(self):
-        return WorkflowTemplateStep.objects.filter(template__created_by=self.request.user)
-
-
-class WorkflowListView(LoginRequiredMixin, ListView):
-    model = Workflow
-    template_name = 'workflows/workflow_list.html'
-    context_object_name = 'workflows'
-
-    def get_queryset(self):
-        return Workflow.objects.filter(created_by=self.request.user)
 
 
 class WorkflowDetailView(LoginRequiredMixin, DetailView):
     model = Workflow
-    template_name = 'workflows/workflow_detail.html'
+    template_name = 'contracts/workflow_detail.html'
     context_object_name = 'workflow'
 
     def get_queryset(self):
@@ -361,45 +312,36 @@ class WorkflowDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['workflow_steps'] = self.object.steps.order_by('order')
+        context['workflow_steps'] = self.object.workflow_steps.order_by('order')
         return context
 
 
 class WorkflowCreateView(LoginRequiredMixin, CreateView):
     model = Workflow
-    template_name = 'workflows/workflow_form.html'
-    fields = ['name', 'description', 'template', 'linked_contract']
-    success_url = reverse_lazy('workflows:workflow_list')
+    template_name = 'contracts/workflow_form.html'
+    fields = ['name', 'template', 'contract']
+    success_url = reverse_lazy('contracts:workflow_dashboard')
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         return super().form_valid(form)
 
 
-class WorkflowUpdateView(LoginRequiredMixin, UpdateView):
-    model = Workflow
-    template_name = 'workflows/workflow_form.html'
-    fields = ['name', 'description', 'template', 'linked_contract']
-    success_url = reverse_lazy('workflows:workflow_list')
-
-    def get_queryset(self):
-        return Workflow.objects.filter(created_by=self.request.user)
-
-
 class WorkflowStepUpdateView(LoginRequiredMixin, UpdateView):
     model = WorkflowStep
-    template_name = 'workflows/workflow_step_form.html'
-    fields = ['status', 'comments']
-    success_url = reverse_lazy('workflows:workflow_detail', kwargs={'pk': lambda: WorkflowStep.objects.get(pk=self.object.pk).workflow.pk})
+    template_name = 'contracts/workflow_step_form.html'
+    fields = ['status', 'notes']
 
     def get_queryset(self):
         return WorkflowStep.objects.filter(workflow__created_by=self.request.user)
+    
+    def get_success_url(self):
+        return reverse_lazy('contracts:workflow_detail', kwargs={'pk': self.object.workflow.pk})
 
 
 class WorkflowStepCompleteView(LoginRequiredMixin, View):
     def post(self, request, pk):
         step = get_object_or_404(WorkflowStep, pk=pk)
-        if step.responsible_role == request.user.role or request.user.is_superuser:  # Assuming a 'role' field on User model
-            step.status = 'COMPLETED'
-            step.save()
-        return redirect('workflows:workflow_detail', pk=step.workflow.pk)
+        step.status = 'COMPLETED'
+        step.save()
+        return redirect('contracts:workflow_detail', pk=step.workflow.pk)
