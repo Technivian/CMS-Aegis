@@ -1,0 +1,96 @@
+) Fail fast in contracts/urls.py (debug guard)
+# contracts/urls.py
+from django.urls import path
+from . import views
+
+# Fail early with a clear message if exports are missing
+_missing = [n for n in ("SignUpView", "ContractListView") if not hasattr(views, n)]
+if _missing:
+    raise ImportError(f"contracts.views missing: {_missing}. Check names, packages, or circular imports.")
+
+app_name = "contracts"
+urlpatterns = [
+    path("signup/", views.SignUpView.as_view(), name="signup"),
+    path("", views.ContractListView.as_view(), name="list"),
+]
+
+
+This converts the vague “cannot import name …” into a precise error.
+
+2) Kill the sneaky package-vs-file collision
+
+If you ever switched from views.py → views/ package (or back), Python might be importing the other one.
+
+Keep only one of these:
+
+contracts/views.py or
+
+contracts/views/__init__.py (+ submodules)
+
+If using a folder, make sure contracts/views/__init__.py exists and re-exports:
+
+from .auth import SignUpView
+from .contracts import ContractListView
+__all__ = ["SignUpView", "ContractListView"]
+
+3) Replit-specific sanity checks
+
+Project root is the module root Replit runs from (looks like /home/runner/workspace). If you moved files, clear caches:
+
+find . -type d -name "__pycache__" -prune -exec rm -rf {} +
+
+
+Hard restart the Repl (stop → run). The Django autoreloader can hold onto old paths.
+
+If you customized run command, ensure DJANGO_SETTINGS_MODULE points to your settings (e.g., config.settings).
+
+4) Common import-trip wires
+
+Any exception at top-level in contracts/views.py masks as “cannot import name …”.
+Quick probe:
+
+python - <<'PY'
+
+
+import importlib, traceback
+try:
+m = importlib.import_module("contracts.views")
+print("OK:", [n for n in dir(m) if n.endswith("View")])
+except Exception:
+traceback.print_exc()
+PY
+
+Fix whatever it prints first (circular import, bad model import, etc.).
+
+### 5) Typos & case sensitivity (Linux is strict)
+`SignupView` ≠ `SignUpView`. Run:
+```bash
+grep -R "class .*SignUpView" -n contracts
+grep -R "class .*ContractListView" -n contracts
+
+6) Bare-minimum stubs (if you need them)
+# contracts/views.py
+from django.contrib.auth.forms import UserCreationForm
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, ListView
+from .models import Contract
+
+class SignUpView(CreateView):
+    form_class = UserCreationForm
+    template_name = "registration/signup.html"
+    success_url = reverse_lazy("login")
+
+class ContractListView(ListView):
+    model = Contract
+    template_name = "contracts/contract_list.html"
+    context_object_name = "contracts"
+
+7) Don’t forget the basics
+
+contracts in INSTALLED_APPS
+
+The templates you referenced actually exist:
+
+templates/registration/signup.html
+
+templates/contracts/contract_list.html

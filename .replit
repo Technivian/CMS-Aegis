@@ -13,3 +13,7 @@ task = "shell.exec"
 args = "python manage.py runserver 0.0.0.0:8000"
 
 [nix]
+
+[[ports]]
+localPort = 8000
+externalPort = 80

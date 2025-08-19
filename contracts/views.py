@@ -32,9 +32,7 @@ def dashboard(request):
 def profile(request):
     return render(request, 'profile.html')
 
-@login_required
-def register_view(request):
-    return redirect('register')
+
 
 # Contract Views
 class ContractListView(LoginRequiredMixin, ListView):
