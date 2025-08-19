@@ -1,130 +1,295 @@
-
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
-{% block title %}Dashboard - Bolton CLM{% endblock %}
+{% block title %}{% if IRONCLAD_MODE %}Ironclad{% elif MOCHADOCS_MODE %}MochaDocs{% else %}Bolton CLM{% endif %} - Dashboard{% endblock %}
 
 {% block content %}
 <div class="min-h-screen bg-surface">
-  <!-- Header -->
-  <header class="bg-white shadow">
-    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <div class="flex items-center space-x-4">
-          <span class="text-gray-700">Welcome, {{ user.username }}</span>
-          <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>
+    <!-- Navigation Header -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    {% if IRONCLAD_MODE %}
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">I</span>
+                            </div>
+                            <h1 class="text-xl font-bold text-gray-900">Ironclad</h1>
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">CLM</span>
+                        </div>
+                    {% elif MOCHADOCS_MODE %}
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-600 rounded flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">M</span>
+                            </div>
+                            <h1 class="text-xl font-bold text-gray-900">MochaDocs</h1>
+                            <span class="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded">Legal</span>
+                        </div>
+                    {% else %}
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-gradient-to-r from-blue-800 to-blue-900 rounded flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">B</span>
+                            </div>
+                            <h1 class="text-xl font-bold text-primary-700">Bolton Adhesives</h1>
+                            <span class="px-2 py-1 bg-accent-100 text-accent-800 text-xs font-medium rounded">CLM</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Navigation Tabs -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#" class="border-b-2 border-primary-500 text-primary-600 px-1 py-4 text-sm font-medium">
+                        Dashboard
+                    </a>
+                    <a href="{% url 'contracts:list' %}" class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 px-1 py-4 text-sm font-medium">
+                        Contracts
+                    </a>
+                    <a href="#" class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 px-1 py-4 text-sm font-medium">
+                        Legal Tasks
+                    </a>
+                    <a href="#" class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 px-1 py-4 text-sm font-medium">
+                        Workflows
+                    </a>
+                    <a href="#" class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 px-1 py-4 text-sm font-medium">
+                        Repository
+                    </a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-700">{{ user.get_full_name|default:user.username }}</span>
+                    <a href="{% url 'profile' %}" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                        </svg>
+                    </a>
+                    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Logout</a>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </header>
+    </nav>
 
-  <!-- Main content -->
-  <main>
-    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div class="px-4 py-6 sm:px-0">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          
-          <!-- Contracts Card -->
-          <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-              <div class="flex items-center">
-                <div class="flex-shrink-0">
-                  <div class="w-8 h-8 bg-primary-500 rounded-md flex items-center justify-center">
-                    <span class="text-white font-semibold">C</span>
-                  </div>
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                        {% if IRONCLAD_MODE %}
+                            Contract Lifecycle Management
+                        {% elif MOCHADOCS_MODE %}
+                            Legal Document Management
+                        {% else %}
+                            Bolton CLM Dashboard
+                        {% endif %}
+                    </h2>
+                    <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-6">
+                        <div class="mt-2 flex items-center text-sm text-gray-500">
+                            Welcome back, {{ user.get_full_name|default:user.username }}
+                        </div>
+                        <div class="mt-2 flex items-center text-sm text-gray-500">
+                            {% now "F j, Y" %}
+                        </div>
+                    </div>
                 </div>
-                <div class="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Contracts</dt>
-                    <dd class="text-lg font-medium text-gray-900">0</dd>
-                  </dl>
+                <div class="mt-4 flex md:mt-0 md:ml-4">
+                    <a href="{% url 'contracts:list' %}" class="btn btn-primary">
+                        New Contract
+                    </a>
                 </div>
-              </div>
             </div>
-            <div class="bg-gray-50 px-5 py-3">
-              <div class="text-sm">
-                <a href="{% url 'contracts:contract_list' %}" class="font-medium text-primary-700 hover:text-primary-900">
-                  View all contracts
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Legal Tasks Card -->
-          <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-              <div class="flex items-center">
-                <div class="flex-shrink-0">
-                  <div class="w-8 h-8 bg-accent-500 rounded-md flex items-center justify-center">
-                    <span class="text-white font-semibold">T</span>
-                  </div>
-                </div>
-                <div class="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Legal Tasks</dt>
-                    <dd class="text-lg font-medium text-gray-900">0</dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-            <div class="bg-gray-50 px-5 py-3">
-              <div class="text-sm">
-                <a href="{% url 'contracts:legal_task_kanban' %}" class="font-medium text-primary-700 hover:text-primary-900">
-                  View task board
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Workflows Card -->
-          <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-              <div class="flex items-center">
-                <div class="flex-shrink-0">
-                  <div class="w-8 h-8 bg-success rounded-md flex items-center justify-center">
-                    <span class="text-white font-semibold">W</span>
-                  </div>
-                </div>
-                <div class="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Workflows</dt>
-                    <dd class="text-lg font-medium text-gray-900">0</dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-            <div class="bg-gray-50 px-5 py-3">
-              <div class="text-sm">
-                <a href="{% url 'contracts:workflow_dashboard' %}" class="font-medium text-primary-700 hover:text-primary-900">
-                  View workflows
-                </a>
-              </div>
-            </div>
-          </div>
-
         </div>
 
-        <!-- Quick Actions -->
-        <div class="mt-8">
-          <h2 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <a href="{% url 'contracts:contract_create' %}" class="btn btn-primary">
-              New Contract
-            </a>
-            <a href="{% url 'contracts:legal_task_create' %}" class="btn btn-accent">
-              New Task
-            </a>
-            <a href="{% url 'contracts:workflow_create' %}" class="btn btn-outline">
-              New Workflow
-            </a>
-            <a href="{% url 'contracts:due_diligence_create' %}" class="btn btn-outline">
-              New Due Diligence
-            </a>
-          </div>
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Active Contracts</dt>
+                                <dd class="text-lg font-medium text-gray-900">12</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Pending Review</dt>
+                                <dd class="text-lg font-medium text-gray-900">3</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Completed</dt>
+                                <dd class="text-lg font-medium text-gray-900">47</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-red-500 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Expiring Soon</dt>
+                                <dd class="text-lg font-medium text-gray-900">2</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </main>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <!-- Recent Activity -->
+            <div class="lg:col-span-2">
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Activity</h3>
+                        <div class="flow-root">
+                            <ul class="-mb-8">
+                                <li>
+                                    <div class="relative pb-8">
+                                        <div class="relative flex space-x-3">
+                                            <div class="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full">
+                                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <div>
+                                                    <p class="text-sm text-gray-500">
+                                                        Contract #001 signed by Jane Doe
+                                                        <time datetime="2025-08-19">2 hours ago</time>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="relative pb-8">
+                                        <div class="relative flex space-x-3">
+                                            <div class="flex items-center justify-center w-8 h-8 bg-yellow-500 rounded-full">
+                                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                                </svg>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <div>
+                                                    <p class="text-sm text-gray-500">
+                                                        New contract review requested
+                                                        <time datetime="2025-08-19">4 hours ago</time>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div>
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <a href="{% url 'contracts:list' %}" class="btn btn-primary w-full flex items-center justify-center">
+                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                                </svg>
+                                Create Contract
+                            </a>
+                            <a href="#" class="btn btn-outline w-full flex items-center justify-center">
+                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 102 0V3a2 2 0 012 0v1a1 1 0 102 0V3a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm2.5 7a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm2.45.15a1 1 0 101.1-1.3.75.75 0 00-.15.15z" clip-rule="evenodd"/>
+                                </svg>
+                                View Templates
+                            </a>
+                            <a href="#" class="btn btn-outline w-full flex items-center justify-center">
+                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"/>
+                                </svg>
+                                Import Documents
+                            </a>
+                        </div>
+
+                        <!-- Feature Mode Indicators -->
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <h4 class="text-sm font-medium text-gray-900 mb-3">Active Modes</h4>
+                            <div class="space-y-2">
+                                {% if IRONCLAD_MODE %}
+                                <div class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                                    <span class="text-gray-700">Ironclad Integration</span>
+                                </div>
+                                {% endif %}
+                                {% if MOCHADOCS_MODE %}
+                                <div class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
+                                    <span class="text-gray-700">MochaDocs Mode</span>
+                                </div>
+                                {% endif %}
+                                <div class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                    <span class="text-gray-700">Bolton Theme Active</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 </div>
 {% endblock %}

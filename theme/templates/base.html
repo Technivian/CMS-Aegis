@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,8 +7,35 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <script src="{% static 'js/main.js' %}" defer></script>
+    
+    <!-- Additional styling for proper theming -->
+    <style>
+        :root {
+            --primary-50: #eff6ff;
+            --primary-100: #dbeafe;
+            --primary-500: #3b82f6;
+            --primary-600: #2563eb;
+            --primary-700: #1d4ed8;
+            --primary-800: #1e40af;
+            --primary-900: #1e3a8a;
+            
+            --accent-100: #fef3c7;
+            --accent-500: #f59e0b;
+            --accent-800: #92400e;
+            
+            --surface: #f8fafc;
+            --surface-contrast: #1e293b;
+        }
+        
+        .bg-surface { background-color: var(--surface); }
+        .text-primary-700 { color: var(--primary-700); }
+        .text-primary-600 { color: var(--primary-600); }
+        .border-primary-500 { border-color: var(--primary-500); }
+        .text-accent-800 { color: var(--accent-800); }
+        .bg-accent-100 { background-color: var(--accent-100); }
+    </style>
 </head>
-<body class="h-full bg-surface">
+<body class="h-full bg-gray-50 font-sans antialiased">
     {% block content %}
     {% endblock %}
 </body>
