@@ -1,3 +1,6 @@
 
+Django>=4.2,<5.0
+whitenoise>=6.0
+pillow>=10.0
 pip-requirements-parser==32.0.1
 packageurl-python==0.16.0
