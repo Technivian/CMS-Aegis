@@ -16,31 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic import RedirectView
 from django.contrib.auth import views as auth_views
-from contracts.forms import CustomAuthenticationForm, CustomUserCreationForm
-from django.views.generic import CreateView
-from django.contrib.auth.models import User
-from django.urls import reverse_lazy
+from django.shortcuts import redirect
+from contracts.views import SignUpView
 from django.conf import settings
 from django.conf.urls.static import static
 from contracts import views
 from django.contrib import messages
-
-class CustomRegistrationView(CreateView):
-    model = User
-    form_class = CustomUserCreationForm
-    template_name = 'registration/register.html'
-    success_url = reverse_lazy('login')
-    
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, 'Account created successfully! Please sign in.')
-        return response
-    
-    def form_invalid(self, form):
-        messages.error(self.request, 'Please correct the errors below.')
-        return super().form_invalid(form)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -54,7 +36,7 @@ urlpatterns = [
         template_name='registration/login.html'
     ), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('accounts/register/', CustomRegistrationView.as_view(), name='register'),
+    path('accounts/register/', SignUpView.as_view(), name='register'),
 
     # Include remaining auth URLs
     path('accounts/', include('django.contrib.auth.urls')),
