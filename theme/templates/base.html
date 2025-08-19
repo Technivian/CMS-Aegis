@@ -1,69 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-50">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Bolton CLM{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
-                        },
-                        accent: {
-                            50: '#fdf4ff',
-                            100: '#fae8ff',
-                            200: '#f5d0fe',
-                            300: '#f0abfc',
-                            400: '#e879f9',
-                            500: '#d946ef',
-                            600: '#c026d3',
-                            700: '#a21caf',
-                            800: '#86198f',
-                            900: '#701a75',
-                        },
-                        success: {
-                            500: '#10b981',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .btn {
-            @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2;
-        }
-        .btn-primary {
-            @apply text-white bg-primary-600 hover:bg-primary-700 focus:ring-primary-500;
-        }
-        .btn-accent {
-            @apply text-white bg-accent-600 hover:bg-accent-700 focus:ring-accent-500;
-        }
-        .btn-outline {
-            @apply text-gray-700 bg-white border-gray-300 hover:bg-gray-50 focus:ring-primary-500;
-        }
-    </style>
+    <script src="{% static 'js/main.js' %}" defer></script>
 </head>
-<body class="h-full">
-    {% block content %}{% endblock %}
-
-    {% block scripts %}
-    <script src="{% static 'js/main.js' %}"></script>
+<body class="h-full bg-surface">
+    {% block content %}
     {% endblock %}
 </body>
 </html>

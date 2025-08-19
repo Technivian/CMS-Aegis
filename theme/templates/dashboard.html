@@ -5,158 +5,126 @@
 {% block title %}Dashboard - Bolton CLM{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <div class="bg-white shadow">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-gray-700">Welcome, {{ user.username }}!</span>
-                    <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>
-                </div>
-            </div>
+<div class="min-h-screen bg-surface">
+  <!-- Header -->
+  <header class="bg-white shadow">
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <div class="flex items-center space-x-4">
+          <span class="text-gray-700">Welcome, {{ user.username }}</span>
+          <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>
         </div>
+      </div>
     </div>
+  </header>
 
-    <!-- Main Content -->
+  <!-- Main content -->
+  <main>
     <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div class="px-4 py-6 sm:px-0">
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white overflow-hidden shadow rounded-lg">
-                    <div class="p-5">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div class="w-8 h-8 bg-primary-500 rounded-md flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Total Contracts</dt>
-                                    <dd class="text-lg font-medium text-gray-900">24</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
+      <div class="px-4 py-6 sm:px-0">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          <!-- Contracts Card -->
+          <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <div class="w-8 h-8 bg-primary-500 rounded-md flex items-center justify-center">
+                    <span class="text-white font-semibold">C</span>
+                  </div>
                 </div>
-
-                <div class="bg-white overflow-hidden shadow rounded-lg">
-                    <div class="p-5">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div class="w-8 h-8 bg-accent-500 rounded-md flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Pending Tasks</dt>
-                                    <dd class="text-lg font-medium text-gray-900">8</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Contracts</dt>
+                    <dd class="text-lg font-medium text-gray-900">0</dd>
+                  </dl>
                 </div>
-
-                <div class="bg-white overflow-hidden shadow rounded-lg">
-                    <div class="p-5">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div class="w-8 h-8 bg-success-500 rounded-md flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Compliance Score</dt>
-                                    <dd class="text-lg font-medium text-gray-900">94%</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+              </div>
             </div>
-
-            <!-- Quick Actions -->
-            <div class="bg-white shadow rounded-lg mb-8">
-                <div class="px-4 py-5 sm:p-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Actions</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <a href="{% url 'contracts:contract_create' %}" class="btn btn-primary text-center">
-                            New Contract
-                        </a>
-                        <a href="{% url 'contracts:legal_task_create' %}" class="btn btn-accent text-center">
-                            Add Task
-                        </a>
-                        <a href="{% url 'contracts:due_diligence_create' %}" class="btn btn-outline text-center">
-                            Due Diligence
-                        </a>
-                        <a href="{% url 'contracts:contract_list' %}" class="btn btn-outline text-center">
-                            View All Contracts
-                        </a>
-                    </div>
-                </div>
+            <div class="bg-gray-50 px-5 py-3">
+              <div class="text-sm">
+                <a href="{% url 'contracts:contract_list' %}" class="font-medium text-primary-700 hover:text-primary-900">
+                  View all contracts
+                </a>
+              </div>
             </div>
+          </div>
 
-            <!-- Recent Activity -->
-            <div class="bg-white shadow rounded-lg">
-                <div class="px-4 py-5 sm:p-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Activity</h3>
-                    <div class="flow-root">
-                        <ul class="-mb-8">
-                            <li class="relative pb-8">
-                                <div class="relative flex space-x-3">
-                                    <div class="flex-shrink-0">
-                                        <span class="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
-                                            <svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                            </svg>
-                                        </span>
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <div>
-                                            <p class="text-sm text-gray-500">
-                                                Contract <span class="font-medium text-gray-900">MSA-2025-001</span> approved
-                                                <time datetime="2025-08-19">2 hours ago</time>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="relative">
-                                <div class="relative flex space-x-3">
-                                    <div class="flex-shrink-0">
-                                        <span class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
-                                            <svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M10 2L3 7v11a1 1 0 001 1h12a1 1 0 001-1V7l-7-5z"></path>
-                                            </svg>
-                                        </span>
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <div>
-                                            <p class="text-sm text-gray-500">
-                                                New task assigned: <span class="font-medium text-gray-900">Review vendor agreement</span>
-                                                <time datetime="2025-08-19">4 hours ago</time>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
+          <!-- Legal Tasks Card -->
+          <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <div class="w-8 h-8 bg-accent-500 rounded-md flex items-center justify-center">
+                    <span class="text-white font-semibold">T</span>
+                  </div>
                 </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Legal Tasks</dt>
+                    <dd class="text-lg font-medium text-gray-900">0</dd>
+                  </dl>
+                </div>
+              </div>
             </div>
+            <div class="bg-gray-50 px-5 py-3">
+              <div class="text-sm">
+                <a href="{% url 'contracts:legal_task_kanban' %}" class="font-medium text-primary-700 hover:text-primary-900">
+                  View task board
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Workflows Card -->
+          <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <div class="w-8 h-8 bg-success rounded-md flex items-center justify-center">
+                    <span class="text-white font-semibold">W</span>
+                  </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Workflows</dt>
+                    <dd class="text-lg font-medium text-gray-900">0</dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+              <div class="text-sm">
+                <a href="{% url 'contracts:workflow_dashboard' %}" class="font-medium text-primary-700 hover:text-primary-900">
+                  View workflows
+                </a>
+              </div>
+            </div>
+          </div>
+
         </div>
+
+        <!-- Quick Actions -->
+        <div class="mt-8">
+          <h2 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <a href="{% url 'contracts:contract_create' %}" class="btn btn-primary">
+              New Contract
+            </a>
+            <a href="{% url 'contracts:legal_task_create' %}" class="btn btn-accent">
+              New Task
+            </a>
+            <a href="{% url 'contracts:workflow_create' %}" class="btn btn-outline">
+              New Workflow
+            </a>
+            <a href="{% url 'contracts:due_diligence_create' %}" class="btn btn-outline">
+              New Due Diligence
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
+  </main>
 </div>
 {% endblock %}
