@@ -15,7 +15,7 @@ from .views import (
 )
 from .api import views as api_views
 from django.contrib.auth import views as auth_views
-from .forms import UserRegistrationForm # Assuming you have this form
+from .forms import CustomUserCreationForm
 
 app_name = 'contracts'
 

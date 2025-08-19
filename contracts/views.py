@@ -1,4 +1,3 @@
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.views.generic import CreateView, ListView, DetailView, UpdateView, View
@@ -6,11 +5,11 @@ from django.urls import reverse_lazy, reverse
 from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from django.contrib import messages
 from .forms import CustomUserCreationForm
 from .models import (
-    Contract, TrademarkRequest, LegalTask, RiskLog, 
+    Contract, TrademarkRequest, LegalTask, RiskLog,
     ComplianceChecklist, Workflow, WorkflowTemplate,
     DueDiligenceProcess, Budget
 )
@@ -53,7 +52,7 @@ class ContractCreateView(LoginRequiredMixin, CreateView):
     model = Contract
     template_name = 'contracts/contract_form.html'
     fields = ['title', 'counterparty', 'status', 'contract_type', 'description']
-    
+
     def get_success_url(self):
         return reverse('contracts:contract_detail', kwargs={'pk': self.object.pk})
 
@@ -61,7 +60,7 @@ class ContractUpdateView(LoginRequiredMixin, UpdateView):
     model = Contract
     template_name = 'contracts/contract_form.html'
     fields = ['title', 'counterparty', 'status', 'contract_type', 'description']
-    
+
     def get_success_url(self):
         return reverse('contracts:contract_detail', kwargs={'pk': self.object.pk})
 
@@ -265,7 +264,7 @@ def workflow_template_create(request):
 def workflow_template_list(request):
     return render(request, 'contracts/workflow_template_list.html')
 
-@require_POST
+@require_http_methods(["POST"])
 @login_required
 def toggle_dd_item(request, pk):
     return JsonResponse({'success': True})
