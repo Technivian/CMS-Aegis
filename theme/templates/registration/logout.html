@@ -1,11 +1,92 @@
-{% extends 'base_fullscreen.html' %}
 
-{% block title %}Logged Out{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signed Out - Bolton CLM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bolton-orange': '#FF6B35',
+                        'bolton-blue': '#004E89',
+                        'bolton-light-blue': '#1A659E',
+                        'bolton-gray': '#F5F5F5',
+                        'bolton-dark': '#2E2E2E',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #004E89 0%, #1A659E 100%);
+        }
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center">
+    <div class="glass-effect rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 text-center">
+        <!-- Logo and Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-center mb-4">
+                <div class="w-12 h-12 bg-bolton-orange rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-white font-bold text-xl">B</span>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-bolton-dark">Bolton CLM</h1>
+                    <p class="text-sm text-gray-600">MANAGE • TRACK • SECURE</p>
+                </div>
+            </div>
+        </div>
 
-{% block content %}
-<div class="bg-white p-8 rounded-lg shadow-md text-center">
-    <h2 class="text-2xl font-bold mb-6">Logged Out</h2>
-    <p>You have been successfully logged out.</p>
-    <a href="{% url 'login' %}" class="mt-6 inline-block btn-primary">Login Again</a>
-</div>
-{% endblock %}
+        <!-- Logout Message -->
+        <div class="mb-8">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-bolton-dark mb-2">Successfully signed out</h2>
+            <p class="text-gray-600">Thank you for using Bolton CLM. Your session has been securely ended.</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-4">
+            <a href="{% url 'login' %}" class="w-full bg-bolton-blue hover:bg-bolton-light-blue text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                Sign in again
+                <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                </svg>
+            </a>
+            <a href="{% url 'register' %}" class="w-full border-2 border-bolton-orange text-bolton-orange hover:bg-bolton-orange hover:text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                Create new account
+                <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                </svg>
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <p class="text-xs text-gray-500">
+                Need help? Contact our 
+                <a href="#" class="text-bolton-orange hover:underline">support team</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-redirect after 10 seconds
+        setTimeout(function() {
+            window.location.href = "{% url 'login' %}";
+        }, 10000);
+    </script>
+</body>
+</html>

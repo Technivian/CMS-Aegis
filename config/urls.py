@@ -25,12 +25,22 @@ from django.urls import reverse_lazy
 from django.conf import settings
 from django.conf.urls.static import static
 from contracts import views
+from django.contrib import messages
 
 class CustomRegistrationView(CreateView):
     model = User
     form_class = CustomUserCreationForm
     template_name = 'registration/register.html'
     success_url = reverse_lazy('login')
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Account created successfully! Please sign in.')
+        return response
+    
+    def form_invalid(self, form):
+        messages.error(self.request, 'Please correct the errors below.')
+        return super().form_invalid(form)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
