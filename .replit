@@ -18,12 +18,8 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python manage.py runserver 0.0.0.0:8000"
+args = "python manage.py runserver 0.0.0.0:5000"
 
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 8000
-externalPort = 8000

@@ -73,11 +73,11 @@ class AddChecklistItemView(LoginRequiredMixin, CreateView):
     model = ChecklistItem
     form_class = ChecklistItemForm
     template_name = 'contracts/checklist_item_form.html'
-    
+
     def form_valid(self, form):
         form.instance.checklist_id = self.kwargs['checklist_pk']
         return super().form_valid(form)
-    
+
     def get_success_url(self):
         return reverse_lazy('contracts:compliance_checklist_detail', kwargs={'pk': self.kwargs['checklist_pk']})
 
@@ -207,28 +207,9 @@ class ComplianceChecklistCreateView(LoginRequiredMixin, CreateView):
     template_name = 'contracts/compliance_checklist_form.html'
     success_url = reverse_lazy('contracts:compliance_checklist_list')
 
-class ComplianceChecklistUpdateView(LoginRequiredMixin, UpdateView):
-    model = ComplianceChecklist
-    form_class = ComplianceChecklistForm
-    template_name = 'contracts/compliance_checklist_form.html'
-    success_url = reverse_lazy('contracts:compliance_checklist_list')
-
-class ToggleChecklistItemView(LoginRequiredMixin, View):
-    def post(self, request, pk):
-        item = get_object_or_404(ChecklistItem, pk=pk)
-        item.is_completed = not item.is_completed
-        item.save()
-        return redirect('contracts:compliance_checklist_detail', pk=item.checklist.pk)
-
-class AddChecklistItemView(LoginRequiredMixin, View):
-    def post(self, request, pk):
-        checklist = get_object_or_404(ComplianceChecklist, pk=pk)
-        form = ChecklistItemForm(request.POST)
-        if form.is_valid():
-            item = form.save(commit=False)
-            item.checklist = checklist
-            item.save()
-        return redirect('contracts:compliance_checklist_detail', pk=checklist.pk)
+# Removed duplicate ComplianceChecklistUpdateView
+# Removed duplicate ToggleChecklistItemView
+# Removed duplicate AddChecklistItemView
 
 class RepositoryView(LoginRequiredMixin, View):
     def get(self, request):
@@ -407,11 +388,11 @@ class AddDueDiligenceItemView(LoginRequiredMixin, CreateView):
     model = DueDiligenceTask
     form_class = DueDiligenceTaskForm
     template_name = 'contracts/dd_task_form.html'
-    
+
     def form_valid(self, form):
         form.instance.process_id = self.kwargs['process_pk']
         return super().form_valid(form)
-    
+
     def get_success_url(self):
         return reverse_lazy('contracts:due_diligence_detail', kwargs={'pk': self.kwargs['process_pk']})
 
@@ -419,11 +400,11 @@ class AddDueDiligenceRiskView(LoginRequiredMixin, CreateView):
     model = DueDiligenceRisk
     form_class = DueDiligenceRiskForm
     template_name = 'contracts/dd_risk_form.html'
-    
+
     def form_valid(self, form):
         form.instance.process_id = self.kwargs['process_pk']
         return super().form_valid(form)
-    
+
     def get_success_url(self):
         return reverse_lazy('contracts:due_diligence_detail', kwargs={'pk': self.kwargs['process_pk']})
 
@@ -453,12 +434,12 @@ class AddExpenseView(LoginRequiredMixin, CreateView):
     model = BudgetExpense
     form_class = BudgetExpenseForm
     template_name = 'contracts/expense_form.html'
-    
+
     def form_valid(self, form):
         form.instance.budget_id = self.kwargs['budget_pk']
         form.instance.created_by = self.request.user
         return super().form_valid(form)
-    
+
     def get_success_url(self):
         return reverse_lazy('contracts:budget_detail', kwargs={'pk': self.kwargs['budget_pk']})
 
@@ -480,6 +461,7 @@ def toggle_dd_item(request, pk):
     task.save()
     return redirect('contracts:due_diligence_detail', pk=task.process.pk)
 
+# Corrected DueDiligenceDetailView and DueDiligenceUpdateView definitions to avoid duplication
 class DueDiligenceDetailView(LoginRequiredMixin, DetailView):
     model = DueDiligenceProcess
     template_name = 'contracts/due_diligence_detail.html'
@@ -641,7 +623,7 @@ def dashboard(request):
     try:
         total_contracts = Contract.objects.count()
         recent_contracts = Contract.objects.all()[:10]
-        
+
         # Pipeline data - count contracts by status
         pipeline_data = []
         for status, display in Contract.ContractStatus.choices:
