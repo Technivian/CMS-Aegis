@@ -30,9 +30,12 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('contracts/', include('contracts.urls', namespace='contracts')),
     # Custom authentication URLs
-    path('accounts/login/', auth_views.LoginView.as_view(
+    path('login/', auth_views.LoginView.as_view(
         template_name='registration/login.html'
     ), name='login'),
+    path('accounts/login/', auth_views.LoginView.as_view(
+        template_name='registration/login.html'
+    ), name='accounts_login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('accounts/register/', SignUpView.as_view(), name='register'),
 
