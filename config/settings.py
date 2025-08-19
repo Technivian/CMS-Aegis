@@ -100,6 +100,12 @@ STATICFILES_DIRS = [
     BASE_DIR / 'theme' / 'static',
 ]
 
+# Ensure static directories exist
+import os
+os.makedirs(BASE_DIR / 'theme' / 'static' / 'css', exist_ok=True)
+os.makedirs(BASE_DIR / 'theme' / 'static' / 'js', exist_ok=True)
+os.makedirs(BASE_DIR / 'staticfiles', exist_ok=True)
+
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

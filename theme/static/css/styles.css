@@ -1,0 +1,61 @@
+
+/* Bolton theme styles */
+:root {
+  --bolton-primary: #1e40af;
+  --bolton-secondary: #64748b;
+  --bolton-accent: #0ea5e9;
+  --bolton-success: #10b981;
+  --bolton-warning: #f59e0b;
+  --bolton-error: #ef4444;
+  --bolton-gray-50: #f8fafc;
+  --bolton-gray-100: #f1f5f9;
+  --bolton-gray-900: #0f172a;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bolton-gray-50);
+  color: var(--bolton-gray-900);
+}
+
+.btn-primary {
+  background-color: var(--bolton-primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #1e3a8a;
+  transform: translateY(-1px);
+}
+
+.card {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.navbar {
+  background-color: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 1rem 0;
+}
+
+.form-control {
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--bolton-primary);
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}

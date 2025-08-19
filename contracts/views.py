@@ -1,27 +1,24 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views import View
-from django.views.generic import ListView, DetailView, CreateView, UpdateView
-from django.urls import reverse_lazy
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
-from django.db.models import Sum
-from django.db.models.functions import Coalesce
-from django.utils import timezone
-from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-
-from django.contrib.auth.forms import UserCreationForm
-from .forms import (
-    ChecklistItemForm, WorkflowForm, WorkflowTemplateForm,
-    BudgetForm, TrademarkRequestForm, LegalTaskForm, RiskLogForm, ComplianceChecklistForm,
-    DueDiligenceProcessForm, DueDiligenceTaskForm, DueDiligenceRiskForm, BudgetExpenseForm
-)
-from .models import (
-    Contract, NegotiationThread, TrademarkRequest, LegalTask, RiskLog, ComplianceChecklist, ChecklistItem,
-    Workflow, WorkflowTemplate, WorkflowTemplateStep, WorkflowStep,
-    DueDiligenceProcess, DueDiligenceTask, DueDiligenceRisk, Budget, BudgetExpense
-)
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy, reverse
+from django.http import JsonResponse, HttpResponse
+from django.utils import timezone
+from django.core.paginator import Paginator
+from django.db.models import Q, Count
+from django.template.loader import render_to_string
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_protect
+from django.core.exceptions import ValidationError
+import json
+from .models import *
+from .forms import *
+from .services import get_repository_service, get_template_service, get_clause_service, get_obligation_service
 
 # --- Index View ---
 def index(request):
@@ -81,10 +78,9 @@ class AddChecklistItemView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse_lazy('contracts:compliance_checklist_detail', kwargs={'pk': self.kwargs['checklist_pk']})
 
-class RepositoryView(LoginRequiredMixin, ListView):
-    model = Contract
-    template_name = 'contracts/repository.html'
-    context_object_name = 'contracts'
+class RepositoryView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'contracts/repository.html')
 
 class ContractDetailView(LoginRequiredMixin, DetailView):
     model = Contract
@@ -618,81 +614,98 @@ def add_budget_expense(request, budget_id):
 
 
 # --- Dashboard View ---
+@csrf_protect
+def user_login(request):
+    """Handle user login with comprehensive error handling"""
+    if request.user.is_authenticated:
+        return redirect('contracts:dashboard')
+
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                if user.is_active:
+                    login(request, user)
+                    messages.success(request, f'Welcome back, {user.first_name or username}!')
+                    next_url = request.GET.get('next', 'contracts:dashboard')
+                    return redirect(next_url)
+                else:
+                    messages.error(request, 'Your account has been disabled.')
+            else:
+                messages.error(request, 'Invalid username or password.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        form = AuthenticationForm()
+
+    return render(request, 'registration/login.html', {'form': form})
+
+@csrf_protect
+def user_register(request):
+    """Handle user registration with comprehensive validation"""
+    if request.user.is_authenticated:
+        return redirect('contracts:dashboard')
+
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            try:
+                user = form.save()
+                username = form.cleaned_data.get('username')
+                messages.success(request, f'Account created successfully for {username}!')
+
+                # Auto-login after successful registration
+                user = authenticate(username=username, password=form.cleaned_data.get('password1'))
+                if user:
+                    login(request, user)
+                    return redirect('contracts:dashboard')
+                else:
+                    return redirect('contracts:login')
+            except ValidationError as e:
+                messages.error(request, f'Registration failed: {e}')
+            except Exception as e:
+                messages.error(request, 'An unexpected error occurred during registration.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        form = UserCreationForm()
+
+    return render(request, 'registration/register.html', {'form': form})
+
+def user_logout(request):
+    """Handle user logout"""
+    username = request.user.username if request.user.is_authenticated else 'User'
+    logout(request)
+    messages.success(request, f'You have been logged out successfully. See you soon!')
+    return redirect('contracts:login')
+
 def dashboard(request):
-    # Contract data
+    if not request.user.is_authenticated:
+        return redirect('contracts:login')
+
     try:
-        total_contracts = Contract.objects.count()
-        recent_contracts = Contract.objects.all()[:10]
+        context = {
+            'total_contracts': Contract.objects.count(),
+            'active_contracts': Contract.objects.filter(status='active').count(),
+            'pending_tasks': LegalTask.objects.filter(status='pending').count(),
+            'recent_contracts': Contract.objects.order_by('-created_at')[:5],
+            'recent_tasks': LegalTask.objects.order_by('-created_at')[:5],
+        }
+    except Exception as e:
+        messages.warning(request, 'Some dashboard data is unavailable.')
+        context = {
+            'total_contracts': 0,
+            'active_contracts': 0,
+            'pending_tasks': 0,
+            'recent_contracts': [],
+            'recent_tasks': [],
+        }
 
-        # Pipeline data - count contracts by status
-        pipeline_data = []
-        for status, display in Contract.ContractStatus.choices:
-            count = Contract.objects.filter(status=status).count()
-            if count > 0:
-                pipeline_data.append((display, count))
-    except:
-        total_contracts = 0
-        recent_contracts = []
-        pipeline_data = []
-
-    # Legal Tasks data
-    try:
-        pending_tasks = LegalTask.objects.filter(status__in=['PENDING', 'IN_PROGRESS']).count()
-    except:
-        pending_tasks = 0
-
-    # Workflow data
-    try:
-        active_workflows = Workflow.objects.filter(status='ACTIVE').count()
-    except:
-        active_workflows = 0
-
-    # Trademark data
-    try:
-        trademark_requests = TrademarkRequest.objects.all().count()
-        pending_trademarks = TrademarkRequest.objects.filter(status__in=['PENDING', 'FILED', 'IN_REVIEW']).count()
-    except:
-        trademark_requests = 0
-        pending_trademarks = 0
-
-    # Risk data
-    try:
-        risk_count = RiskLog.objects.count()
-        top_risks = RiskLog.objects.filter(risk_level='HIGH')[:5]
-    except:
-        risk_count = 0
-        top_risks = []
-
-    # Due Diligence data
-    try:
-        dd_count = DueDiligenceProcess.objects.count()
-    except:
-        dd_count = 0
-
-    # Budget data
-    try:
-        budget_count = Budget.objects.count()
-    except:
-        budget_count = 0
-
-    # Compliance data
-    try:
-        upcoming_checklists = ComplianceChecklist.objects.all()[:5]
-    except:
-        upcoming_checklists = []
-
-    context = {
-        'total_contracts': total_contracts,
-        'recent_contracts': recent_contracts,
-        'pipeline_data': pipeline_data,
-        'pending_tasks': pending_tasks,
-        'active_workflows': active_workflows,
-        'trademark_requests': trademark_requests,
-        'pending_trademarks': pending_trademarks,
-        'risk_count': risk_count,
-        'top_risks': top_risks,
-        'dd_count': dd_count,
-        'budget_count': budget_count,
-        'upcoming_checklists': upcoming_checklists,
-    }
     return render(request, 'dashboard.html', context)
