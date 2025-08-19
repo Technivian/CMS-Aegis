@@ -1,0 +1,87 @@
+Here’s the tightest fix path:
+
+Prove what’s actually exportable
+
+python - <<'PY'
+import sys, importlib
+sys.path.append("/home/runner/workspace")
+m = importlib.import_module("contracts.views")
+print("exports:", [n for n in dir(m) if n.endswith("View")])
+PY
+
+
+If SignUpView / ContractListView aren’t in that printout, your imports will fail.
+
+Match imports to reality
+
+If everything is in a single file:
+
+# contracts/urls.py
+from .views import SignUpView, ContractListView
+
+
+If you split them:
+
+from .views.auth import SignUpView
+from .views.contracts import ContractListView
+
+
+If you did split into a package, re-export (cleanest)
+
+# contracts/views/__init__.py
+from .auth import SignUpView
+from .contracts import ContractListView
+__all__ = ["SignUpView", "ContractListView"]
+
+
+Now from .views import SignUpView, ContractListView works again.
+
+If the views don’t exist yet, stub them
+
+# contracts/views.py
+from django.contrib.auth.forms import UserCreationForm
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, ListView
+from .models import Contract
+
+class SignUpView(CreateView):
+    form_class = UserCreationForm
+    template_name = "registration/signup.html"
+    success_url = reverse_lazy("login")
+
+class ContractListView(ListView):
+    model = Contract
+    template_name = "contracts/contract_list.html"
+    context_object_name = "contracts"
+
+
+Namespace must match
+
+# contracts/urls.py
+app_name = "contracts"   # required because you include(..., namespace="contracts")
+
+
+Kill circulars
+Make sure contracts/views.py (or submodules) never import contracts.urls. Views import models/forms/utils only.
+
+Replit hygiene
+
+# clear stale bytecode & restart the repl
+find . -type d -name "__pycache__" -prune -exec rm -rf {} +
+
+
+Then stop/start the server. Replit’s autoreloader sometimes latches onto old paths.
+
+Sanity grep for naming typos
+
+grep -R "class .*SignUpView" -n contracts
+grep -R "class .*ContractListView" -n contracts
+
+
+Fix SignupView vs SignUpView, ContractsListView vs ContractListView, etc.
+
+Basics
+
+contracts in INSTALLED_APPS.
+
+If you reference registration/signup.html or contracts/contract_list.html, make those templates exist.
