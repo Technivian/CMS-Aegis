@@ -17,12 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
-from django.shortcuts import redirect
+from django.views.generic import RedirectView
 from contracts.views import SignUpView
 from django.conf import settings
 from django.conf.urls.static import static
 from contracts import views
-from django.contrib import messages
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -32,7 +31,6 @@ urlpatterns = [
     path('contracts/', include('contracts.urls', namespace='contracts')),
     # Custom authentication URLs
     path('accounts/login/', auth_views.LoginView.as_view(
-        authentication_form=CustomAuthenticationForm,
         template_name='registration/login.html'
     ), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
@@ -40,7 +38,6 @@ urlpatterns = [
 
     # Include remaining auth URLs
     path('accounts/', include('django.contrib.auth.urls')),
-    path("__reload__/", include("django_browser_reload.urls")),
 ]
 
 if settings.DEBUG:
