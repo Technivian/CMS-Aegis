@@ -1,187 +1,179 @@
+
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
-from django.contrib.auth import get_user_model
-from .models import (
-    Contract, LegalTask, RiskLog, ComplianceChecklist, ChecklistItem,
-    TrademarkRequest, Workflow, WorkflowStep, WorkflowTemplate,
-    WorkflowTemplateStep, Budget, BudgetExpense, DueDiligenceProcess,
-    DueDiligenceTask, DueDiligenceRisk, NegotiationThread, Tag
-)
-
-User = get_user_model()
-
-
-class ContractForm(forms.ModelForm):
-    class Meta:
-        model = Contract
-        fields = ['title', 'content', 'status']
-        widgets = {
-            'content': forms.Textarea(attrs={'rows': 10}),
-        }
-
-
-class NegotiationThreadForm(forms.ModelForm):
-    class Meta:
-        model = NegotiationThread
-        fields = ['round_number', 'internal_note', 'external_note', 'attachment']
-        widgets = {
-            'internal_note': forms.Textarea(attrs={'rows': 3}),
-            'external_note': forms.Textarea(attrs={'rows': 3}),
-        }
-
-
-class CustomUserCreationForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-    first_name = forms.CharField(max_length=30, required=True)
-    last_name = forms.CharField(max_length=30, required=True)
-    notifications = forms.BooleanField(required=False)
-
-    class Meta:
-        model = User
-        fields = ("username", "email", "first_name", "last_name", "password1", "password2")
-
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        if User.objects.filter(username=username).exists():
-            raise forms.ValidationError("A user with that email already exists.")
-        return username
-
-    def clean_password2(self):
-        password1 = self.cleaned_data.get("password1")
-        password2 = self.cleaned_data.get("password2")
-        if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("The two password fields didn't match.")
-        return password2
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.email = self.cleaned_data["email"]
-        user.first_name = self.cleaned_data["first_name"]
-        user.last_name = self.cleaned_data["last_name"]
-        if commit:
-            user.save()
-        return user
-
+from django.contrib.auth import authenticate
+import re
 
 class CustomAuthenticationForm(AuthenticationForm):
-    username = forms.CharField(
-        widget=forms.TextInput(attrs={
-            'class': 'w-full pl-12 pr-4 py-4 border-2 border-border rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all duration-200 bg-white text-primary-700 placeholder-muted',
-            'placeholder': 'Enter your email address or username'
+    username = forms.EmailField(
+        label="Business email address",
+        widget=forms.EmailInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Your business email address',
+            'autocomplete': 'email',
         })
     )
-
     password = forms.CharField(
+        label="Password", 
+        strip=False,
         widget=forms.PasswordInput(attrs={
-            'class': 'w-full pl-12 pr-4 py-4 border-2 border-border rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all duration-200 bg-white text-primary-700 placeholder-muted',
-            'placeholder': 'Enter your password'
+            'class': 'form-input',
+            'placeholder': 'Enter your password',
+            'autocomplete': 'current-password',
         })
     )
 
     error_messages = {
-        'invalid_login': (
-            "Please enter a correct email/username and password. Note that both "
-            "fields may be case-sensitive."
-        ),
-        'inactive': "This account is inactive.",
+        'invalid_login': 'Please enter a correct email and password. Note that both fields may be case-sensitive.',
+        'inactive': 'This account is inactive.',
     }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].label = "Business email address"
 
-class ChecklistItemForm(forms.ModelForm):
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if username:
+            # Normalize email to lowercase
+            username = username.lower().strip()
+            # Basic email validation
+            if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', username):
+                raise ValidationError('Please enter a valid email address.')
+        return username
+
+    def clean(self):
+        username = self.cleaned_data.get('username')
+        password = self.cleaned_data.get('password')
+
+        if username and password:
+            # Try to authenticate
+            self.user_cache = authenticate(
+                self.request, 
+                username=username, 
+                password=password
+            )
+            if self.user_cache is None:
+                # Check if user exists
+                try:
+                    user = User.objects.get(username=username)
+                    # User exists but password is wrong
+                    raise ValidationError('Incorrect password. Please try again.')
+                except User.DoesNotExist:
+                    # User doesn't exist
+                    raise ValidationError('No account found with this email address.')
+            else:
+                self.confirm_login_allowed(self.user_cache)
+
+        return self.cleaned_data
+
+class CustomUserCreationForm(UserCreationForm):
+    username = forms.EmailField(
+        label="Business email address",
+        help_text="This will be your login email address.",
+        widget=forms.EmailInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Your business email address',
+            'autocomplete': 'email',
+        })
+    )
+    password1 = forms.CharField(
+        label="Password",
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Create a strong password',
+            'autocomplete': 'new-password',
+        }),
+        help_text="Your password must be at least 8 characters long and contain a mix of letters, numbers, and symbols."
+    )
+    password2 = forms.CharField(
+        label="Confirm password",
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Confirm your password',
+            'autocomplete': 'new-password',
+        }),
+        strip=False,
+        help_text="Enter the same password as before, for verification."
+    )
+
     class Meta:
-        model = ChecklistItem
-        fields = ['title', 'description', 'is_completed', 'order']
+        model = User
+        fields = ("username", "password1", "password2")
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Remove default help text
+        for field_name in self.fields:
+            if field_name != 'username':
+                self.fields[field_name].help_text = None
 
-class DueDiligenceProcessForm(forms.ModelForm):
-    class Meta:
-        model = DueDiligenceProcess
-        fields = ['title', 'transaction_type', 'target_company', 'deal_value',
-                 'lead_attorney', 'start_date', 'target_completion_date', 'description']
-        widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'target_completion_date': forms.DateInput(attrs={'type': 'date'}),
-            'description': forms.Textarea(attrs={'rows': 4}),
-        }
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if username:
+            # Normalize email to lowercase
+            username = username.lower().strip()
+            
+            # Validate email format
+            if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', username):
+                raise ValidationError('Please enter a valid email address.')
+            
+            # Check if email is already taken
+            if User.objects.filter(username=username).exists():
+                raise ValidationError('An account with this email address already exists.')
+                
+            # Optional: Check for business email domains
+            business_domains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com']
+            domain = username.split('@')[1].lower()
+            if domain in business_domains:
+                # Just a warning, not blocking
+                pass
+                
+        return username
 
+    def clean_password1(self):
+        password1 = self.cleaned_data.get('password1')
+        
+        if password1:
+            # Custom password validation
+            if len(password1) < 8:
+                raise ValidationError('Password must be at least 8 characters long.')
+            
+            if password1.isdigit():
+                raise ValidationError('Password cannot be entirely numeric.')
+            
+            if password1.lower() in ['password', '12345678', 'qwerty', 'abc123']:
+                raise ValidationError('This password is too common.')
+            
+            # Check for at least one letter and one number
+            has_letter = re.search(r'[A-Za-z]', password1)
+            has_digit = re.search(r'\d', password1)
+            
+            if not has_letter:
+                raise ValidationError('Password must contain at least one letter.')
+            
+            if not has_digit:
+                raise ValidationError('Password must contain at least one number.')
 
-class DueDiligenceTaskForm(forms.ModelForm):
-    class Meta:
-        model = DueDiligenceTask
-        fields = ['title', 'category', 'description', 'assigned_to', 'due_date', 'notes']
-        widgets = {
-            'due_date': forms.DateInput(attrs={'type': 'date'}),
-            'description': forms.Textarea(attrs={'rows': 3}),
-            'notes': forms.Textarea(attrs={'rows': 3}),
-        }
+        return password1
 
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
+        
+        if password1 and password2:
+            if password1 != password2:
+                raise ValidationError("The two password fields didn't match.")
+        
+        return password2
 
-class DueDiligenceRiskForm(forms.ModelForm):
-    class Meta:
-        model = DueDiligenceRisk
-        fields = ['title', 'category', 'description', 'risk_level', 'likelihood',
-                 'impact', 'mitigation_strategy', 'owner', 'target_resolution_date']
-        widgets = {
-            'target_resolution_date': forms.DateInput(attrs={'type': 'date'}),
-            'description': forms.Textarea(attrs={'rows': 3}),
-            'mitigation_strategy': forms.Textarea(attrs={'rows': 3}),
-        }
-
-
-class BudgetForm(forms.ModelForm):
-    class Meta:
-        model = Budget
-        fields = ['year', 'quarter', 'department', 'allocated_amount', 'description']
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 3}),
-        }
-
-
-class BudgetExpenseForm(forms.ModelForm):
-    class Meta:
-        model = BudgetExpense
-        fields = ['description', 'amount', 'category', 'date', 'receipt_url']
-        widgets = {
-            'date': forms.DateInput(attrs={'type': 'date'}),
-        }
-
-
-class WorkflowForm(forms.ModelForm):
-    class Meta:
-        model = Workflow
-        fields = ['title', 'description', 'template']
-
-
-class WorkflowTemplateForm(forms.ModelForm):
-    class Meta:
-        model = WorkflowTemplate
-        fields = ['name', 'description', 'category']
-
-
-class TrademarkRequestForm(forms.ModelForm):
-    class Meta:
-        model = TrademarkRequest
-        fields = ['mark_text', 'description', 'goods_services', 'filing_basis']
-
-
-class LegalTaskForm(forms.ModelForm):
-    class Meta:
-        model = LegalTask
-        fields = ['title', 'description', 'priority', 'due_date', 'assigned_to']
-        widgets = {
-            'due_date': forms.DateInput(attrs={'type': 'date'}),
-        }
-
-
-class RiskLogForm(forms.ModelForm):
-    class Meta:
-        model = RiskLog
-        fields = ['title', 'description', 'risk_level', 'mitigation_strategy']
-
-
-class ComplianceChecklistForm(forms.ModelForm):
-    class Meta:
-        model = ComplianceChecklist
-        fields = ['title', 'description', 'regulation_type']
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        # Set email field as well
+        user.email = self.cleaned_data["username"]
+        if commit:
+            user.save()
+        return user

@@ -1,0 +1,428 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - Bolton CLM</title>
+    <link href="{% static 'css/styles.css' %}" rel="stylesheet">
+    <style>
+        :root {
+            --bolton-blue: #003366;
+            --bolton-orange: #FF6B35;
+            --bolton-light-gray: #F8F9FA;
+            --bolton-dark-gray: #6C757D;
+            --bolton-border: #E5E7EB;
+        }
+        
+        body {
+            background: var(--bolton-light-gray);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .auth-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            margin: 1rem;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--bolton-orange), #FF8A65);
+            border-radius: 8px;
+            margin-right: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+        
+        .logo-text {
+            color: var(--bolton-blue);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .logo-subtitle {
+            color: var(--bolton-dark-gray);
+            font-size: 0.875rem;
+            margin-left: 0.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            color: var(--bolton-blue);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--bolton-border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--bolton-orange);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+        
+        .form-input.error {
+            border-color: #EF4444;
+            background-color: #FEF2F2;
+        }
+        
+        .error-message {
+            color: #EF4444;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        
+        .submit-button {
+            width: 100%;
+            background: linear-gradient(135deg, var(--bolton-orange), #FF8A65);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .submit-button:hover {
+            background: linear-gradient(135deg, #E55A2B, var(--bolton-orange));
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+        }
+        
+        .submit-button:active {
+            transform: translateY(0);
+        }
+        
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--bolton-border);
+        }
+        
+        .auth-link {
+            color: var(--bolton-orange);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .auth-link:hover {
+            text-decoration: underline;
+        }
+        
+        .messages {
+            margin-bottom: 1rem;
+        }
+        
+        .message {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .message.error {
+            background-color: #FEF2F2;
+            color: #DC2626;
+            border: 1px solid #FECACA;
+        }
+        
+        .message.success {
+            background-color: #F0FDF4;
+            color: #166534;
+            border: 1px solid #BBF7D0;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+        
+        .checkbox-input {
+            margin-right: 0.5rem;
+            margin-top: 0.125rem;
+            accent-color: var(--bolton-orange);
+        }
+        
+        .checkbox-label {
+            font-size: 0.875rem;
+            color: var(--bolton-dark-gray);
+            cursor: pointer;
+            line-height: 1.4;
+        }
+        
+        .checkbox-label a {
+            color: var(--bolton-orange);
+            text-decoration: none;
+        }
+        
+        .checkbox-label a:hover {
+            text-decoration: underline;
+        }
+        
+        .required {
+            color: #EF4444;
+        }
+        
+        .disclaimer {
+            font-size: 0.75rem;
+            color: var(--bolton-dark-gray);
+            font-style: italic;
+            margin-top: 1rem;
+            line-height: 1.4;
+        }
+        
+        .password-strength {
+            margin-top: 0.25rem;
+            font-size: 0.75rem;
+        }
+        
+        .strength-weak { color: #EF4444; }
+        .strength-fair { color: #F59E0B; }
+        .strength-good { color: #10B981; }
+        .strength-strong { color: #059669; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="logo">
+            <div class="logo-icon">B</div>
+            <div>
+                <div class="logo-text">Bolton CLM</div>
+                <div class="logo-subtitle">CREATE · SIGN · MANAGE</div>
+            </div>
+        </div>
+
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" id="registerForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}" class="form-label">
+                    Business email address <span class="required">*</span>
+                </label>
+                <input 
+                    type="email" 
+                    name="{{ form.username.name }}" 
+                    id="{{ form.username.id_for_label }}"
+                    class="form-input {% if form.username.errors %}error{% endif %}"
+                    placeholder="Your business email address"
+                    value="{{ form.username.value|default_if_none:'' }}"
+                    required
+                >
+                {% if form.username.errors %}
+                    {% for error in form.username.errors %}
+                        <div class="error-message">{{ error }}</div>
+                    {% endfor %}
+                {% else %}
+                    <div class="error-message" style="color: var(--bolton-dark-gray);">This field is required</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.password1.id_for_label }}" class="form-label">
+                    Password <span class="required">*</span>
+                </label>
+                <input 
+                    type="password" 
+                    name="{{ form.password1.name }}" 
+                    id="{{ form.password1.id_for_label }}"
+                    class="form-input {% if form.password1.errors %}error{% endif %}"
+                    placeholder="Create a strong password"
+                    required
+                >
+                <div id="passwordStrength" class="password-strength"></div>
+                {% if form.password1.errors %}
+                    {% for error in form.password1.errors %}
+                        <div class="error-message">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.password2.id_for_label }}" class="form-label">
+                    Confirm password <span class="required">*</span>
+                </label>
+                <input 
+                    type="password" 
+                    name="{{ form.password2.name }}" 
+                    id="{{ form.password2.id_for_label }}"
+                    class="form-input {% if form.password2.errors %}error{% endif %}"
+                    placeholder="Confirm your password"
+                    required
+                >
+                {% if form.password2.errors %}
+                    {% for error in form.password2.errors %}
+                        <div class="error-message">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="notifications" name="notifications" class="checkbox-input">
+                <label for="notifications" class="checkbox-label">
+                    I want to be notified about everything that is happening at Bolton CLM.
+                </label>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="terms" name="terms" class="checkbox-input" required>
+                <label for="terms" class="checkbox-label">
+                    Terms and you acknowledge having read our <a href="#">Privacy Notice</a> <span class="required">*</span>
+                </label>
+            </div>
+
+            {% if form.non_field_errors %}
+                {% for error in form.non_field_errors %}
+                    <div class="message error">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <button type="submit" class="submit-button" id="submitBtn">
+                <span>Create an account →</span>
+            </button>
+
+            <div class="disclaimer">
+                *This includes periodic newsletters, emails about usage tips, billing practices, and other communications. You can opt out anytime within the app.
+            </div>
+        </form>
+
+        <div class="auth-footer">
+            <span style="color: var(--bolton-dark-gray);">Already have an account?</span>
+            <a href="{% url 'login' %}" class="auth-link">Return to login</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const termsChecked = document.getElementById('terms').checked;
+            if (!termsChecked) {
+                e.preventDefault();
+                alert('Please accept the Terms and Privacy Notice to continue.');
+                return false;
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Creating account...</span>';
+        });
+
+        // Password strength checker
+        document.getElementById('{{ form.password1.id_for_label }}').addEventListener('input', function() {
+            const password = this.value;
+            const strengthDiv = document.getElementById('passwordStrength');
+            
+            if (password.length === 0) {
+                strengthDiv.textContent = '';
+                return;
+            }
+            
+            let strength = 0;
+            if (password.length >= 8) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+            
+            const levels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+            const classes = ['strength-weak', 'strength-weak', 'strength-fair', 'strength-good', 'strength-strong'];
+            
+            strengthDiv.textContent = `Password strength: ${levels[strength]}`;
+            strengthDiv.className = `password-strength ${classes[strength]}`;
+        });
+
+        // Focus first input
+        document.querySelector('.form-input').focus();
+
+        // Real-time validation
+        document.querySelectorAll('.form-input').forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value.trim() === '' && this.hasAttribute('required')) {
+                    this.classList.add('error');
+                } else {
+                    this.classList.remove('error');
+                }
+            });
+        });
+
+        // Email validation
+        document.getElementById('{{ form.username.id_for_label }}').addEventListener('blur', function() {
+            const email = this.value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (email && !emailRegex.test(email)) {
+                this.classList.add('error');
+            } else if (email) {
+                this.classList.remove('error');
+            }
+        });
+
+        // Password confirmation validation
+        document.getElementById('{{ form.password2.id_for_label }}').addEventListener('input', function() {
+            const password1 = document.getElementById('{{ form.password1.id_for_label }}').value;
+            const password2 = this.value;
+            
+            if (password2 && password1 !== password2) {
+                this.classList.add('error');
+            } else {
+                this.classList.remove('error');
+            }
+        });
+    </script>
+</body>
+</html>
