@@ -1,172 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Bolton CLM{% endblock %}</title>
     {% load static %}
-    <link href="{% static 'css/dist/styles.css' %}" rel="stylesheet">
-<script>
-        function goBack() {
-            if (window.history.length > 1) {
-                window.history.back();
-            } else {
-                window.location.href = "{% url 'dashboard' %}";
-            }
-        }
-
-        function goForward() {
-            window.history.forward();
-        }
-
-        // Update button states based on navigation history
-        document.addEventListener('DOMContentLoaded', function() {
-            const backButton = document.querySelector('button[onclick="goBack()"]');
-            const forwardButton = document.querySelector('button[onclick="goForward()"]');
-
-            // Enable/disable buttons based on history
-            if (window.history.length <= 1) {
-                if (backButton) {
-                    backButton.title = 'Go to Dashboard';
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        accent: {
+                            50: '#fdf4ff',
+                            100: '#fae8ff',
+                            200: '#f5d0fe',
+                            300: '#f0abfc',
+                            400: '#e879f9',
+                            500: '#d946ef',
+                            600: '#c026d3',
+                            700: '#a21caf',
+                            800: '#86198f',
+                            900: '#701a75',
+                        },
+                        success: {
+                            500: '#10b981',
+                        }
+                    }
                 }
             }
-
-            // Listen for navigation events
-            window.addEventListener('popstate', function() {
-                // Update button states if needed
-            });
-        });
+        }
     </script>
+    <style>
+        .btn {
+            @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2;
+        }
+        .btn-primary {
+            @apply text-white bg-primary-600 hover:bg-primary-700 focus:ring-primary-500;
+        }
+        .btn-accent {
+            @apply text-white bg-accent-600 hover:bg-accent-700 focus:ring-accent-500;
+        }
+        .btn-outline {
+            @apply text-gray-700 bg-white border-gray-300 hover:bg-gray-50 focus:ring-primary-500;
+        }
+    </style>
 </head>
-<body style="background: var(--bg);" class="font-sans">
-    <!-- Bolton Logo Header -->
-    <div style="background: var(--card); border-bottom: 1px solid var(--border);" class="shadow-sm">
-        <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-            <div class="flex items-center">
-                <a href="{% url 'dashboard' %}" class="flex items-center focus-ring rounded-2xl">
-                    <svg width="180" height="45" viewBox="0 0 180 45" class="mr-2">
-                        <!-- Bolton logo with brand colors -->
-                        <rect x="0" y="8" width="40" height="32" fill="var(--primary-700)" rx="6"/>
+<body class="h-full">
+    {% block content %}{% endblock %}
 
-                        <!-- White architectural lines -->
-                        <g fill="white" stroke="white" stroke-width="0.5">
-                            <rect x="8" y="12" width="2" height="20"/>
-                            <rect x="12" y="12" width="2" height="20"/>
-                            <rect x="16" y="12" width="2" height="20"/>
-                            <rect x="20" y="12" width="2" height="20"/>
-                            <rect x="24" y="12" width="2" height="20"/>
-                            <rect x="28" y="12" width="2" height="20"/>
-
-                            <rect x="6" y="14" width="28" height="1"/>
-                            <rect x="6" y="18" width="28" height="1"/>
-                            <rect x="6" y="22" width="28" height="1"/>
-                            <rect x="6" y="26" width="28" height="1"/>
-                            <rect x="6" y="30" width="28" height="1"/>
-                        </g>
-
-                        <text x="15" y="30" fill="white" font-family="Arial Black, sans-serif" font-size="16" font-weight="900">B</text>
-                        <text x="45" y="25" fill="var(--primary-700)" font-family="Inter, sans-serif" font-size="18" font-weight="bold" letter-spacing="2">BOLTON</text>
-                        <text x="45" y="38" fill="var(--primary-600)" font-family="Inter, sans-serif" font-size="14" font-weight="normal" letter-spacing="2">CLM</text>
-                    </svg>
-                </a>
-            </div>
-            <div class="flex items-center space-x-4">
-                <!-- Navigation buttons -->
-                <button onclick="goBack()" style="color: var(--muted);" class="hover:text-primary-700 p-2 rounded-xl hover:bg-border focus-ring" title="Go back">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                    </svg>
-                </button>
-                <button onclick="goForward()" style="color: var(--muted);" class="hover:text-primary-700 p-2 rounded-xl hover:bg-border focus-ring" title="Go forward">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </button>
-            </div>
-            <div class="flex items-center space-x-4">
-                {% if user.is_authenticated %}
-                    <!-- Action Buttons -->
-                    <div class="flex items-center space-x-3">
-                        <a href="{% url 'contracts:contract_create' %}" class="btn-accent flex items-center space-x-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            <span>New Contract</span>
-                        </a>
-                        <a href="{% url 'contracts:workflow_create' %}" class="btn-primary flex items-center space-x-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-                            <span>Start Workflow</span>
-                        </a>
-                    </div>
-                    <!-- User Menu -->
-                    <div class="flex items-center space-x-3">
-                        <a href="{% url 'profile' %}" class="flex items-center space-x-2 hover:bg-primary-500/5 rounded-xl px-2 py-1 transition-colors">
-                            <span class="text-sm text-primary-700 font-medium">{{ user.first_name|default:user.username }}</span>
-                            <div class="w-8 h-8 bg-primary-100 rounded-xl flex items-center justify-center">
-                                <span class="text-xs font-semibold text-primary-700">{{ user.first_name.0|default:user.username.0|upper }}</span>
-                            </div>
-                        </a>
-                        <form method="post" action="{% url 'logout' %}" class="inline">
-                            {% csrf_token %}
-                            <button type="submit" style="color: var(--muted);" class="text-sm hover:text-gray-900 focus-ring rounded-xl px-2 py-1 transition-colors">Logout</button>
-                        </form>
-                    </div>
-                {% else %}
-                    <div class="flex items-center space-x-4">
-                        <a href="{% url 'login' %}" class="link text-sm rounded-xl px-2 py-1">Login</a>
-                        <a href="{% url 'register' %}" class="btn-primary text-sm">Sign up</a>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Navigation Tabs (Bolton Style) -->
-    {% if user.is_authenticated %}
-    <div style="background: var(--card); border-bottom: 1px solid var(--border);" class="shadow-sm">
-        <div class="max-w-7xl mx-auto px-6">
-            <nav class="flex space-x-0">
-                <a href="{% url 'dashboard' %}" class="relative py-3 px-4 text-sm font-medium hover:text-primary-700 transition-all duration-200 focus-ring {% if request.resolver_match.url_name == 'dashboard' %}text-primary-700 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary-600{% else %}text-gray-600{% endif %}">
-                    Dashboard
-                </a>
-                <a href="{% url 'contracts:contract_list' %}" class="relative py-3 px-4 text-sm font-medium hover:text-primary-700 transition-all duration-200 focus-ring {% if 'contract' in request.resolver_match.url_name %}text-primary-700 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary-600{% else %}text-gray-600{% endif %}">
-                    Contracts
-                </a>
-                <a href="{% url 'contracts:legal_task_board' %}" class="relative py-3 px-4 text-sm font-medium hover:text-primary-700 transition-all duration-200 focus-ring {% if 'legal_task' in request.resolver_match.url_name %}text-primary-700 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary-600{% else %}text-gray-600{% endif %}">
-                    Legal Tasks
-                </a>
-                <a href="{% url 'contracts:repository' %}" class="relative py-3 px-4 text-sm font-medium hover:text-primary-700 transition-all duration-200 focus-ring {% if request.resolver_match.url_name == 'repository' %}text-primary-700 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary-600{% else %}text-gray-600{% endif %}">
-                    Repository
-                </a>
-                <a href="{% url 'contracts:workflow_dashboard' %}" class="relative py-3 px-4 text-sm font-medium hover:text-primary-700 transition-all duration-200 focus-ring {% if 'workflow' in request.resolver_match.url_name %}text-primary-700 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary-600{% else %}text-gray-600{% endif %}">
-                    Workflow Designer
-                </a>
-                <a href="{% url 'contracts:risk_log_list' %}" class="relative py-3 px-4 text-sm font-medium hover:text-primary-700 transition-all duration-200 focus-ring {% if 'risk' in request.resolver_match.url_name %}text-primary-700 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary-600{% else %}text-gray-600{% endif %}">
-                    Risks
-                </a>
-                <a href="{% url 'contracts:compliance_checklist_list' %}" class="relative py-3 px-4 text-sm font-medium hover:text-primary-700 transition-all duration-200 focus-ring {% if 'compliance' in request.resolver_match.url_name %}text-primary-700 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary-600{% else %}text-gray-600{% endif %}">
-                    Compliance
-                </a>
-                <a href="{% url 'contracts:due_diligence_list' %}" class="relative py-3 px-4 text-sm font-medium hover:text-primary-700 transition-all duration-200 focus-ring {% if 'due_diligence' in request.resolver_match.url_name %}text-primary-700 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary-600{% else %}text-gray-600{% endif %}">
-                    M&A Due Diligence
-                </a>
-                <a href="{% url 'contracts:budget_list' %}" class="relative py-3 px-4 text-sm font-medium hover:text-primary-700 transition-all duration-200 focus-ring {% if 'budget' in request.resolver_match.url_name %}text-primary-700 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary-600{% else %}text-gray-600{% endif %}">
-                    Budgets
-                </a>
-                <a href="{% url 'contracts:trademark_request_list' %}" class="relative py-3 px-4 text-sm font-medium hover:text-primary-700 transition-all duration-200 focus-ring {</a>
-            </nav>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Main Content -->
-    <main>
-        {% block content %}
-        {% endblock %}
-    </main>
-
-    {% block extra_js %}{% endblock %}
+    {% block scripts %}
+    <script src="{% static 'js/main.js' %}"></script>
+    {% endblock %}
 </body>
 </html>
