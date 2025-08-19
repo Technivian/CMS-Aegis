@@ -12,7 +12,7 @@ from .forms import CustomUserCreationForm
 from .models import (
     Contract, TrademarkRequest, LegalTask, RiskLog, 
     ComplianceChecklist, Workflow, WorkflowTemplate,
-    DueDiligence, Budget
+    DueDiligenceProcess, Budget
 )
 
 class SignUpView(CreateView):
@@ -200,24 +200,24 @@ class RepositoryView(LoginRequiredMixin, ListView):
 
 # Due Diligence Views
 class DueDiligenceListView(LoginRequiredMixin, ListView):
-    model = DueDiligence
+    model = DueDiligenceProcess
     template_name = 'contracts/due_diligence_list.html'
     context_object_name = 'due_diligences'
 
 class DueDiligenceCreateView(LoginRequiredMixin, CreateView):
-    model = DueDiligence
+    model = DueDiligenceProcess
     template_name = 'contracts/due_diligence_form.html'
-    fields = ['title', 'description']
+    fields = ['title', 'transaction_type', 'target_company', 'deal_value', 'start_date', 'target_completion_date', 'description']
 
 class DueDiligenceDetailView(LoginRequiredMixin, DetailView):
-    model = DueDiligence
+    model = DueDiligenceProcess
     template_name = 'contracts/due_diligence_form.html'
     context_object_name = 'due_diligence'
 
 class DueDiligenceUpdateView(LoginRequiredMixin, UpdateView):
-    model = DueDiligence
+    model = DueDiligenceProcess
     template_name = 'contracts/due_diligence_form.html'
-    fields = ['title', 'description']
+    fields = ['title', 'transaction_type', 'target_company', 'deal_value', 'start_date', 'target_completion_date', 'description']
 
 class AddDueDiligenceItemView(LoginRequiredMixin, View):
     def post(self, request, pk):
