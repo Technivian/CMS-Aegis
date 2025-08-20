@@ -1,72 +1,120 @@
 
-{% extends 'base_fullscreen.html' %}
-
-{% block title %}Sign in to Bolton CLM{% endblock %}
-
-{% block content %}
-<div class="card p-8">
-    <div class="text-center mb-8">
-        <h1 class="text-2xl font-medium text-primary-700 mb-3">Sign in to Bolton CLM</h1>
-        <p class="text-muted text-sm leading-relaxed">
-            Welcome back. Please sign in to your account.
-        </p>
-    </div>
-    
-    {% if form.errors %}
-        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-            <div class="text-red-700 text-sm">
-                {% for field, errors in form.errors.items %}
-                    {% for error in errors %}
-                        <p>{{ error }}</p>
-                    {% endfor %}
-                {% endfor %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bolton CLM - Sign In</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bolton-blue: #1e40af;
+            --bolton-light-blue: #3b82f6;
+            --bolton-dark: #1e293b;
+            --bolton-gray: #64748b;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--bolton-blue), var(--bolton-light-blue));
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px rgba(30, 64, 175, 0.3);
+        }
+        
+        .input-field {
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            border-color: var(--bolton-blue);
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            <div class="text-center">
+                <div class="mx-auto h-20 w-20 bg-blue-600 rounded-xl flex items-center justify-center mb-6">
+                    <svg class="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Bolton CLM</h2>
+                <p class="text-gray-600">Contract Lifecycle Management</p>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <h3 class="text-2xl font-semibold text-center text-gray-900 mb-6">Sign in to your account</h3>
+                
+                {% if form.errors %}
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                        <div class="flex">
+                            <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div class="ml-3">
+                                <p class="text-sm text-red-800">Please correct the errors below.</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div>
+                        <label for="id_username" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                        <input type="text" 
+                               name="username" 
+                               id="id_username"
+                               required
+                               class="input-field appearance-none rounded-lg relative block w-full px-3 py-3 border placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-0 focus:z-10 sm:text-sm"
+                               placeholder="Enter your username"
+                               value="{{ form.username.value|default:'' }}">
+                        {% if form.username.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.username.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="id_password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <input type="password" 
+                               name="password" 
+                               id="id_password"
+                               required
+                               class="input-field appearance-none rounded-lg relative block w-full px-3 py-3 border placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-0 focus:z-10 sm:text-sm"
+                               placeholder="Enter your password">
+                        {% if form.password.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.password.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <button type="submit" 
+                                class="btn-primary group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                                <svg class="h-5 w-5 text-blue-300 group-hover:text-blue-200" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                                </svg>
+                            </span>
+                            Sign in
+                        </button>
+                    </div>
+                    
+                    <div class="text-center">
+                        <p class="text-sm text-gray-600">
+                            Don't have an account? 
+                            <a href="{% url 'register' %}" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">Sign up here</a>
+                        </p>
+                    </div>
+                </form>
             </div>
         </div>
-    {% endif %}
-    
-    <form method="post" class="space-y-6">
-        {% csrf_token %}
-        
-        <div>
-            <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-primary-700 mb-2">
-                Username or Email
-            </label>
-            <input type="text" 
-                   name="username" 
-                   id="{{ form.username.id_for_label }}"
-                   value="{{ form.username.value|default:'' }}"
-                   class="input"
-                   required>
-        </div>
-        
-        <div>
-            <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-primary-700 mb-2">
-                Password
-            </label>
-            <input type="password" 
-                   name="password" 
-                   id="{{ form.password.id_for_label }}"
-                   class="input"
-                   required>
-        </div>
-        
-        <div class="flex items-center">
-            <input id="remember" name="remember" type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-border rounded">
-            <label for="remember" class="ml-2 block text-sm text-muted">Remember me</label>
-        </div>
-        
-        <div class="pt-4">
-            <button type="submit" class="btn-primary w-full">
-                Sign in
-            </button>
-        </div>
-    </form>
-    
-    <div class="text-center mt-8 pt-6 border-t border-border">
-        <p class="text-sm text-muted">
-            Don't have an account? 
-            <a href="{% url 'register' %}" class="text-primary-600 hover:text-primary-700 font-medium transition duration-200">Sign up</a>
-        </p>
     </div>
-</div>
-{% endblock %}
+</body>
+</html>

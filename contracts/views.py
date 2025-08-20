@@ -116,6 +116,11 @@ class SignUpView(CreateView):
     template_name = 'registration/register.html'
     success_url = reverse_lazy('login')
 
+    def form_valid(self, form):
+        user = form.save()
+        login(self.request, user)
+        return redirect('dashboard')
+
 # Workflow Dashboard View
 class WorkflowDashboardView(LoginRequiredMixin, ListView):
     model = Workflow
