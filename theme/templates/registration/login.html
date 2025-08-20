@@ -41,7 +41,7 @@
             <div class="text-center">
                 <div class="mx-auto h-20 w-20 bg-blue-600 rounded-xl flex items-center justify-center mb-6">
                     <svg class="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                     </svg>
                 </div>
                 <h2 class="text-3xl font-bold text-gray-900 mb-2">Bolton CLM</h2>
@@ -58,7 +58,7 @@
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
                             </svg>
                             <div class="ml-3">
-                                <p class="text-sm text-red-800">Please correct the errors below.</p>
+                                <p class="text-sm text-red-800">Please check your username and password.</p>
                             </div>
                         </div>
                     </div>
@@ -76,9 +76,6 @@
                                class="input-field appearance-none rounded-lg relative block w-full px-3 py-3 border placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-0 focus:z-10 sm:text-sm"
                                placeholder="Enter your username"
                                value="{{ form.username.value|default:'' }}">
-                        {% if form.username.errors %}
-                            <p class="mt-1 text-sm text-red-600">{{ form.username.errors.0 }}</p>
-                        {% endif %}
                     </div>
                     
                     <div>
@@ -89,9 +86,6 @@
                                required
                                class="input-field appearance-none rounded-lg relative block w-full px-3 py-3 border placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-0 focus:z-10 sm:text-sm"
                                placeholder="Enter your password">
-                        {% if form.password.errors %}
-                            <p class="mt-1 text-sm text-red-600">{{ form.password.errors.0 }}</p>
-                        {% endif %}
                     </div>
                     
                     <div>
@@ -99,10 +93,10 @@
                                 class="btn-primary group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <span class="absolute left-0 inset-y-0 flex items-center pl-3">
                                 <svg class="h-5 w-5 text-blue-300 group-hover:text-blue-200" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2z" clip-rule="evenodd"></path>
                                 </svg>
                             </span>
-                            Sign in
+                            Sign In
                         </button>
                     </div>
                     
