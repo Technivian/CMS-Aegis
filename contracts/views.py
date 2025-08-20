@@ -118,15 +118,15 @@ class SignUpView(CreateView):
     success_url = reverse_lazy('dashboard')
 
     def form_valid(self, form):
-        user = form.save()
-        login(self.request, user)
+        response = super().form_valid(form)
+        login(self.request, self.object)
         messages.success(self.request, 'Account created successfully!')
-        return redirect('dashboard')
-    
+        return response
+
     def form_invalid(self, form):
         messages.error(self.request, 'Please correct the errors below.')
         return super().form_invalid(form)
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         return context
