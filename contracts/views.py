@@ -461,6 +461,21 @@ class AddExpenseView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse_lazy('contracts:budget_detail', kwargs={'pk': self.kwargs['budget_pk']})
 
+def legal_task_board(request):
+    """Legal Task Board view"""
+    tasks = LegalTask.objects.all().order_by('-created_at')
+    pending_tasks = tasks.filter(status='PENDING')
+    in_progress_tasks = tasks.filter(status='IN_PROGRESS')
+    completed_tasks = tasks.filter(status='COMPLETED')
+    
+    context = {
+        'pending_tasks': pending_tasks,
+        'in_progress_tasks': in_progress_tasks,
+        'completed_tasks': completed_tasks,
+        'all_tasks': tasks,
+    }
+    return render(request, 'contracts/legal_task_board.html', context)
+
 def workflow_create(request):
     return redirect('contracts:workflow_dashboard')
 
