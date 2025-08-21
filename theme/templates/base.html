@@ -134,7 +134,7 @@
                 <a href="{% url 'contracts:contract_list' %}" class="relative py-3 px-4 text-sm font-medium hover:text-primary-700 transition-all duration-200 focus-ring {% if 'contract' in request.resolver_match.url_name %}text-primary-700 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary-600{% else %}text-gray-600{% endif %}">
                     Contracts
                 </a>
-                <a href="{% url 'contracts:legal_task_board' %}" class="relative py-3 px-4 text-sm font-medium hover:text-primary-700 transition-all duration-200 focus-ring {% if 'legal_task' in request.resolver_match.url_name %}text-primary-700 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary-600{% else %}text-gray-600{% endif %}">
+                <a href="{% url 'contracts:legal_task_kanban' %}" class="relative py-3 px-4 text-sm font-medium hover:text-primary-700 transition-all duration-200 focus-ring {% if 'legal_task' in request.resolver_match.url_name %}text-primary-700 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary-600{% else %}text-gray-600{% endif %}">
                     Legal Tasks
                 </a>
                 <a href="{% url 'contracts:repository' %}" class="relative py-3 px-4 text-sm font-medium hover:text-primary-700 transition-all duration-200 focus-ring {% if request.resolver_match.url_name == 'repository' %}text-primary-700 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary-600{% else %}text-gray-600{% endif %}">
