@@ -143,7 +143,7 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
 # Feature Flags
-IRONCLAD_MODE = False  # Set to True to enable Ironclad-like features
+IRONCLAD_MODE = True  # Set to True to enable Ironclad-like features
 
 # Media files
 MEDIA_URL = '/media/'
