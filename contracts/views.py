@@ -561,6 +561,9 @@ class BudgetListView(LoginRequiredMixin, ListView):
     context_object_name = 'budgets'
     paginate_by = 25
 
+    def get_queryset(self):
+        return Budget.objects.all().order_by('-year', '-quarter', 'department')
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['current_year'] = timezone.now().year

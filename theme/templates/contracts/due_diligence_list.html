@@ -1,229 +1,122 @@
 
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}M&A Due Diligence{% endblock %}
 
-{% block page_title %}
-M&A Due Diligence
-{% endblock %}
-
-{% block page_actions %}
-<a href="{% url 'contracts:due_diligence_create' %}" class="btn-primary shadow-sm">New Due Diligence</a>
-{% endblock %}
-
 {% block content %}
-<div class="space-y-6">
-    <!-- Search and Filters -->
-    <div class="bg-white rounded-lg border border-gray-200 p-4">
-        <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Search deals..." class="input-field w-full">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                <select name="status" class="input-field w-full">
-                    <option value="">All Status</option>
-                    <option value="INITIATED" {% if request.GET.status == 'INITIATED' %}selected{% endif %}>Initiated</option>
-                    <option value="IN_PROGRESS" {% if request.GET.status == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
-                    <option value="REVIEW" {% if request.GET.status == 'REVIEW' %}selected{% endif %}>Under Review</option>
-                    <option value="COMPLETED" {% if request.GET.status == 'COMPLETED' %}selected{% endif %}>Completed</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Transaction Type</label>
-                <select name="transaction_type" class="input-field w-full">
-                    <option value="">All Types</option>
-                    <option value="MERGER" {% if request.GET.transaction_type == 'MERGER' %}selected{% endif %}>Merger</option>
-                    <option value="ACQUISITION" {% if request.GET.transaction_type == 'ACQUISITION' %}selected{% endif %}>Acquisition</option>
-                    <option value="JOINT_VENTURE" {% if request.GET.transaction_type == 'JOINT_VENTURE' %}selected{% endif %}>Joint Venture</option>
-                </select>
-            </div>
-            <div class="md:col-span-3">
-                <button type="submit" class="btn-secondary">Apply Filters</button>
-                <a href="{% url 'contracts:due_diligence_list' %}" class="btn-outline ml-2">Clear</a>
-            </div>
-        </form>
-    </div>
-
-    <!-- Due Diligence List -->
-    <div class="bg-white rounded-lg border border-gray-200">
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left text-gray-500">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                    <tr>
-                        <th scope="col" class="px-6 py-3">Deal</th>
-                        <th scope="col" class="px-6 py-3">Target Company</th>
-                        <th scope="col" class="px-6 py-3">Type</th>
-                        <th scope="col" class="px-6 py-3">Status</th>
-                        <th scope="col" class="px-6 py-3">Progress</th>
-                        <th scope="col" class="px-6 py-3">High Risks</th>
-                        <th scope="col" class="px-6 py-3">Expected Closing</th>
-                        <th scope="col" class="px-6 py-3">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for dd in due_diligences %}
-                        <tr class="bg-white border-b hover:bg-gray-50">
-                            <th scope="row" class="px-6 py-4 font-medium text-gray-900">
-                                <a href="{% url 'contracts:due_diligence_detail' dd.pk %}" class="text-primary-600 hover:underline">
-                                    {{ dd.title }}
-                                </a>
-                            </th>
-                            <td class="px-6 py-4">{{ dd.target_company }}</td>
-                            <td class="px-6 py-4">
-                                <span class="chip chip-outline">{{ dd.get_transaction_type_display }}</span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="chip {% if dd.status == 'COMPLETED' %}chip-success{% elif dd.status == 'IN_PROGRESS' %}chip-warning{% else %}chip-inactive{% endif %}">
-                                    {{ dd.get_status_display }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="flex items-center">
-                                    <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                                        <div class="bg-primary-600 h-2 rounded-full" style="width: {{ dd.progress_percentage }}%"></div>
-                                    </div>
-                                    <span class="text-xs text-gray-500">{{ dd.progress_percentage }}%</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                {% if dd.high_risk_count > 0 %}
-                                    <span class="chip chip-error">{{ dd.high_risk_count }}</span>
-                                {% else %}
-                                    <span class="text-gray-400">0</span>
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4">
-                                {% if dd.expected_closing %}
-                                    {{ dd.expected_closing|date:"M d, Y" }}
-                                {% else %}
-                                    <span class="text-gray-400">TBD</span>
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4">
-                                <a href="{% url 'contracts:due_diligence_detail' dd.pk %}" class="text-primary-600 hover:underline mr-3">View</a>
-                                <a href="{% url 'contracts:due_diligence_update' dd.pk %}" class="text-gray-600 hover:underline">Edit</a>
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="8" class="px-6 py-4 text-center text-gray-500">
-                                No due diligence processes found.
-                                <a href="{% url 'contracts:due_diligence_create' %}" class="text-primary-600 hover:underline ml-1">Create one now</a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endblock %}
-{% extends 'base.html' %}
-
-{% block title %}Due Diligence Processes{% endblock %}
-
-{% block content %}
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">Due Diligence Processes</h1>
-            <p class="text-gray-600">Track M&A due diligence processes and risk management</p>
-        </div>
-        <a href="{% url 'contracts:due_diligence_create' %}" class="btn-primary">
-            New Process
+<div class="theme-layout">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+        <div class="section-title">Due Diligence Views</div>
+        <a href="{% url 'contracts:due_diligence_list' %}" class="item active" data-legacy-class="nav-link">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            All Processes
+            <span class="item-count">{{ processes.count }}</span>
         </a>
-    </div>
+        <a href="{% url 'contracts:due_diligence_list' %}?status=PLANNING" class="item" data-legacy-class="nav-link">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 002 2"></path>
+            </svg>
+            Planning
+        </a>
+        <a href="{% url 'contracts:due_diligence_list' %}?status=IN_PROGRESS" class="item" data-legacy-class="nav-link">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            In Progress
+        </a>
+    </aside>
 
-    <!-- Filters -->
-    <div class="bg-white p-4 rounded-lg border border-gray-200">
-        <form method="get" class="flex space-x-4">
-            <select name="status" class="border border-gray-300 rounded-md px-3 py-2">
-                <option value="">All Statuses</option>
-                {% for value, label in status_choices %}
-                <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Filter</button>
-        </form>
-    </div>
-
-    <!-- Processes List -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-semibold">Active Processes</h3>
-        </div>
-        
-        {% if processes %}
-        <div class="divide-y divide-gray-200">
-            {% for process in processes %}
-            <div class="p-6 hover:bg-gray-50">
-                <div class="flex items-center justify-between">
-                    <div class="flex-1">
-                        <div class="flex items-center space-x-3">
-                            <h4 class="text-lg font-semibold text-gray-900">
-                                <a href="{% url 'contracts:due_diligence_detail' process.pk %}" class="hover:text-blue-600">
-                                    {{ process.title }}
-                                </a>
-                            </h4>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                {% if process.status == 'PLANNING' %}bg-gray-100 text-gray-800
-                                {% elif process.status == 'IN_PROGRESS' %}bg-blue-100 text-blue-800
-                                {% elif process.status == 'REVIEW' %}bg-yellow-100 text-yellow-800
-                                {% elif process.status == 'COMPLETED' %}bg-green-100 text-green-800
-                                {% else %}bg-red-100 text-red-800{% endif %}">
-                                {{ process.get_status_display }}
-                            </span>
-                        </div>
-                        <p class="text-sm text-gray-600 mt-1">
-                            {{ process.get_transaction_type_display }} • {{ process.target_company }}
-                            {% if process.deal_value %}• ${{ process.deal_value|floatformat:0 }}{% endif %}
-                        </p>
-                        <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                            <span>Lead: {{ process.lead_attorney.get_full_name|default:process.lead_attorney.username|default:"Unassigned" }}</span>
-                            <span>Target: {{ process.target_completion_date|date:"M d, Y" }}</span>
-                            <span>Progress: {{ process.progress_percentage }}%</span>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                            {% if process.overall_risk_level == 'HIGH' %}bg-red-100 text-red-700
-                            {% elif process.overall_risk_level == 'MEDIUM' %}bg-yellow-100 text-yellow-700
-                            {% else %}bg-green-100 text-green-700{% endif %}">
-                            {{ process.overall_risk_level }} RISK
-                        </span>
-                        <div class="w-20 bg-gray-200 rounded-full h-2">
-                            <div class="bg-blue-600 h-2 rounded-full" style="width: {{ process.progress_percentage }}%"></div>
-                        </div>
-                    </div>
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <a href="{% url 'contracts:due_diligence_create' %}" class="btn-primary" data-legacy-class="btn-new-process">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    New Process
+                </a>
+                <div class="search">
+                    <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="search" name="search" value="{{ request.GET.search }}" placeholder="Search processes" data-legacy-class="search-input">
                 </div>
             </div>
-            {% endfor %}
+            <div class="toolbar-right">
+                <form method="get" class="flex space-x-2">
+                    <select name="status" class="btn-outline" data-legacy-class="filter-select">
+                        <option value="">All Statuses</option>
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn-outline" data-legacy-class="filter-btn">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+                        </svg>
+                        Filter
+                    </button>
+                </form>
+            </div>
         </div>
+
+        <!-- Main Table -->
+        {% if processes %}
+        <table class="data" data-legacy-class="dd-processes-table">
+            <thead>
+                <tr>
+                    <th>Deal</th>
+                    <th>Target Company</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Progress</th>
+                    <th>Lead Attorney</th>
+                    <th>Target Completion</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for process in processes %}
+                <tr data-legacy-class="process-row" data-process-id="{{ process.id }}">
+                    <td>
+                        <a href="{% url 'contracts:due_diligence_detail' process.pk %}" class="font-medium text-blue-600 hover:text-blue-800" data-legacy-class="process-link">
+                            {{ process.title }}
+                        </a>
+                    </td>
+                    <td>{{ process.target_company|default:"—" }}</td>
+                    <td>{{ process.get_transaction_type_display|default:"—" }}</td>
+                    <td>
+                        <span class="pill {% if process.status == 'COMPLETED' %}status-completed{% elif process.status == 'IN_PROGRESS' %}status-pending{% else %}status-draft{% endif %}" data-legacy-class="status-badge">
+                            {{ process.get_status_display }}
+                        </span>
+                    </td>
+                    <td>—</td>
+                    <td>{{ process.lead_attorney|default:"—" }}</td>
+                    <td>{{ process.target_completion_date|date:"M d, Y"|default:"—" }}</td>
+                    <td>
+                        <a href="{% url 'contracts:due_diligence_detail' process.pk %}" class="text-blue-600 hover:text-blue-800 font-medium" data-legacy-class="view-link">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
         {% else %}
-        <div class="p-6 text-center text-gray-500">
-            <p>No due diligence processes found.</p>
-            <a href="{% url 'contracts:due_diligence_create' %}" class="text-blue-600 hover:text-blue-800 mt-2 inline-block">
-                Create your first process
-            </a>
+        <div class="empty" data-when="no-processes" data-legacy-class="empty-state">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <h3>No due diligence processes found</h3>
+            <p>Get started by creating your first process.</p>
+            <a href="{% url 'contracts:due_diligence_create' %}" data-legacy-class="create-first-process">Create your first process</a>
         </div>
         {% endif %}
-    </div>
 
-    <!-- Pagination -->
-    {% if is_paginated %}
-    <div class="flex justify-center">
-        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-            {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Previous</a>
-            {% endif %}
-            {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Next</a>
-            {% endif %}
-        </nav>
-    </div>
-    {% endif %}
+    </main>
 </div>
 {% endblock %}
