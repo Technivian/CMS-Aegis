@@ -72,10 +72,10 @@ urlpatterns = [
     # Templates
     path('templates/', WorkflowTemplateListView.as_view(), name='templates_list'),
 
-    # API endpoints for AJAX
-    path('api/contracts/', ContractListAPIView.as_view(), name='api_contract_list'),
-    path('api/contracts/<int:pk>/', ContractDetailAPIView.as_view(), name='api_contract_detail'),
-    path('api/save-view/', SavedViewAPIView.as_view(), name='api_save_view'),
-    path('api/delete-view/', DeleteViewAPIView.as_view(), name='api_delete_view'),
-    path('api/load-view/', LoadViewAPIView.as_view(), name='api_load_view'),
+    # Contracts
+    path('', ContractListView.as_view(), name='contract_list'),
+    path('<int:pk>/', ContractDetailView.as_view(), name='contract_detail'),
+    path('new/', ContractCreateView.as_view(), name='contract_create'),
+    path('<int:pk>/edit/', ContractUpdateView.as_view(), name='contract_update'),
+    path('<int:pk>/add_note/', AddNegotiationNoteView.as_view(), name='add_negotiation_note'),
 ]
