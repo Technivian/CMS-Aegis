@@ -1,0 +1,289 @@
+Role: You are coding inside my existing repo. Do NOT touch backend code.
+Goal: Add a standalone static landing page inspired by brainvine.ai (same information architecture + vibe) with original copy.
+Route: /landing (a static folder I can host anywhere).
+Stack: Plain HTML + Tailwind via CDN (no build step). Vanilla JS only.
+
+Guardrails
+
+Create everything under landing/ so nothing else breaks.
+
+No dependency upgrades. No backend edits.
+
+No copy/pasting Brainvine text or media. Use original placeholder copy and royalty-free placeholder images.
+
+Ship fully responsive, accessible (WCAG AA), and fast (Lighthouse ≥ 90).
+
+Files to create
+
+landing/index.html
+
+landing/styles.css (only small custom utilities if needed)
+
+landing/assets/ (put placeholder SVGs/PNGs here)
+
+Design system (approximate Brainvine feel)
+
+Fonts: Inter (system fallback ok).
+
+Colors:
+
+--bg: #0b0f19 (deep navy),
+
+--fg: #e5e7eb,
+
+--muted: #9aa3b2,
+
+--primary: #7c3aed (violet),
+
+--accent: #22d3ee (cyan),
+
+gradient accents mixing violet→cyan.
+
+Radii: 14px cards, 9999px pills.
+
+Shadows: soft, high blur.
+
+Spacing: roomy hero; dense, data-app style tables/cards.
+
+Sections to implement (match Brainvine’s flow)
+
+Sticky top nav (logo left, links: Product, Templates, Pricing, Docs, Login, CTA “Start free”). Mobile menu with slide-down.
+
+Hero: dark gradient background, bold headline, subhead, primary CTA + secondary CTA, small trust badges. Right side: autoplay muted loop MP4 demo (use placeholder file) or animated GIF inside a rounded laptop frame.
+
+Customer logos: grayscale marquee, pause on hover.
+
+Feature grid (3×2): icon, title, one-liner.
+
+“How it works” (3 steps) with numbered cards and connecting lines.
+
+Template gallery: horizontal scroll cards with “Use template” buttons.
+
+Comparison/table: simple table comparing Manual vs Our Tool.
+
+Testimonials: 3 cards with avatars; subtle gradient borders.
+
+Pricing: Monthly/Yearly toggle (JS toggles prices), 3 tiers (Free, Pro, Team) with feature checklists, emphasized “Pro” card.
+
+FAQ: accessible accordion (keyboard + ARIA).
+
+CTA band: gradient bar with button.
+
+Footer: columns of links, social icons, small legal. Cookie notice bar.
+
+Interactions
+
+Smooth scroll on nav anchors.
+
+Intersection-observer fade/slide reveals.
+
+Pricing toggle updates amounts and “billed yearly” note.
+
+Logo marquee infinite scroll (CSS animation), pauses on hover.
+
+Performance & a11y
+
+Use <link rel="preload"> for hero media.
+
+Provide prefers-reduced-motion fallbacks (pause animations, show static image).
+
+All images have alt, buttons have discernible labels, focus outlines visible.
+
+Create the code now
+
+Generate complete code for landing/index.html using Tailwind via CDN and minimal inline JS. Include semantic HTML with landmarks. Use placeholder images (data URLs or simple SVGs). After that, create landing/styles.css with any extra utilities.
+
+Accept/verify
+
+I can open /landing/index.html in the Replit webview and see the full page.
+
+Resizes cleanly (mobile → desktop).
+
+Lighthouse ≥ 90 (Performance/Best Practices/SEO); Accessibility ≥ 95.
+
+One place to change brand colors (CSS variables at the top).
+
+Optional integration (don’t do unless I ask)
+
+If I later say “Django integrate”, render this as templates/marketing/landing.html and serve at / behind a feature flag, keeping app pages untouched.
+
+(If Replit asks for a starting file, here’s the skeleton index.html it should output)
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Verzio — AI Content OS</title>
+  <meta name="description" content="Build, optimize, and ship content with AI workflows." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    :root{
+      --bg:#0b0f19; --fg:#e5e7eb; --muted:#9aa3b2;
+      --primary:#7c3aed; --accent:#22d3ee;
+      --card:#0f1626; --ring:rgba(124,58,237,.5);
+      --rad:14px;
+    }
+    html,body{height:100%} body{background:var(--bg);color:var(--fg);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+    .glass{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.08); backdrop-filter: blur(10px)}
+    .grad-text{background:linear-gradient(90deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .grad-bg{background:radial-gradient(60% 80% at 10% 10%, rgba(124,58,237,.25), transparent 40%), radial-gradient(60% 80% at 90% 10%, rgba(34,211,238,.2), transparent 40%)}
+  </style>
+</head>
+<body class="min-h-full grad-bg">
+  <!-- NAV -->
+  <header class="sticky top-0 z-50 border-b border-white/10 bg-black/30 backdrop-blur">
+    <div class="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2 font-semibold"><span class="inline-block h-6 w-6 rounded bg-gradient-to-tr from-[var(--primary)] to-[var(--accent)]"></span> Verzio</a>
+      <nav class="hidden md:flex items-center gap-6 text-sm text-[color:var(--muted)]">
+        <a href="#product" class="hover:text-white">Product</a>
+        <a href="#templates" class="hover:text-white">Templates</a>
+        <a href="#pricing" class="hover:text-white">Pricing</a>
+        <a href="#docs" class="hover:text-white">Docs</a>
+        <a href="#login" class="hover:text-white">Login</a>
+        <a href="#cta" class="ml-2 inline-flex items-center rounded-full bg-[var(--primary)] px-4 py-2 text-white hover:opacity-90">Start free</a>
+      </nav>
+      <button id="menu" class="md:hidden inline-flex h-9 w-9 items-center justify-center rounded border border-white/10">☰</button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="relative">
+    <div class="mx-auto max-w-7xl px-4 py-16 lg:py-24 grid lg:grid-cols-2 gap-10">
+      <div>
+        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight">Build content <span class="grad-text">10× faster</span> with AI workflows.</h1>
+        <p class="mt-5 text-lg text-[color:var(--muted)]">Design, automate, and publish high-performing content with an opinionated workflow builder, SEO tools, and multi-channel exports.</p>
+        <div class="mt-7 flex flex-col sm:flex-row gap-3">
+          <a href="#cta" class="inline-flex items-center justify-center rounded-lg bg-[var(--primary)] px-5 py-3 font-semibold text-white hover:opacity-90">Start free</a>
+          <a href="#demo" class="inline-flex items-center justify-center rounded-lg border border-white/15 px-5 py-3 font-semibold hover:bg-white/5">Watch demo</a>
+        </div>
+        <p class="mt-4 text-xs text-[color:var(--muted)]">No credit card • Templates included • Cancel anytime</p>
+      </div>
+      <div class="glass rounded-[var(--rad)] p-3">
+        <video class="rounded-[calc(var(--rad)-6px)] w-full h-[340px] object-cover" autoplay muted loop playsinline poster="">
+          <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOGOS -->
+  <section class="border-y border-white/10">
+    <div class="mx-auto max-w-7xl px-4 py-8">
+      <div class="whitespace-nowrap overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+        <div class="inline-flex gap-12 animate-[marquee_30s_linear_infinite]">
+          <img alt="Logo" class="h-8 opacity-60" src="https://dummyimage.com/160x32/ffffff/000000&text=ACME" />
+          <img alt="Logo" class="h-8 opacity-60" src="https://dummyimage.com/160x32/ffffff/000000&text=Nord" />
+          <img alt="Logo" class="h-8 opacity-60" src="https://dummyimage.com/160x32/ffffff/000000&text=Helix" />
+          <img alt="Logo" class="h-8 opacity-60" src="https://dummyimage.com/160x32/ffffff/000000&text=Orbit" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="product" class="mx-auto max-w-7xl px-4 py-16">
+    <h2 class="text-3xl md:text-4xl font-bold">Everything you need to go from idea → published</h2>
+    <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- 6 feature cards -->
+      <!-- example card -->
+      <div class="glass rounded-[var(--rad)] p-6">
+        <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--primary)]/20">⚡</div>
+        <h3 class="font-semibold text-lg">Workflow Builder</h3>
+        <p class="mt-2 text-[color:var(--muted)]">Drag-and-drop steps: research, outline, write, edit, publish.</p>
+      </div>
+      <!-- duplicate and tweak content for 5 more -->
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="mx-auto max-w-7xl px-4 pb-16">
+    <h2 class="text-3xl font-bold">How it works</h2>
+    <div class="mt-8 grid md:grid-cols-3 gap-6">
+      <div class="glass rounded-[var(--rad)] p-6"><div class="text-sm text-[var(--muted)]">Step 1</div><h3 class="font-semibold">Choose a template</h3><p class="mt-2 text-[color:var(--muted)]">Pick a starting point for blogs, landing pages, or ads.</p></div>
+      <div class="glass rounded-[var(--rad)] p-6"><div class="text-sm text-[var(--muted)]">Step 2</div><h3 class="font-semibold">Customize workflow</h3><p class="mt-2 text-[color:var(--muted)]">Add research, tone, SEO, brand rules, and reviewers.</p></div>
+      <div class="glass rounded-[var(--rad)] p-6"><div class="text-sm text-[var(--muted)]">Step 3</div><h3 class="font-semibold">Publish everywhere</h3><p class="mt-2 text-[color:var(--muted)]">Export to CMS, social, or save as HTML/Markdown.</p></div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing" class="mx-auto max-w-7xl px-4 pb-16">
+    <div class="flex items-center justify-between">
+      <h2 class="text-3xl font-bold">Pricing</h2>
+      <label class="flex items-center gap-2 text-sm"><span>Monthly</span>
+        <input id="toggle" type="checkbox" class="accent-[var(--primary)]">
+        <span>Yearly <span class="text-[var(--accent)]">-20%</span></span>
+      </label>
+    </div>
+    <div class="mt-8 grid md:grid-cols-3 gap-6">
+      <!-- Free -->
+      <div class="glass rounded-[var(--rad)] p-6">
+        <div class="text-sm text-[var(--muted)]">Free</div>
+        <div class="mt-2 text-3xl font-extrabold"><span data-m="0">$0</span></div>
+        <ul class="mt-4 space-y-2 text-[color:var(--muted)]"><li>3 projects</li><li>Templates</li><li>Basic export</li></ul>
+        <a href="#cta" class="mt-6 inline-flex w-full justify-center rounded-lg bg-white/10 px-4 py-2 font-semibold">Get started</a>
+      </div>
+      <!-- Pro (emphasized) -->
+      <div class="relative glass rounded-[var(--rad)] p-6 ring-2 ring-[var(--ring)]">
+        <div class="absolute -top-3 right-4 rounded-full bg-[var(--primary)] px-3 py-1 text-xs font-bold">Popular</div>
+        <div class="text-sm text-[var(--muted)]">Pro</div>
+        <div class="mt-2 text-3xl font-extrabold"><span data-m="29">$29</span><span class="text-sm text-[var(--muted)]"> /mo</span></div>
+        <ul class="mt-4 space-y-2 text-[color:var(--muted)]"><li>Unlimited projects</li><li>Workflow builder</li><li>SEO tools</li></ul>
+        <a href="#cta" class="mt-6 inline-flex w-full justify-center rounded-lg bg-[var(--primary)] px-4 py-2 font-semibold text-white">Start Pro</a>
+      </div>
+      <!-- Team -->
+      <div class="glass rounded-[var(--rad)] p-6">
+        <div class="text-sm text-[var(--muted)]">Team</div>
+        <div class="mt-2 text-3xl font-extrabold"><span data-m="79">$79</span><span class="text-sm text-[var(--muted)]"> /mo</span></div>
+        <ul class="mt-4 space-y-2 text-[color:var(--muted)]"><li>5 seats</li><li>Brand rules</li><li>SSO</li></ul>
+        <a href="#cta" class="mt-6 inline-flex w-full justify-center rounded-lg bg-white/10 px-4 py-2 font-semibold">Contact sales</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="mx-auto max-w-5xl px-4 pb-24">
+    <h2 class="text-3xl font-bold">FAQ</h2>
+    <div class="mt-6 divide-y divide-white/10" id="faq">
+      <details class="py-4"><summary class="cursor-pointer font-semibold">How do templates work?</summary><p class="mt-2 text-[color:var(--muted)]">Start from a template and customize every step.</p></details>
+      <details class="py-4"><summary class="cursor-pointer font-semibold">Can I export to my CMS?</summary><p class="mt-2 text-[color:var(--muted)]">Export Markdown/HTML or use our API.</p></details>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/10">
+    <div class="mx-auto max-w-7xl px-4 py-10 text-sm text-[color:var(--muted)] flex flex-col md:flex-row gap-6 md:items-center md:justify-between">
+      <div>© Verzio. All rights reserved.</div>
+      <div class="flex gap-6"><a href="#privacy">Privacy</a><a href="#terms">Terms</a><a href="#security">Security</a></div>
+    </div>
+  </footer>
+
+  <script>
+    // mobile menu (minimal)
+    const btn = document.getElementById('menu');
+    btn && btn.addEventListener('click', () => alert('Open mobile menu (implement if needed)'));
+
+    // pricing toggle
+    const t = document.getElementById('toggle');
+    if (t){
+      const prices = document.querySelectorAll('[data-m]');
+      const yearly = {0:0, 29: 23, 79: 63}; // 20% off
+      const fmt = n => `$${n}`;
+      const update = () => prices.forEach(el=>{
+        const m = Number(el.dataset.m);
+        el.textContent = t.checked ? fmt(yearly[m]) : fmt(m);
+      });
+      t.addEventListener('change', update); update();
+    }
+  </script>
+
+  <style>
+    @keyframes marquee { 0% { transform: translateX(0) } 100% { transform: translateX(-50%) } }
+  </style>
+</body>
+</html>
+
+/* landing/styles.css */
+/* Add any tiny extras here. Prefer Tailwind utilities in HTML. */
