@@ -1,0 +1,63 @@
+
+/* Custom utilities for Verzio landing page */
+
+/* Additional glassmorphism utilities */
+.glass-subtle {
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  border: 1px solid rgba(255,255,255,.05);
+  backdrop-filter: blur(8px);
+}
+
+/* Enhanced focus states */
+.focus-visible:focus-visible {
+  outline: 2px solid rgba(124, 58, 237, 0.8);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Smooth transitions for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .glass {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* Custom selection color */
+::selection {
+  background: rgba(124, 58, 237, 0.3);
+  color: var(--fg);
+}
+
+/* Scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Better button hover states */
+button, a[href] {
+  transition: all 0.2s ease;
+}
+
+/* Ensure minimum target size for touch devices */
+@media (hover: none) {
+  button, a[href] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

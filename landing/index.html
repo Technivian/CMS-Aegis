@@ -1,0 +1,810 @@
+
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Verzio — AI Content OS</title>
+  <meta name="description" content="Build, optimize, and ship content with AI workflows." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    :root{
+      --bg:#0b0f19; --fg:#e5e7eb; --muted:#9aa3b2;
+      --primary:#7c3aed; --accent:#22d3ee;
+      --card:#0f1626; --ring:rgba(124,58,237,.5);
+      --rad:14px;
+    }
+    html,body{height:100%} 
+    body{background:var(--bg);color:var(--fg);font-family:Inter,system-ui,'Segoe UI',Roboto,Arial,sans-serif}
+    .glass{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.08); backdrop-filter: blur(10px)}
+    .grad-text{background:linear-gradient(90deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .grad-bg{background:radial-gradient(60% 80% at 10% 10%, rgba(124,58,237,.25), transparent 40%), radial-gradient(60% 80% at 90% 10%, rgba(34,211,238,.2), transparent 40%)}
+    @media (prefers-reduced-motion: reduce) {
+      .animate-marquee { animation: none !important; }
+      .animate-fade { animation: none !important; }
+    }
+    .animate-fade { opacity: 0; transform: translateY(20px); transition: all 0.6s ease; }
+    .animate-fade.in-view { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body class="min-h-full grad-bg">
+  <!-- NAV -->
+  <header class="sticky top-0 z-50 border-b border-white/10 bg-black/30 backdrop-blur">
+    <div class="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2 font-semibold" aria-label="Verzio homepage">
+        <span class="inline-block h-6 w-6 rounded bg-gradient-to-tr from-[var(--primary)] to-[var(--accent)]"></span> 
+        Verzio
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm text-[color:var(--muted)]" aria-label="Main navigation">
+        <a href="#product" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-2 py-1">Product</a>
+        <a href="#templates" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-2 py-1">Templates</a>
+        <a href="#pricing" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-2 py-1">Pricing</a>
+        <a href="#docs" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-2 py-1">Docs</a>
+        <a href="#login" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-2 py-1">Login</a>
+        <a href="#cta" class="ml-2 inline-flex items-center rounded-full bg-[var(--primary)] px-4 py-2 text-white hover:opacity-90 focus:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/20">Start free</a>
+      </nav>
+      <button id="menu" class="md:hidden inline-flex h-9 w-9 items-center justify-center rounded border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/20" aria-label="Open menu" aria-expanded="false">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+    </div>
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="md:hidden hidden border-t border-white/10 bg-black/50 backdrop-blur">
+      <nav class="px-4 py-4 space-y-2" aria-label="Mobile navigation">
+        <a href="#product" class="block py-2 hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded">Product</a>
+        <a href="#templates" class="block py-2 hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded">Templates</a>
+        <a href="#pricing" class="block py-2 hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded">Pricing</a>
+        <a href="#docs" class="block py-2 hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded">Docs</a>
+        <a href="#login" class="block py-2 hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded">Login</a>
+        <a href="#cta" class="mt-4 inline-flex items-center justify-center w-full rounded-full bg-[var(--primary)] px-4 py-2 text-white hover:opacity-90 focus:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/20">Start free</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="relative" aria-labelledby="hero-heading">
+    <div class="mx-auto max-w-7xl px-4 py-16 lg:py-24 grid lg:grid-cols-2 gap-10 items-center">
+      <div class="animate-fade">
+        <h1 id="hero-heading" class="text-4xl md:text-6xl font-extrabold leading-tight">
+          Build content <span class="grad-text">10× faster</span> with AI workflows.
+        </h1>
+        <p class="mt-5 text-lg text-[color:var(--muted)]">
+          Design, automate, and publish high-performing content with an opinionated workflow builder, SEO tools, and multi-channel exports.
+        </p>
+        <div class="mt-7 flex flex-col sm:flex-row gap-3">
+          <a href="#cta" class="inline-flex items-center justify-center rounded-lg bg-[var(--primary)] px-5 py-3 font-semibold text-white hover:opacity-90 focus:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/20">
+            Start free
+          </a>
+          <a href="#demo" class="inline-flex items-center justify-center rounded-lg border border-white/15 px-5 py-3 font-semibold hover:bg-white/5 focus:bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/20">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m-6-8h8"></path>
+            </svg>
+            Watch demo
+          </a>
+        </div>
+        <p class="mt-4 text-xs text-[color:var(--muted)]">No credit card • Templates included • Cancel anytime</p>
+      </div>
+      <div class="glass rounded-[var(--rad)] p-3 animate-fade">
+        <div class="relative bg-gray-900 rounded-[calc(var(--rad)-6px)] overflow-hidden">
+          <video 
+            class="w-full h-[340px] object-cover" 
+            autoplay 
+            muted 
+            loop 
+            playsinline 
+            poster="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjM0MCIgdmlld0JveD0iMCAwIDYwMCAzNDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iMzQwIiBmaWxsPSIjMTExODI3Ii8+CjxjaXJjbGUgY3g9IjMwMCIgY3k9IjE3MCIgcj0iNDAiIGZpbGw9IiM3YzNhZWQiLz4KPHN2ZyB4PSIyNzQiIHk9IjE0NCIgd2lkdGg9IjUyIiBoZWlnaHQ9IjUyIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiPgo8cGF0aCBkPSJNOCA1djE0bDExLTdMOCA1eiIgZmlsbD0id2hpdGUiLz4KPHN2Zz4KPHN2Zz4K"
+            aria-label="Product demo video"
+          >
+            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOGOS -->
+  <section class="border-y border-white/10" aria-label="Trusted by companies">
+    <div class="mx-auto max-w-7xl px-4 py-8">
+      <p class="text-center text-sm text-[color:var(--muted)] mb-6">Trusted by teams at</p>
+      <div class="whitespace-nowrap overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+        <div class="inline-flex gap-12 animate-[marquee_30s_linear_infinite] hover:[animation-play-state:paused]">
+          <img alt="ACME Corp" class="h-8 opacity-60 filter grayscale" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjMyIiB2aWV3Qm94PSIwIDAgMTYwIDMyIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTYwIiBoZWlnaHQ9IjMyIiBmaWxsPSIjZmZmZmZmIi8+Cjx0ZXh0IHg9IjgwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzAwMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+QUNNRTA8L3RleHQ+Cjwvc3ZnPgo=" />
+          <img alt="Nord Systems" class="h-8 opacity-60 filter grayscale" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjMyIiB2aWV3Qm94PSIwIDAgMTYwIDMyIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTYwIiBoZWlnaHQ9IjMyIiBmaWxsPSIjZmZmZmZmIi8+Cjx0ZXh0IHg9IjgwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzAwMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+Tm9yZDwvdGV4dD4KPC9zdmc+Cg==" />
+          <img alt="Helix Labs" class="h-8 opacity-60 filter grayscale" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjMyIiB2aWV3Qm94PSIwIDAgMTYwIDMyIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTYwIiBoZWlnaHQ9IjMyIiBmaWxsPSIjZmZmZmZmIi8+Cjx0ZXh0IHg9IjgwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzAwMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+SGVsaXg8L3RleHQ+Cjwvc3ZnPgo=" />
+          <img alt="Orbit Inc" class="h-8 opacity-60 filter grayscale" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjMyIiB2aWV3Qm94PSIwIDAgMTYwIDMyIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTYwIiBoZWlnaHQ9IjMyIiBmaWxsPSIjZmZmZmZmIi8+Cjx0ZXh0IHg9IjgwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzAwMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+T3JiaXQ8L3RleHQ+Cjwvc3ZnPgo=" />
+          <img alt="ACME Corp" class="h-8 opacity-60 filter grayscale" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjMyIiB2aWV3Qm94PSIwIDAgMTYwIDMyIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTYwIiBoZWlnaHQ9IjMyIiBmaWxsPSIjZmZmZmZmIi8+Cjx0ZXh0IHg9IjgwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzAwMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+QUNNRTA8L3RleHQ+Cjwvc3ZnPgo=" />
+          <img alt="Nord Systems" class="h-8 opacity-60 filter grayscale" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjMyIiB2aWV3Qm94PSIwIDAgMTYwIDMyIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTYwIiBoZWlnaHQ9IjMyIiBmaWxsPSIjZmZmZmZmIi8+Cjx0ZXh0IHg9IjgwIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzAwMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+Tm9yZDwvdGV4dD4KPC9zdmc+Cg==" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="product" class="mx-auto max-w-7xl px-4 py-16" aria-labelledby="features-heading">
+    <div class="animate-fade">
+      <h2 id="features-heading" class="text-3xl md:text-4xl font-bold">Everything you need to go from idea → published</h2>
+      <p class="mt-4 text-lg text-[color:var(--muted)] max-w-2xl">Streamline your content creation with purpose-built tools for modern teams.</p>
+    </div>
+    <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="glass rounded-[var(--rad)] p-6 animate-fade">
+        <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--primary)]/20">
+          <svg class="w-5 h-5 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-lg">Workflow Builder</h3>
+        <p class="mt-2 text-[color:var(--muted)]">Drag-and-drop steps: research, outline, write, edit, publish.</p>
+      </div>
+      
+      <div class="glass rounded-[var(--rad)] p-6 animate-fade">
+        <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent)]/20">
+          <svg class="w-5 h-5 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-lg">SEO Optimization</h3>
+        <p class="mt-2 text-[color:var(--muted)]">Built-in keyword research, meta tags, and performance tracking.</p>
+      </div>
+
+      <div class="glass rounded-[var(--rad)] p-6 animate-fade">
+        <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--primary)]/20">
+          <svg class="w-5 h-5 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-lg">Brand Templates</h3>
+        <p class="mt-2 text-[color:var(--muted)]">Consistent voice, tone, and style across all your content.</p>
+      </div>
+
+      <div class="glass rounded-[var(--rad)] p-6 animate-fade">
+        <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent)]/20">
+          <svg class="w-5 h-5 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-lg">Multi-Channel Export</h3>
+        <p class="mt-2 text-[color:var(--muted)]">Publish to WordPress, social media, or export as HTML/Markdown.</p>
+      </div>
+
+      <div class="glass rounded-[var(--rad)] p-6 animate-fade">
+        <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--primary)]/20">
+          <svg class="w-5 h-5 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-lg">Team Collaboration</h3>
+        <p class="mt-2 text-[color:var(--muted)]">Real-time editing, comments, and approval workflows for teams.</p>
+      </div>
+
+      <div class="glass rounded-[var(--rad)] p-6 animate-fade">
+        <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent)]/20">
+          <svg class="w-5 h-5 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-lg">AI Research Assistant</h3>
+        <p class="mt-2 text-[color:var(--muted)]">Auto-gather sources, fact-check claims, and suggest improvements.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="mx-auto max-w-7xl px-4 pb-16" aria-labelledby="how-it-works-heading">
+    <div class="animate-fade">
+      <h2 id="how-it-works-heading" class="text-3xl font-bold">How it works</h2>
+      <p class="mt-4 text-lg text-[color:var(--muted)]">Get from blank page to published content in three simple steps.</p>
+    </div>
+    <div class="mt-8 grid md:grid-cols-3 gap-6">
+      <div class="glass rounded-[var(--rad)] p-6 relative animate-fade">
+        <div class="absolute -top-3 -left-3 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--primary)] text-sm font-bold text-white">1</div>
+        <div class="text-sm text-[var(--muted)] mb-2">Step 1</div>
+        <h3 class="font-semibold text-lg">Choose a template</h3>
+        <p class="mt-2 text-[color:var(--muted)]">Pick a starting point for blogs, landing pages, social posts, or ads.</p>
+      </div>
+      
+      <div class="glass rounded-[var(--rad)] p-6 relative animate-fade">
+        <div class="absolute -top-3 -left-3 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--primary)] text-sm font-bold text-white">2</div>
+        <div class="text-sm text-[var(--muted)] mb-2">Step 2</div>
+        <h3 class="font-semibold text-lg">Customize workflow</h3>
+        <p class="mt-2 text-[color:var(--muted)]">Add research, tone, SEO requirements, brand rules, and reviewers.</p>
+      </div>
+      
+      <div class="glass rounded-[var(--rad)] p-6 relative animate-fade">
+        <div class="absolute -top-3 -left-3 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--primary)] text-sm font-bold text-white">3</div>
+        <div class="text-sm text-[var(--muted)] mb-2">Step 3</div>
+        <h3 class="font-semibold text-lg">Publish everywhere</h3>
+        <p class="mt-2 text-[color:var(--muted)]">Export to your CMS, social platforms, or save as HTML/Markdown.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEMPLATES -->
+  <section id="templates" class="mx-auto max-w-7xl px-4 pb-16" aria-labelledby="templates-heading">
+    <div class="animate-fade">
+      <h2 id="templates-heading" class="text-3xl font-bold">Ready-to-use templates</h2>
+      <p class="mt-4 text-lg text-[color:var(--muted)]">Jump-start your content with proven templates.</p>
+    </div>
+    <div class="mt-8 overflow-x-auto">
+      <div class="flex gap-4 pb-4" style="width: max-content;">
+        <div class="glass rounded-[var(--rad)] p-6 w-80 flex-shrink-0 animate-fade">
+          <div class="h-32 bg-gradient-to-br from-[var(--primary)]/20 to-[var(--accent)]/20 rounded-lg mb-4 flex items-center justify-center">
+            <svg class="w-8 h-8 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-lg">Blog Post Template</h3>
+          <p class="mt-2 text-[color:var(--muted)] text-sm">Research → Outline → Write → SEO optimize → Publish</p>
+          <button class="mt-4 w-full rounded-lg bg-[var(--primary)] px-4 py-2 text-white text-sm font-medium hover:opacity-90 focus:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/20">
+            Use template
+          </button>
+        </div>
+        
+        <div class="glass rounded-[var(--rad)] p-6 w-80 flex-shrink-0 animate-fade">
+          <div class="h-32 bg-gradient-to-br from-[var(--accent)]/20 to-[var(--primary)]/20 rounded-lg mb-4 flex items-center justify-center">
+            <svg class="w-8 h-8 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2M7 4h10M7 4l-2 16h14l-2-16"></path>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-lg">Landing Page</h3>
+          <p class="mt-2 text-[color:var(--muted)] text-sm">Strategy → Copy → Design → A/B test → Launch</p>
+          <button class="mt-4 w-full rounded-lg bg-[var(--primary)] px-4 py-2 text-white text-sm font-medium hover:opacity-90 focus:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/20">
+            Use template
+          </button>
+        </div>
+        
+        <div class="glass rounded-[var(--rad)] p-6 w-80 flex-shrink-0 animate-fade">
+          <div class="h-32 bg-gradient-to-br from-[var(--primary)]/20 to-[var(--accent)]/20 rounded-lg mb-4 flex items-center justify-center">
+            <svg class="w-8 h-8 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-lg">Social Campaign</h3>
+          <p class="mt-2 text-[color:var(--muted)] text-sm">Plan → Create → Schedule → Monitor → Optimize</p>
+          <button class="mt-4 w-full rounded-lg bg-[var(--primary)] px-4 py-2 text-white text-sm font-medium hover:opacity-90 focus:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/20">
+            Use template
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPARISON -->
+  <section class="mx-auto max-w-5xl px-4 pb-16" aria-labelledby="comparison-heading">
+    <div class="animate-fade">
+      <h2 id="comparison-heading" class="text-3xl font-bold text-center">Why teams choose Verzio</h2>
+      <p class="mt-4 text-lg text-[color:var(--muted)] text-center">Stop juggling multiple tools. Get everything in one workflow.</p>
+    </div>
+    <div class="mt-10 glass rounded-[var(--rad)] overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-white/10">
+            <th class="text-left p-6 font-semibold"></th>
+            <th class="text-center p-6 font-semibold text-[color:var(--muted)]">Manual Process</th>
+            <th class="text-center p-6 font-semibold text-[var(--primary)]">With Verzio</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm">
+          <tr class="border-b border-white/10">
+            <td class="p-6 font-medium">Content creation time</td>
+            <td class="p-6 text-center text-[color:var(--muted)]">8-12 hours</td>
+            <td class="p-6 text-center text-[var(--accent)]">2-3 hours</td>
+          </tr>
+          <tr class="border-b border-white/10">
+            <td class="p-6 font-medium">Tools needed</td>
+            <td class="p-6 text-center text-[color:var(--muted)]">5-8 different apps</td>
+            <td class="p-6 text-center text-[var(--accent)]">Just Verzio</td>
+          </tr>
+          <tr class="border-b border-white/10">
+            <td class="p-6 font-medium">Brand consistency</td>
+            <td class="p-6 text-center text-[color:var(--muted)]">Manual checking</td>
+            <td class="p-6 text-center text-[var(--accent)]">Automated</td>
+          </tr>
+          <tr>
+            <td class="p-6 font-medium">Team collaboration</td>
+            <td class="p-6 text-center text-[color:var(--muted)]">Email & Slack chaos</td>
+            <td class="p-6 text-center text-[var(--accent)]">Built-in workflows</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="mx-auto max-w-7xl px-4 pb-16" aria-labelledby="testimonials-heading">
+    <div class="animate-fade">
+      <h2 id="testimonials-heading" class="text-3xl font-bold text-center">What teams are saying</h2>
+    </div>
+    <div class="mt-10 grid md:grid-cols-3 gap-6">
+      <div class="glass rounded-[var(--rad)] p-6 border-l-2 border-[var(--primary)] animate-fade">
+        <div class="flex items-center mb-4">
+          <div class="h-10 w-10 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] flex items-center justify-center text-white font-bold text-sm">
+            SJ
+          </div>
+          <div class="ml-3">
+            <div class="font-semibold text-sm">Sarah Johnson</div>
+            <div class="text-xs text-[color:var(--muted)]">Content Director, TechCorp</div>
+          </div>
+        </div>
+        <p class="text-[color:var(--muted)]">"Verzio cut our content production time by 70%. The workflow builder is a game-changer for our team's productivity."</p>
+      </div>
+      
+      <div class="glass rounded-[var(--rad)] p-6 border-l-2 border-[var(--accent)] animate-fade">
+        <div class="flex items-center mb-4">
+          <div class="h-10 w-10 rounded-full bg-gradient-to-r from-[var(--accent)] to-[var(--primary)] flex items-center justify-center text-white font-bold text-sm">
+            MK
+          </div>
+          <div class="ml-3">
+            <div class="font-semibold text-sm">Mike Kim</div>
+            <div class="text-xs text-[color:var(--muted)]">Marketing Lead, StartupXYZ</div>
+          </div>
+        </div>
+        <p class="text-[color:var(--muted)]">"Finally, one tool that handles everything from research to publishing. Our content quality has never been better."</p>
+      </div>
+      
+      <div class="glass rounded-[var(--rad)] p-6 border-l-2 border-[var(--primary)] animate-fade">
+        <div class="flex items-center mb-4">
+          <div class="h-10 w-10 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] flex items-center justify-center text-white font-bold text-sm">
+            AL
+          </div>
+          <div class="ml-3">
+            <div class="font-semibold text-sm">Anna Liu</div>
+            <div class="text-xs text-[color:var(--muted)]">CMO, GrowthCo</div>
+          </div>
+        </div>
+        <p class="text-[color:var(--muted)]">"The AI research assistant saves hours of manual work. We're publishing 3x more content with the same team size."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing" class="mx-auto max-w-7xl px-4 pb-16" aria-labelledby="pricing-heading">
+    <div class="animate-fade">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
+        <div>
+          <h2 id="pricing-heading" class="text-3xl font-bold">Choose your plan</h2>
+          <p class="mt-2 text-lg text-[color:var(--muted)]">Start free, upgrade when you're ready.</p>
+        </div>
+        <label class="flex items-center gap-3 text-sm mt-4 md:mt-0">
+          <span class="text-[color:var(--muted)]">Monthly</span>
+          <input id="toggle" type="checkbox" class="sr-only">
+          <div class="relative w-11 h-6 bg-white/20 rounded-full cursor-pointer">
+            <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 transform translate-x-0" id="toggle-dot"></div>
+          </div>
+          <span class="text-[color:var(--muted)]">Yearly <span class="text-[var(--accent)] font-medium">Save 20%</span></span>
+        </label>
+      </div>
+    </div>
+    
+    <div class="grid md:grid-cols-3 gap-6">
+      <!-- Free -->
+      <div class="glass rounded-[var(--rad)] p-6 animate-fade">
+        <div class="text-sm text-[var(--muted)] uppercase tracking-wide">Free</div>
+        <div class="mt-4 flex items-baseline">
+          <span class="text-4xl font-extrabold" data-monthly="0" data-yearly="0">$0</span>
+          <span class="text-lg text-[color:var(--muted)] ml-1">/month</span>
+        </div>
+        <p class="mt-2 text-sm text-[color:var(--muted)]">Perfect for trying out Verzio</p>
+        
+        <ul class="mt-6 space-y-3 text-sm">
+          <li class="flex items-center">
+            <svg class="w-4 h-4 text-[var(--accent)] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            3 projects
+          </li>
+          <li class="flex items-center">
+            <svg class="w-4 h-4 text-[var(--accent)] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Basic templates
+          </li>
+          <li class="flex items-center">
+            <svg class="w-4 h-4 text-[var(--accent)] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            HTML/Markdown export
+          </li>
+          <li class="flex items-center text-[color:var(--muted)]">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            Advanced workflows
+          </li>
+        </ul>
+        
+        <a href="#cta" class="mt-8 block w-full text-center rounded-lg bg-white/10 px-4 py-3 font-semibold hover:bg-white/15 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/20 transition-colors">
+          Get started free
+        </a>
+      </div>
+
+      <!-- Pro (Popular) -->
+      <div class="glass rounded-[var(--rad)] p-6 ring-2 ring-[var(--ring)] relative animate-fade">
+        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[var(--primary)] text-white px-3 py-1 rounded-full text-xs font-bold">
+          Most Popular
+        </div>
+        <div class="text-sm text-[var(--muted)] uppercase tracking-wide">Pro</div>
+        <div class="mt-4 flex items-baseline">
+          <span class="text-4xl font-extrabold" data-monthly="29" data-yearly="23">$29</span>
+          <span class="text-lg text-[color:var(--muted)] ml-1">/month</span>
+        </div>
+        <p class="mt-2 text-sm text-[color:var(--muted)]" id="billing-note">Billed monthly</p>
+        
+        <ul class="mt-6 space-y-3 text-sm">
+          <li class="flex items-center">
+            <svg class="w-4 h-4 text-[var(--accent)] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Unlimited projects
+          </li>
+          <li class="flex items-center">
+            <svg class="w-4 h-4 text-[var(--accent)] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Advanced workflow builder
+          </li>
+          <li class="flex items-center">
+            <svg class="w-4 h-4 text-[var(--accent)] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            SEO optimization tools
+          </li>
+          <li class="flex items-center">
+            <svg class="w-4 h-4 text-[var(--accent)] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            AI research assistant
+          </li>
+          <li class="flex items-center">
+            <svg class="w-4 h-4 text-[var(--accent)] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Multi-channel publishing
+          </li>
+        </ul>
+        
+        <a href="#cta" class="mt-8 block w-full text-center rounded-lg bg-[var(--primary)] px-4 py-3 font-semibold text-white hover:opacity-90 focus:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/20 transition-opacity">
+          Start Pro trial
+        </a>
+      </div>
+
+      <!-- Team -->
+      <div class="glass rounded-[var(--rad)] p-6 animate-fade">
+        <div class="text-sm text-[var(--muted)] uppercase tracking-wide">Team</div>
+        <div class="mt-4 flex items-baseline">
+          <span class="text-4xl font-extrabold" data-monthly="79" data-yearly="63">$79</span>
+          <span class="text-lg text-[color:var(--muted)] ml-1">/month</span>
+        </div>
+        <p class="mt-2 text-sm text-[color:var(--muted)]">For growing teams</p>
+        
+        <ul class="mt-6 space-y-3 text-sm">
+          <li class="flex items-center">
+            <svg class="w-4 h-4 text-[var(--accent)] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Everything in Pro
+          </li>
+          <li class="flex items-center">
+            <svg class="w-4 h-4 text-[var(--accent)] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            5 team seats
+          </li>
+          <li class="flex items-center">
+            <svg class="w-4 h-4 text-[var(--accent)] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Brand style guides
+          </li>
+          <li class="flex items-center">
+            <svg class="w-4 h-4 text-[var(--accent)] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Approval workflows
+          </li>
+          <li class="flex items-center">
+            <svg class="w-4 h-4 text-[var(--accent)] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Priority support
+          </li>
+        </ul>
+        
+        <a href="#cta" class="mt-8 block w-full text-center rounded-lg bg-white/10 px-4 py-3 font-semibold hover:bg-white/15 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/20 transition-colors">
+          Contact sales
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="mx-auto max-w-4xl px-4 pb-16" aria-labelledby="faq-heading">
+    <div class="animate-fade">
+      <h2 id="faq-heading" class="text-3xl font-bold text-center">Frequently asked questions</h2>
+    </div>
+    <div class="mt-10 divide-y divide-white/10" id="faq">
+      <details class="py-6 group">
+        <summary class="cursor-pointer font-semibold text-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-white/20 rounded p-2">
+          How do the AI workflows actually work?
+          <svg class="w-5 h-5 text-[color:var(--muted)] group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </summary>
+        <p class="mt-4 text-[color:var(--muted)] leading-relaxed">You start with a template, customize the steps (research topics, set tone, add reviewers), and Verzio guides you through each phase. The AI assists with research, suggests improvements, and maintains brand consistency throughout.</p>
+      </details>
+      
+      <details class="py-6 group">
+        <summary class="cursor-pointer font-semibold text-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-white/20 rounded p-2">
+          Can I export to my existing CMS?
+          <svg class="w-5 h-5 text-[color:var(--muted)] group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </summary>
+        <p class="mt-4 text-[color:var(--muted)] leading-relaxed">Yes! Export as HTML, Markdown, or use our API integrations for WordPress, Webflow, and other popular platforms. You can also schedule direct publishing to social media channels.</p>
+      </details>
+      
+      <details class="py-6 group">
+        <summary class="cursor-pointer font-semibold text-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-white/20 rounded p-2">
+          How does team collaboration work?
+          <svg class="w-5 h-5 text-[color:var(--muted)] group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </summary>
+        <p class="mt-4 text-[color:var(--muted)] leading-relaxed">Team members can collaborate in real-time with comments, suggestions, and approval workflows. Set up custom review processes where content automatically moves between writers, editors, and approvers.</p>
+      </details>
+      
+      <details class="py-6 group">
+        <summary class="cursor-pointer font-semibold text-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-white/20 rounded p-2">
+          What makes this different from other content tools?
+          <svg class="w-5 h-5 text-[color:var(--muted)] group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </summary>
+        <p class="mt-4 text-[color:var(--muted)] leading-relaxed">Instead of just generating content, Verzio focuses on the entire workflow from ideation to publishing. It combines research, writing, editing, optimization, and distribution in structured, repeatable processes.</p>
+      </details>
+      
+      <details class="py-6 group">
+        <summary class="cursor-pointer font-semibold text-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-white/20 rounded p-2">
+          Is there a free trial?
+          <svg class="w-5 h-5 text-[color:var(--muted)] group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </summary>
+        <p class="mt-4 text-[color:var(--muted)] leading-relaxed">Yes! The free plan includes 3 projects and basic templates. Pro plans come with a 14-day free trial, no credit card required. You can cancel or downgrade anytime.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- CTA BAND -->
+  <section id="cta" class="relative overflow-hidden" aria-labelledby="cta-heading">
+    <div class="absolute inset-0 bg-gradient-to-r from-[var(--primary)] to-[var(--accent)]"></div>
+    <div class="relative mx-auto max-w-4xl px-4 py-16 text-center">
+      <h2 id="cta-heading" class="text-3xl md:text-4xl font-bold text-white">Ready to transform your content workflow?</h2>
+      <p class="mt-4 text-lg text-white/90 max-w-2xl mx-auto">Join thousands of teams already creating better content, faster.</p>
+      <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <a href="#signup" class="inline-flex items-center rounded-lg bg-white px-6 py-3 font-semibold text-[var(--primary)] hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/20 transition-colors">
+          Start free today
+          <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+          </svg>
+        </a>
+        <a href="#demo" class="inline-flex items-center rounded-lg border border-white/30 px-6 py-3 font-semibold text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20 transition-colors">
+          Schedule demo
+        </a>
+      </div>
+      <p class="mt-4 text-sm text-white/80">14-day free trial • No credit card required</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/10 bg-black/20" role="contentinfo">
+    <div class="mx-auto max-w-7xl px-4 py-12">
+      <div class="grid md:grid-cols-5 gap-8">
+        <div class="md:col-span-2">
+          <a href="#" class="flex items-center gap-2 font-semibold mb-4">
+            <span class="inline-block h-6 w-6 rounded bg-gradient-to-tr from-[var(--primary)] to-[var(--accent)]"></span>
+            Verzio
+          </a>
+          <p class="text-[color:var(--muted)] text-sm max-w-sm">Build, optimize, and ship content with AI workflows that scale with your team.</p>
+          <div class="flex gap-4 mt-6">
+            <a href="#" class="text-[color:var(--muted)] hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded p-1" aria-label="Twitter">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+              </svg>
+            </a>
+            <a href="#" class="text-[color:var(--muted)] hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded p-1" aria-label="LinkedIn">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path>
+              </svg>
+            </a>
+          </div>
+        </div>
+        
+        <div>
+          <h3 class="font-semibold mb-4">Product</h3>
+          <ul class="space-y-2 text-sm text-[color:var(--muted)]">
+            <li><a href="#features" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-1">Features</a></li>
+            <li><a href="#templates" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-1">Templates</a></li>
+            <li><a href="#integrations" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-1">Integrations</a></li>
+            <li><a href="#api" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-1">API</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 class="font-semibold mb-4">Company</h3>
+          <ul class="space-y-2 text-sm text-[color:var(--muted)]">
+            <li><a href="#about" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-1">About</a></li>
+            <li><a href="#blog" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-1">Blog</a></li>
+            <li><a href="#careers" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-1">Careers</a></li>
+            <li><a href="#contact" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-1">Contact</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 class="font-semibold mb-4">Support</h3>
+          <ul class="space-y-2 text-sm text-[color:var(--muted)]">
+            <li><a href="#help" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-1">Help Center</a></li>
+            <li><a href="#docs" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-1">Documentation</a></li>
+            <li><a href="#status" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-1">Status</a></li>
+            <li><a href="#community" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-1">Community</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between text-sm text-[color:var(--muted)]">
+        <div>© 2024 Verzio. All rights reserved.</div>
+        <div class="flex gap-6 mt-4 md:mt-0">
+          <a href="#privacy" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-1">Privacy Policy</a>
+          <a href="#terms" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-1">Terms of Service</a>
+          <a href="#security" class="hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-1">Security</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Cookie Notice -->
+  <div id="cookie-notice" class="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur border-t border-white/10 p-4 z-50">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <p class="text-sm text-[color:var(--muted)]">We use cookies to improve your experience and analyze site usage. <a href="#privacy" class="text-[var(--accent)] hover:underline focus:underline focus:outline-none">Learn more</a></p>
+      <div class="flex gap-2">
+        <button id="cookie-decline" class="px-4 py-2 text-sm text-[color:var(--muted)] hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-white/20 rounded">Decline</button>
+        <button id="cookie-accept" class="px-4 py-2 text-sm bg-[var(--primary)] text-white rounded hover:opacity-90 focus:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/20">Accept</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Mobile menu toggle
+    const menuBtn = document.getElementById('menu');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    menuBtn?.addEventListener('click', () => {
+      const isOpen = !mobileMenu.classList.contains('hidden');
+      mobileMenu.classList.toggle('hidden');
+      menuBtn.setAttribute('aria-expanded', !isOpen);
+    });
+
+    // Pricing toggle
+    const toggle = document.getElementById('toggle');
+    const toggleDot = document.getElementById('toggle-dot');
+    const billingNote = document.getElementById('billing-note');
+    
+    if (toggle && toggleDot) {
+      const prices = document.querySelectorAll('[data-monthly]');
+      
+      const updatePricing = () => {
+        const isYearly = toggle.checked;
+        toggleDot.style.transform = isYearly ? 'translateX(20px)' : 'translateX(0)';
+        
+        prices.forEach(el => {
+          const monthly = el.getAttribute('data-monthly');
+          const yearly = el.getAttribute('data-yearly');
+          el.textContent = `$${isYearly ? yearly : monthly}`;
+        });
+        
+        if (billingNote) {
+          billingNote.textContent = isYearly ? 'Billed yearly (save 20%)' : 'Billed monthly';
+        }
+      };
+      
+      toggle.addEventListener('change', updatePricing);
+      updatePricing();
+    }
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const target = document.querySelector(link.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          
+          // Close mobile menu if open
+          if (!mobileMenu?.classList.contains('hidden')) {
+            mobileMenu.classList.add('hidden');
+            menuBtn?.setAttribute('aria-expanded', 'false');
+          }
+        }
+      });
+    });
+
+    // Intersection Observer for animations
+    const observeElements = () => {
+      const elements = document.querySelectorAll('.animate-fade');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+      
+      elements.forEach(el => observer.observe(el));
+    };
+
+    // Cookie notice
+    const cookieNotice = document.getElementById('cookie-notice');
+    const cookieAccept = document.getElementById('cookie-accept');
+    const cookieDecline = document.getElementById('cookie-decline');
+    
+    // Check if user has already made a choice
+    if (localStorage.getItem('cookieChoice')) {
+      cookieNotice?.remove();
+    }
+    
+    cookieAccept?.addEventListener('click', () => {
+      localStorage.setItem('cookieChoice', 'accepted');
+      cookieNotice?.remove();
+    });
+    
+    cookieDecline?.addEventListener('click', () => {
+      localStorage.setItem('cookieChoice', 'declined');
+      cookieNotice?.remove();
+    });
+
+    // Initialize animations when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', observeElements);
+    } else {
+      observeElements();
+    }
+  </script>
+
+  <style>
+    @keyframes marquee { 
+      0% { transform: translateX(0) } 
+      100% { transform: translateX(-50%) } 
+    }
+    
+    /* Focus styles for better accessibility */
+    .focus-ring:focus {
+      outline: 2px solid rgba(124, 58, 237, 0.5);
+      outline-offset: 2px;
+    }
+    
+    /* Custom scrollbar for webkit browsers */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(124, 58, 237, 0.5);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(124, 58, 237, 0.7);
+    }
+  </style>
+</body>
+</html>
