@@ -34,7 +34,7 @@ urlpatterns = [
     path('dd-item/<int:pk>/toggle/', toggle_dd_item, name='toggle_dd_item'),
 
     # Legal Task URLs
-    path('legal-tasks/', views.legal_task_board, name='legal_task_board'),
+    path('legal-tasks/', views.legal_task_board, name='legal_task_kanban'),
     path('legal-tasks/new/', LegalTaskCreateView.as_view(), name='legal_task_create'),
     path('legal-tasks/<int:pk>/edit/', LegalTaskUpdateView.as_view(), name='legal_task_update'),
 
