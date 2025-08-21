@@ -1,0 +1,59 @@
+NoReverseMatch at /dashboard/
+Reverse for 'workflow_create' not found. 'workflow_create' is not a valid view function or pattern name.
+Request Method:	GET
+Request URL:	http://cdd7ce53-c9b2-4aa0-b88a-fd25af33c404-00-4bf7ao7rrhth.riker.replit.dev/dashboard/
+Django Version:	5.2.5
+Exception Type:	NoReverseMatch
+Exception Value:	
+Reverse for 'workflow_create' not found. 'workflow_create' is not a valid view function or pattern name.
+Exception Location:	/home/runner/workspace/.pythonlibs/lib/python3.12/site-packages/django/urls/resolvers.py, line 831, in _reverse_with_prefix
+Raised during:	contracts.views.dashboard
+Python Executable:	/home/runner/workspace/.pythonlibs/bin/python
+Python Version:	3.12.11
+Python Path:	
+['/home/runner/workspace',
+ '/nix/store/zz7i75jb78idaz0rb1y1i4rzdyxq28vf-sitecustomize/lib/python/site-packages',
+ '/nix/store/dlz9jb8127sn1mj7986p9s8r3nxjlcl7-python3.12-pip-25.0.1/lib/python3.12/site-packages',
+ '/nix/store/vnvdzw4182wb2ifzi0cczhv80yfnpx1q-python3-3.12.11/lib/python312.zip',
+ '/nix/store/vnvdzw4182wb2ifzi0cczhv80yfnpx1q-python3-3.12.11/lib/python3.12',
+ '/nix/store/vnvdzw4182wb2ifzi0cczhv80yfnpx1q-python3-3.12.11/lib/python3.12/lib-dynload',
+ '/home/runner/workspace/.pythonlibs/lib/python3.12/site-packages',
+ '/nix/store/vnvdzw4182wb2ifzi0cczhv80yfnpx1q-python3-3.12.11/lib/python3.12/site-packages',
+ '/home/runner/workspace/.pythonlibs/lib/python3.12/site-packages',
+ '/nix/store/x1zyfp26gnxkbbspkwhh3f9n13r3z18p-python3.12-setuptools-80.7.1/lib/python3.12/site-packages']
+Server time:	Thu, 21 Aug 2025 14:15:44 +0000
+Error during template rendering
+In template /home/runner/workspace/theme/templates/base.html, error at line 97
+
+Reverse for 'workflow_create' not found. 'workflow_create' is not a valid view function or pattern name.
+87	            <div class="flex items-center space-x-4">
+88	                {% if user.is_authenticated %}
+89	                    <!-- Action Buttons -->
+90	                    <div class="flex items-center space-x-3">
+91	                        <a href="{% url 'contracts:contract_create' %}" class="btn-accent flex items-center space-x-2">
+92	                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+93	                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+94	                            </svg>
+95	                            <span>New Contract</span>
+96	                        </a>
+97	                        <a href="{% url 'contracts:workflow_create' %}" class="btn-primary flex items-center space-x-2">
+98	                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+99	                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+100	                            </svg>
+101	                            <span>Start Workflow</span>
+102	                        </a>
+103	                    </div>
+104	                    <!-- User Menu -->
+105	                    <div class="flex items-center space-x-3">
+106	                        <a href="{% url 'profile' %}" class="flex items-center space-x-2 hover:bg-primary-500/5 rounded-xl px-2 py-1 transition-colors">
+107	                            <span class="text-sm text-primary-700 font-medium">{{ user.first_name|default:user.username }}</span>
+Traceback Switch to copy-and-paste view
+/home/runner/workspace/.pythonlibs/lib/python3.12/site-packages/django/core/handlers/exception.py, line 55, in inner
+                response = get_response(request)
+                               ^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.12/site-packages/django/core/handlers/base.py, line 197, in _get_response
+                response = wrapped_callback(request, *callback_args, **callback_kwargs)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/contracts/views.py, line 701, in dashboard
