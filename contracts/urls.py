@@ -73,6 +73,9 @@ urlpatterns = [
     path('workflow-templates/', WorkflowTemplateListView.as_view(), name='workflow_template_list'),
     path('workflow-templates/create/', WorkflowTemplateCreateView.as_view(), name='workflow_template_create'),
 
+    # Repository
+    path('repository/', RepositoryView.as_view(), name='repository'),
+
     # Contracts
     path('', ContractListView.as_view(), name='contract_list'),
     path('<int:pk>/', ContractDetailView.as_view(), name='contract_detail'),

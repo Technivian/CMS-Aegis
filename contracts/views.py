@@ -85,11 +85,6 @@ class AddChecklistItemView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse_lazy('contracts:compliance_checklist_detail', kwargs={'pk': self.kwargs['checklist_pk']})
 
-class RepositoryView(LoginRequiredMixin, ListView):
-    model = Contract
-    template_name = 'contracts/repository.html'
-    context_object_name = 'contracts'
-
 class ContractDetailView(LoginRequiredMixin, DetailView):
     model = Contract
     template_name = 'contracts/contract_detail.html'
@@ -467,7 +462,7 @@ def legal_task_board(request):
     pending_tasks = tasks.filter(status='PENDING')
     in_progress_tasks = tasks.filter(status='IN_PROGRESS')
     completed_tasks = tasks.filter(status='COMPLETED')
-    
+
     context = {
         'pending_tasks': pending_tasks,
         'in_progress_tasks': in_progress_tasks,
