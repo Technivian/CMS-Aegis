@@ -1,7 +1,11 @@
 {% if FEATURE_REDESIGN %}
     {% extends "base_redesign.html" %}
 {% else %}
-    {% extends "base.html" %}
+    {% if FEATURE_REDESIGN %}
+{% extends "base_redesign.html" %}
+{% else %}
+{% extends "base.html" %}
+{% endif %}
 {% endif %}
 {% load static %}
 

@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
 from .forms import (
     ChecklistItemForm, WorkflowForm, WorkflowTemplateForm,
     BudgetForm, TrademarkRequestForm, LegalTaskForm, RiskLogForm, ComplianceChecklistForm,
@@ -23,7 +24,7 @@ from .models import (
     DueDiligenceProcess, DueDiligenceTask, DueDiligenceRisk, Budget, BudgetExpense
 )
 from django.http import JsonResponse
-from config.feature_flags import toggle_feature_flag
+from config.feature_flags import get_feature_flag, is_feature_redesign_enabled
 
 # --- Index View ---
 def index(request):
@@ -124,7 +125,11 @@ class SignUpView(CreateView):
 def toggle_redesign(request):
     """Toggle the FEATURE_REDESIGN flag for development"""
     if request.method == 'POST':
-        toggle_feature_flag('FEATURE_REDESIGN')
+        import os
+        # Toggle the environment variable
+        current_value = os.environ.get('FEATURE_REDESIGN', 'false').lower()
+        new_value = 'false' if current_value == 'true' else 'true'
+        os.environ['FEATURE_REDESIGN'] = new_value
         return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
     return redirect('dashboard')
 

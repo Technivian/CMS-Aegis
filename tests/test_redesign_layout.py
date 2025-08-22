@@ -2,7 +2,8 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
-from config.feature_flags import set_feature_flag, is_feature_enabled
+from config.feature_flags import is_feature_redesign_enabled
+import os
 
 class RedesignLayoutTest(TestCase):
     def setUp(self):
@@ -15,62 +16,75 @@ class RedesignLayoutTest(TestCase):
     
     def test_feature_flag_toggle(self):
         """Test that feature flag can be toggled"""
+        # Clean up any existing env var
+        if 'FEATURE_REDESIGN' in os.environ:
+            del os.environ['FEATURE_REDESIGN']
+            
         # Start with flag disabled
-        set_feature_flag('FEATURE_REDESIGN', False)
-        self.assertFalse(is_feature_enabled('FEATURE_REDESIGN'))
+        self.assertFalse(is_feature_redesign_enabled())
         
         # Toggle the flag
         response = self.client.post(reverse('toggle_redesign'))
         self.assertEqual(response.status_code, 302)
         
         # Verify flag is now enabled
-        self.assertTrue(is_feature_enabled('FEATURE_REDESIGN'))
+        self.assertTrue(is_feature_redesign_enabled())
     
     def test_dashboard_uses_correct_template(self):
         """Test that dashboard uses correct template based on feature flag"""
         # Test with flag disabled
-        set_feature_flag('FEATURE_REDESIGN', False)
+        if 'FEATURE_REDESIGN' in os.environ:
+            del os.environ['FEATURE_REDESIGN']
         response = self.client.get(reverse('dashboard'))
         self.assertContains(response, 'Main Navigation Tabs (Bolton Style)')
         
         # Test with flag enabled
-        set_feature_flag('FEATURE_REDESIGN', True)
+        os.environ['FEATURE_REDESIGN'] = 'true'
         response = self.client.get(reverse('dashboard'))
-        self.assertContains(response, 'Global Search')
+        self.assertContains(response, 'Global search')
         self.assertContains(response, 'My Views')
     
     def test_sidebar_navigation_elements(self):
         """Test that sidebar contains required navigation elements"""
-        set_feature_flag('FEATURE_REDESIGN', True)
+        os.environ['FEATURE_REDESIGN'] = 'true'
         response = self.client.get(reverse('dashboard'))
         
-        # Check for sidebar sections
+        # Check for sidebar elements
+        self.assertContains(response, 'Bolton CLM')
         self.assertContains(response, 'My Views')
-        self.assertContains(response, 'Quick Actions')
-        self.assertContains(response, 'Filters')
-        
-        # Check for navigation items
         self.assertContains(response, 'Dashboard')
         self.assertContains(response, 'All Contracts')
         self.assertContains(response, 'Legal Tasks')
         self.assertContains(response, 'Active Workflows')
+        self.assertContains(response, 'Quick Actions')
+        self.assertContains(response, 'New Contract')
     
-    def test_keyboard_shortcuts_present(self):
-        """Test that keyboard shortcut indicators are present"""
-        set_feature_flag('FEATURE_REDESIGN', True)
+    def test_keyboard_shortcuts_javascript(self):
+        """Test that keyboard shortcuts JavaScript is included"""
+        os.environ['FEATURE_REDESIGN'] = 'true'
         response = self.client.get(reverse('dashboard'))
         
-        # Check for shortcut indicators
-        self.assertContains(response, 'G D')  # Dashboard
-        self.assertContains(response, 'G C')  # Contracts
-        self.assertContains(response, 'G T')  # Tasks
-        self.assertContains(response, 'G W')  # Workflows
-        self.assertContains(response, 'N')    # New Contract
+        # Check for keyboard shortcut handling
+        self.assertContains(response, "e.key === '/'")
+        self.assertContains(response, "e.key === 'n'")
+        self.assertContains(response, "e.key === 'g'")
     
-    def test_global_search_present(self):
-        """Test that global search is present in redesigned layout"""
-        set_feature_flag('FEATURE_REDESIGN', True)
+    def test_responsive_mobile_toggle(self):
+        """Test that mobile sidebar toggle is present"""
+        os.environ['FEATURE_REDESIGN'] = 'true'
         response = self.client.get(reverse('dashboard'))
         
-        self.assertContains(response, 'global-search')
-        self.assertContains(response, 'Search contracts, tasks, workflows...')
+        self.assertContains(response, 'mobileSidebarToggle')
+        self.assertContains(response, 'lg:hidden')
+    
+    def test_max_width_content_grid(self):
+        """Test that content has max-width constraint"""
+        os.environ['FEATURE_REDESIGN'] = 'true'
+        response = self.client.get(reverse('dashboard'))
+        
+        self.assertContains(response, 'max-w-7xl')
+    
+    def tearDown(self):
+        # Clean up environment variable
+        if 'FEATURE_REDESIGN' in os.environ:
+            del os.environ['FEATURE_REDESIGN']

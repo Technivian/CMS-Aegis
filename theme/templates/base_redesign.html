@@ -1,305 +1,257 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-bg">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Bolton CLM{% endblock %}</title>
     {% load static %}
     <link href="{% static 'css/dist/styles.css' %}" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #FFFFFF;
-            --ink: #0B0B0C;
-            --muted: #6B7280;
-            --stroke: #E5E7EB;
-            --accent: #0E9F6E;
-            --warn: #F59E0B;
-            --danger: #DC2626;
-            --card: #FFFFFF;
-        }
-        
-        .sidebar-collapsed {
-            width: 64px;
-        }
-        
-        .sidebar-expanded {
-            width: 280px;
-        }
-        
-        .main-with-sidebar-collapsed {
-            margin-left: 64px;
-        }
-        
-        .main-with-sidebar-expanded {
-            margin-left: 280px;
-        }
-        
-        .kbd {
-            display: inline-block;
-            padding: 2px 6px;
-            font-size: 11px;
-            line-height: 1;
-            color: var(--muted);
-            background-color: #f8f9fa;
-            border: 1px solid var(--stroke);
-            border-radius: 4px;
-            font-family: 'SF Mono', Monaco, Inconsolata, 'Roboto Mono', Consolas, 'Courier New', monospace;
-        }
+        /* Ensure Inter font is applied */
+        body { font-family: 'Inter', sans-serif; }
     </style>
+    {% block extra_head %}{% endblock %}
 </head>
-<body class="font-inter bg-white text-ink">
-    <!-- Top Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-50 bg-card border-b border-stroke">
-        <div class="flex items-center justify-between px-6 h-16">
-            <!-- Left: Logo + Sidebar Toggle -->
-            <div class="flex items-center space-x-4">
-                <button id="sidebar-toggle" class="p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                    <svg class="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
-                
-                <a href="{% url 'dashboard' %}" class="flex items-center">
-                    <svg width="120" height="32" viewBox="0 0 120 32" class="mr-3">
-                        <rect x="0" y="4" width="28" height="24" fill="var(--accent)" rx="4"/>
-                        <g fill="white" stroke="white" stroke-width="0.3">
-                            <rect x="6" y="8" width="1.5" height="16"/>
-                            <rect x="9" y="8" width="1.5" height="16"/>
-                            <rect x="12" y="8" width="1.5" height="16"/>
-                            <rect x="15" y="8" width="1.5" height="16"/>
-                            <rect x="18" y="8" width="1.5" height="16"/>
-                            <rect x="21" y="8" width="1.5" height="16"/>
-                            <rect x="4" y="10" width="20" height="0.8"/>
-                            <rect x="4" y="13" width="20" height="0.8"/>
-                            <rect x="4" y="16" width="20" height="0.8"/>
-                            <rect x="4" y="19" width="20" height="0.8"/>
-                        </g>
-                        <text x="11" y="21" fill="white" font-family="Arial Black, sans-serif" font-size="12" font-weight="900">B</text>
-                        <text x="32" y="18" fill="var(--accent)" font-family="Inter, sans-serif" font-size="14" font-weight="700" letter-spacing="1">BOLTON</text>
-                        <text x="32" y="28" fill="var(--muted)" font-family="Inter, sans-serif" font-size="10" font-weight="500" letter-spacing="1">CLM</text>
-                    </svg>
-                </a>
-            </div>
-            
-            <!-- Center: Global Search -->
-            <div class="flex-1 max-w-lg mx-8">
-                <div class="relative">
-                    <input
-                        id="global-search"
-                        type="text"
-                        placeholder="Search contracts, tasks, workflows..."
-                        class="w-full pl-10 pr-4 py-2 border border-stroke rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-                    >
-                    <svg class="absolute left-3 top-2.5 w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    <div class="absolute right-3 top-2.5">
-                        <span class="kbd">/</span>
+<body class="h-full overflow-hidden bg-bg">
+    <div class="flex h-full">
+        <!-- Left Sidebar -->
+        <nav id="sidebar" class="flex flex-col w-64 bg-card border-r border-stroke transition-all duration-300 ease-in-out">
+            <!-- Sidebar Header -->
+            <div class="p-4 border-b border-stroke">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">B</span>
                     </div>
+                    <span class="font-semibold text-ink text-lg">Bolton CLM</span>
                 </div>
             </div>
-            
-            <!-- Right: Actions + User Menu -->
-            <div class="flex items-center space-x-3">
-                {% if user.is_authenticated %}
-                    <button class="btn btn-primary flex items-center space-x-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
-                        <span>New Contract</span>
-                        <span class="kbd">N</span>
-                    </button>
-                    
-                    <div class="flex items-center space-x-2">
-                        <div class="text-right">
-                            <div class="text-sm font-medium text-ink">{{ user.first_name|default:user.username }}</div>
-                            <div class="text-xs text-muted">{{ user.email }}</div>
-                        </div>
-                        <div class="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
-                            <span class="text-sm font-semibold text-accent">{{ user.first_name.0|default:user.username.0|upper }}</span>
-                        </div>
-                    </div>
-                {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-secondary">Login</a>
-                    <a href="{% url 'register' %}" class="btn btn-primary">Sign up</a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
 
-    <!-- Collapsible Left Sidebar -->
-    <aside id="sidebar" class="fixed left-0 top-16 bottom-0 bg-card border-r border-stroke transition-all duration-300 sidebar-expanded z-40">
-        <div class="p-4">
             <!-- My Views Section -->
-            <div class="mb-6">
-                <h3 class="sidebar-section-title">My Views</h3>
-                <nav class="space-y-1">
-                    <a href="{% url 'dashboard' %}" class="sidebar-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                        </svg>
-                        <span class="sidebar-text">Dashboard</span>
-                        <span class="sidebar-shortcut kbd">G D</span>
-                    </a>
-                    
-                    <a href="{% url 'contracts:contract_list' %}" class="sidebar-item {% if 'contract' in request.resolver_match.url_name %}active{% endif %}">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                        <span class="sidebar-text">All Contracts</span>
-                        <span class="sidebar-shortcut kbd">G C</span>
-                    </a>
-                    
-                    <a href="{% url 'contracts:legal_task_kanban' %}" class="sidebar-item {% if 'legal_task' in request.resolver_match.url_name %}active{% endif %}">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                        <span class="sidebar-text">Legal Tasks</span>
-                        <span class="sidebar-shortcut kbd">G T</span>
-                    </a>
-                    
-                    <a href="{% url 'contracts:workflow_dashboard' %}" class="sidebar-item {% if 'workflow' in request.resolver_match.url_name %}active{% endif %}">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                        </svg>
-                        <span class="sidebar-text">Active Workflows</span>
-                        <span class="sidebar-shortcut kbd">G W</span>
-                    </a>
-                </nav>
+            <div class="p-4">
+                <h3 class="text-xs font-semibold text-muted uppercase tracking-wider mb-3">My Views</h3>
+                <ul class="space-y-1">
+                    <li>
+                        <a href="{% url 'dashboard' %}" class="flex items-center px-3 py-2 text-sm font-medium text-ink hover:bg-stroke rounded-md {% if request.resolver_match.url_name == 'dashboard' %}bg-accent/10 text-accent{% endif %}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6a2 2 0 01-2 2H10a2 2 0 01-2-2V5z"></path>
+                            </svg>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'contracts:contract_list' %}" class="flex items-center px-3 py-2 text-sm font-medium text-ink hover:bg-stroke rounded-md {% if 'contract' in request.resolver_match.url_name %}bg-accent/10 text-accent{% endif %}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            All Contracts
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'contracts:legal_task_kanban' %}" class="flex items-center px-3 py-2 text-sm font-medium text-ink hover:bg-stroke rounded-md {% if 'legal_task' in request.resolver_match.url_name %}bg-accent/10 text-accent{% endif %}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                            </svg>
+                            Legal Tasks
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'contracts:workflow_dashboard' %}" class="flex items-center px-3 py-2 text-sm font-medium text-ink hover:bg-stroke rounded-md {% if 'workflow' in request.resolver_match.url_name %}bg-accent/10 text-accent{% endif %}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Active Workflows
+                        </a>
+                    </li>
+                </ul>
             </div>
-            
+
             <!-- Quick Actions Section -->
-            <div class="mb-6">
-                <h3 class="sidebar-section-title">Quick Actions</h3>
-                <div class="space-y-1">
-                    <button class="sidebar-action-item">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-4 border-t border-stroke">
+                <h3 class="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Quick Actions</h3>
+                <div class="space-y-2">
+                    <button class="btn btn-primary w-full justify-center" onclick="openNewContractModal()">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
-                        <span class="sidebar-text">New Contract</span>
+                        New Contract
                     </button>
-                    
-                    <button class="sidebar-action-item">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                        </svg>
-                        <span class="sidebar-text">Start Workflow</span>
-                    </button>
-                    
-                    <button class="sidebar-action-item">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button class="btn btn-secondary w-full justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
                         </svg>
-                        <span class="sidebar-text">Import</span>
+                        Import
                     </button>
                 </div>
             </div>
-            
+
             <!-- Filters Section -->
-            <div>
-                <h3 class="sidebar-section-title">Filters</h3>
-                <div class="space-y-1">
-                    <div class="sidebar-filter-item">
-                        <span class="sidebar-text">Status</span>
-                        <select class="sidebar-filter-select">
-                            <option>All</option>
+            <div class="p-4 border-t border-stroke flex-1">
+                <h3 class="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Filters</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-muted mb-1">Status</label>
+                        <select class="w-full text-xs border border-stroke rounded px-2 py-1">
+                            <option>All Statuses</option>
+                            <option>Active</option>
                             <option>Draft</option>
-                            <option>In Review</option>
-                            <option>Executed</option>
+                            <option>Under Review</option>
                         </select>
                     </div>
-                    
-                    <div class="sidebar-filter-item">
-                        <span class="sidebar-text">Type</span>
-                        <select class="sidebar-filter-select">
+                    <div>
+                        <label class="block text-xs font-medium text-muted mb-1">Type</label>
+                        <select class="w-full text-xs border border-stroke rounded px-2 py-1">
                             <option>All Types</option>
                             <option>NDA</option>
-                            <option>MSA</option>
-                            <option>SOW</option>
+                            <option>Service Agreement</option>
+                            <option>Purchase Order</option>
                         </select>
                     </div>
                 </div>
             </div>
-        </div>
-    </aside>
 
-    <!-- Main Content -->
-    <main id="main-content" class="pt-16 main-with-sidebar-expanded transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-6 py-6">
-            {% block content %}
-            {% endblock %}
-        </div>
-    </main>
+            <!-- Sidebar Toggle Button (hidden on desktop) -->
+            <button id="sidebarToggle" class="absolute top-4 -right-3 w-6 h-6 bg-card border border-stroke rounded-full flex items-center justify-center lg:hidden">
+                <svg class="w-3 h-3 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+        </nav>
 
-    <!-- JavaScript for interactions -->
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation Bar -->
+            <header class="bg-card border-b border-stroke px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <!-- Left: Logo + Global Search -->
+                    <div class="flex items-center space-x-6">
+                        <button id="mobileSidebarToggle" class="lg:hidden p-1 text-muted hover:text-ink">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                        
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                placeholder="Global search..." 
+                                class="w-80 pl-10 pr-4 py-2 border border-stroke rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                                id="globalSearch"
+                            >
+                            <svg class="w-4 h-4 text-muted absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Right: New Contract CTA + User Menu -->
+                    <div class="flex items-center space-x-4">
+                        <button class="btn btn-primary" onclick="openNewContractModal()">
+                            + New Contract
+                        </button>
+                        
+                        <!-- User Menu -->
+                        <div class="relative">
+                            <button class="flex items-center space-x-2 text-sm font-medium text-ink hover:text-accent" onclick="toggleUserMenu()">
+                                <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
+                                    <span class="text-white text-xs font-semibold">
+                                        {% if user.first_name %}{{ user.first_name.0 }}{% else %}{{ user.username.0|upper }}{% endif %}
+                                    </span>
+                                </div>
+                                <span>{{ user.get_full_name|default:user.username }}</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            
+                            <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-card border border-stroke rounded-lg shadow-lg py-1 z-50">
+                                <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-ink hover:bg-stroke">Profile</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-ink hover:bg-stroke">Settings</a>
+                                <div class="border-t border-stroke my-1"></div>
+                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-ink hover:bg-stroke">Sign out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="flex-1 overflow-auto">
+                <div class="max-w-7xl mx-auto px-6 py-6">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Feature Flag Toggle (Development) -->
+    {% include 'layout_toggle.html' %}
+
+    <!-- JavaScript for Interactivity -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Focus search on '/'
+            if (e.key === '/' && !e.target.matches('input, textarea')) {
+                e.preventDefault();
+                document.getElementById('globalSearch').focus();
+            }
+            
+            // New contract on 'n'
+            if (e.key === 'n' && !e.target.matches('input, textarea')) {
+                e.preventDefault();
+                openNewContractModal();
+            }
+            
+            // Navigation shortcuts with 'g' then letter
+            if (e.key === 'g' && !e.target.matches('input, textarea')) {
+                window.gMode = true;
+                setTimeout(() => window.gMode = false, 2000);
+            } else if (window.gMode) {
+                switch(e.key) {
+                    case 'c': window.location.href = "{% url 'contracts:contract_list' %}"; break;
+                    case 't': window.location.href = "{% url 'contracts:legal_task_kanban' %}"; break;
+                    case 'w': window.location.href = "{% url 'contracts:workflow_dashboard' %}"; break;
+                    case 'd': window.location.href = "{% url 'dashboard' %}"; break;
+                }
+                window.gMode = false;
+            }
+        });
+
+        // Toggle user menu
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const userMenu = document.getElementById('userMenu');
+            const userButton = e.target.closest('button');
+            if (!userButton || !userButton.onclick || userButton.onclick.toString().indexOf('toggleUserMenu') === -1) {
+                userMenu.classList.add('hidden');
+            }
+        });
+
+        // Mobile sidebar toggle
+        document.getElementById('mobileSidebarToggle')?.addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');
-            const sidebarToggle = document.getElementById('sidebar-toggle');
-            const mainContent = document.getElementById('main-content');
-            const globalSearch = document.getElementById('global-search');
-            
-            let sidebarExpanded = true;
-            
-            // Sidebar toggle
-            sidebarToggle.addEventListener('click', function() {
-                sidebarExpanded = !sidebarExpanded;
-                
-                if (sidebarExpanded) {
-                    sidebar.classList.remove('sidebar-collapsed');
-                    sidebar.classList.add('sidebar-expanded');
-                    mainContent.classList.remove('main-with-sidebar-collapsed');
-                    mainContent.classList.add('main-with-sidebar-expanded');
-                } else {
-                    sidebar.classList.remove('sidebar-expanded');
-                    sidebar.classList.add('sidebar-collapsed');
-                    mainContent.classList.remove('main-with-sidebar-expanded');
-                    mainContent.classList.add('main-with-sidebar-collapsed');
-                }
-            });
-            
-            // Global keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                // Focus search with /
-                if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
-                    e.preventDefault();
-                    globalSearch.focus();
-                }
-                
-                // New contract with N
-                if (e.key === 'n' || e.key === 'N') {
-                    if (!e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-                        e.preventDefault();
-                        window.location.href = "{% url 'contracts:contract_create' %}";
-                    }
-                }
-                
-                // Navigation shortcuts with G
-                if (e.key === 'g' || e.key === 'G') {
-                    if (!e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-                        // Listen for next keypress
-                        document.addEventListener('keydown', function handler(nextE) {
-                            document.removeEventListener('keydown', handler);
-                            switch(nextE.key.toLowerCase()) {
-                                case 'c':
-                                    window.location.href = "{% url 'contracts:contract_list' %}";
-                                    break;
-                                case 't':
-                                    window.location.href = "{% url 'contracts:legal_task_kanban' %}";
-                                    break;
-                                case 'w':
-                                    window.location.href = "{% url 'contracts:workflow_dashboard' %}";
-                                    break;
-                                case 'd':
-                                    window.location.href = "{% url 'dashboard' %}";
-                                    break;
-                            }
-                        });
-                    }
-                }
-            });
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        // New contract modal placeholder
+        function openNewContractModal() {
+            window.location.href = "{% url 'contracts:contract_create' %}";
+        }
+
+        // Global search functionality
+        document.getElementById('globalSearch').addEventListener('input', function(e) {
+            // Debounced search implementation would go here
+            console.log('Searching for:', e.target.value);
         });
     </script>
 

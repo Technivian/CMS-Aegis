@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import render
+from django.views.generic import TemplateView # Import TemplateView
 from contracts import views
 
 from django.contrib.auth import views as auth_views
@@ -28,9 +29,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('profile/', views.profile, name='profile'),
-    path('repository/', views.RepositoryView.as_view(), name='repository'),
     path('toggle-redesign/', views.toggle_redesign, name='toggle_redesign'),
-    path('components-demo/', lambda request: render(request, 'components_demo.html'), name='components_demo'),
+    path('components-demo/', TemplateView.as_view(template_name='components_demo.html'), name='components_demo'),
     path('contracts/', include('contracts.urls', namespace='contracts')),
     # Authentication URLs
     path('accounts/login/', auth_views.LoginView.as_view(
