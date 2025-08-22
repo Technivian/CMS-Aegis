@@ -1,11 +1,8 @@
 
-"""
-Context processors for adding global template variables
-"""
-from config.feature_flags import ironclad_mode
+from config.feature_flags import is_feature_enabled
 
 def feature_flags(request):
     """Add feature flags to template context"""
     return {
-        'ironclad_mode': ironclad_mode(),
+        'FEATURE_REDESIGN': is_feature_enabled('FEATURE_REDESIGN'),
     }

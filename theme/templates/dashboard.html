@@ -1,4 +1,9 @@
-{% extends 'base.html' %}
+{% if FEATURE_REDESIGN %}
+    {% extends "base_redesign.html" %}
+{% else %}
+    {% extends "base.html" %}
+{% endif %}
+{% load static %}
 
 {% block title %}Dashboard - Bolton CLM{% endblock %}
 
@@ -183,4 +188,7 @@
         {% endif %}
     </main>
 </div>
+
+<!-- Include layout toggle for testing -->
+{% include 'layout_toggle.html' %}
 {% endblock %}

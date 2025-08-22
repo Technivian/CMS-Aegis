@@ -1,4 +1,3 @@
-
 # Design System Decisions
 
 ## Section #1: Brand System (Bolton Style)
@@ -26,3 +25,20 @@
 ### Demo Page Structure
 - **Decision**: Create a comprehensive demo page showing all components
 - **Rationale**: Makes it easy to visually verify components work correctly and provides documentation for developers.
+
+## Design System Implementation
+
+- **Color Tokens**: Used CSS custom properties for consistent theming across components
+- **Component Architecture**: Built reusable components with Tailwind utility classes
+- **Testing Strategy**: Created both unit tests for components and visual regression tests
+- **Documentation**: Added components demo page for design system showcase
+
+## Global Layout & Navigation
+
+- **Sidebar Approach**: Implemented collapsible sidebar (280px expanded, 64px collapsed) for better space utilization
+- **Top Navigation**: Sticky header with logo, global search, and user actions for consistent access
+- **Feature Flag Integration**: Used base_redesign.html template with conditional rendering based on FEATURE_REDESIGN flag
+- **Keyboard Shortcuts**: Implemented standard shortcuts (/ for search, N for new contract, G+key for navigation)
+- **Search Design**: Centered global search with placeholder text and visual search icon
+- **Content Layout**: Max-width 1200px container with responsive margins for optimal reading width
+- **Sidebar Sections**: Organized into "My Views", "Quick Actions", and "Filters" for logical grouping

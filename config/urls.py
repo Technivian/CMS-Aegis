@@ -29,6 +29,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('profile/', views.profile, name='profile'),
     path('repository/', views.RepositoryView.as_view(), name='repository'),
+    path('toggle-redesign/', views.toggle_redesign, name='toggle_redesign'),
     path('components-demo/', lambda request: render(request, 'components_demo.html'), name='components_demo'),
     path('contracts/', include('contracts.urls', namespace='contracts')),
     # Authentication URLs

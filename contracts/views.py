@@ -22,6 +22,8 @@ from .models import (
     Workflow, WorkflowTemplate, WorkflowTemplateStep, WorkflowStep,
     DueDiligenceProcess, DueDiligenceTask, DueDiligenceRisk, Budget, BudgetExpense
 )
+from django.http import JsonResponse
+from config.feature_flags import toggle_feature_flag
 
 # --- Index View ---
 def index(request):
@@ -110,8 +112,21 @@ class ProfileView(View):
 
 class SignUpView(CreateView):
     form_class = UserCreationForm
-    template_name = 'registration/register.html'
     success_url = reverse_lazy('login')
+    template_name = 'registration/register.html'
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        login(self.request, self.object)
+        return response
+
+@login_required
+def toggle_redesign(request):
+    """Toggle the FEATURE_REDESIGN flag for development"""
+    if request.method == 'POST':
+        toggle_feature_flag('FEATURE_REDESIGN')
+        return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+    return redirect('dashboard')
 
 # Workflow Dashboard View
 class WorkflowDashboardView(LoginRequiredMixin, ListView):

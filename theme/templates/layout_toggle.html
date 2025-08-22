@@ -1,0 +1,19 @@
+
+<!-- Feature Flag Toggle Component -->
+<div class="fixed bottom-4 right-4 z-50">
+    <div class="bg-white border border-stroke rounded-lg shadow-lg p-4">
+        <div class="flex items-center space-x-3">
+            <span class="text-sm font-medium text-ink">Layout:</span>
+            <form method="post" action="{% url 'toggle_redesign' %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm {% if FEATURE_REDESIGN %}btn-primary{% else %}btn-secondary{% endif %}">
+                    {% if FEATURE_REDESIGN %}
+                        New Design
+                    {% else %}
+                        Classic Design
+                    {% endif %}
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
