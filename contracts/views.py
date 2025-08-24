@@ -263,6 +263,26 @@ class RepositoryView(LoginRequiredMixin, View):
         return render(request, 'contracts/repository.html')
 
 # Function-based views for workflows
+def workflow_dashboard(request):
+    """Display workflow dashboard"""
+    workflows = Workflow.objects.all()
+    context = {'workflows': workflows}
+    return render(request, 'contracts/workflow_dashboard.html', context)
+
+def workflow_detail(request, pk):
+    """Display workflow detail"""
+    workflow = get_object_or_404(Workflow, pk=pk)
+    steps = WorkflowStep.objects.filter(workflow=workflow).order_by('order')
+    context = {'workflow': workflow, 'steps': steps}
+    return render(request, 'contracts/workflow_detail.html', context)
+
+def workflow_template_detail(request, pk):
+    """Display workflow template detail"""
+    template = get_object_or_404(WorkflowTemplate, pk=pk)
+    steps = WorkflowTemplateStep.objects.filter(template=template).order_by('order')
+    context = {'workflow_template': template, 'steps': steps}
+    return render(request, 'contracts/workflow_template_detail.html', context)
+
 def workflow_create(request):
     if request.method == 'POST':
         form = WorkflowForm(request.POST)
