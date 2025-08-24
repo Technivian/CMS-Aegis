@@ -508,7 +508,14 @@ def dashboard(request):
 
         # Pipeline data - count contracts by status
         pipeline_data = []
-        for status, display in Contract.ContractStatus.choices:
+        status_choices = [
+            ('DRAFT', 'Draft'),
+            ('PENDING', 'Pending'),
+            ('ACTIVE', 'Active'),
+            ('COMPLETED', 'Completed'),
+            ('CANCELLED', 'Cancelled'),
+        ]
+        for status, display in status_choices:
             count = Contract.objects.filter(status=status).count()
             if count > 0:
                 pipeline_data.append((display, count))

@@ -1,0 +1,232 @@
+You are refactoring my existing CLM into a production‑ready, multi‑tenant SaaS that looks better and works deeper than Ironclad and MochaDocs.
+Use the blueprint below as scope. Work sequentially, section by section, starting at 1. Visual & Design System.
+After finishing each section: show file diffs, run steps, screenshots (if possible), and tests that pass, then wait for my OK before moving on.
+Preserve current features; put all new work behind FEATURE_REDESIGN=true.
+
+0) Guardrails (read first; don’t implement yet)
+
+Keep existing routes/APIs stable. New code path toggled by FEATURE_REDESIGN=true.
+
+Add/adjust automated tests wherever you touch code.
+
+Create /docs/DECISIONS.md for any pragmatic choices.
+
+Seed realistic demo data so new UX is visible.
+
+1) Visual & Design System (START HERE)
+
+Goal: Clean, premium look > Ironclad; bold typography; minimal chrome; consistent spacing.
+
+Tailwind tokens
+
+--bg:#FFFFFF, --ink:#0B0B0C, --muted:#6B7280, --stroke:#E5E7EB
+
+--accent:#0E9F6E (primary), --warn:#F59E0B, --danger:#DC2626, --card:#FFFFFF
+Typography: Inter; base 14/16, H2 24/28, H1 32/36; weight 600 titles, 500 labels.
+
+Components (shadcn/Radix‑style)
+Container, PageHeader, Card, Stat, Button (primary/secondary/ghost/destructive),
+Badge, Input, Textarea, Select, ComboBox, DatePicker, Tabs, Dropdown,
+Table (sortable, sticky header, virtualized), Modal, Drawer, Toast, Stepper, Progress,
+EmptyState, Skeleton, Toolbar, FilterChips.
+
+Deliver: theme, components, story/demo route /components-demo, unit snapshots. Stop & show.
+
+2) Global Layout & Navigation
+
+Sticky top‑nav: Logo, global search (/ hotkey), + New Contract CTA, inbox bell, user menu.
+
+Collapsible left rail: My Views, Quick Actions, Saved Filters.
+
+Content max‑width 1200px, 8px spacing scale, AA contrast, focus rings.
+
+Keyboard map: / search, N new contract, G then C/T/R/W go to sections.
+
+Deliver updated shell wrapping current routes + feature flag switch. Stop & show.
+
+3) Dashboard (executive clarity)
+
+Stats: Total Contracts, Pending Tasks, Active Workflows, Expiring Soon (with trend arrows vs last 30d).
+
+Activity feed: approvals, comments, blocks, expirations.
+
+Quick actions: New Contract, Import, Upload, Start Workflow.
+
+Saved filters row (chips; click to apply).
+
+Seed data + tests for stat queries and empty/zero states. Stop & show.
+
+4) Contracts Index (workhorse table)
+
+Columns: Name, Stage, Agreement Date, Region, Value, Counterparty, Owner, Updated.
+Features:
+
+URL‑synced filters (status, tags, owner, date/value ranges).
+
+Right‑side Preview Drawer on row click (key metadata + files + workflow status).
+
+Bulk actions (tag, assign, archive).
+
+Save current filters as a View (chips appear on Dashboard and left rail).
+
+Virtualized rows over 100 items; debounce search.
+
+API support + tests for filtering, paging, sort. Stop & show.
+
+5) Contract Create/Edit (guided, error‑proof)
+
+Stepper: 1) Overview 2) Parties 3) Terms & Dates 4) Files 5) Approval & Signature.
+
+Autosave, required‑field validation, leave‑page guard, inline errors.
+
+Files: drag‑drop, MIME whitelist, 50MB cap, version labels; virus/mime check stub.
+
+On submit → detail page with success toast.
+
+E2E test: full creation path. Stop & show.
+
+6) Workflow Designer (power + clarity)
+
+Template editor schema:
+
+{ "name":"", "stages":[
+  {"name":"", "requiredFields":[], "approvers":[], "slaDays":0, "onEnter":[], "onExit":[]}
+]}
+
+
+Instance view: progress bar, current stage, blockers, due date, comments.
+
+Rules: cannot advance if required fields missing; block/unblock; reject; audit log.
+
+Unit tests for state machine; E2E: start→advance→done. Stop & show.
+
+7) Legal Tasks (Kanban + table)
+
+Columns: Backlog / In Progress / Blocked / Done; drag to move (optimistic).
+
+Task drawer: description, due, priority, assignee, linked contract(s), activity.
+
+Quick create from contract preview.
+
+Tests for transitions and permissions. Stop & show.
+
+8) Repository (searchable, versioned)
+
+Facets: document type, counterparty, jurisdiction, year, tags.
+
+Versioning: new upload bumps version; show history; download any version.
+
+“Compare versions” placeholder (metadata diff + TODO redlines).
+
+API + tests. Stop & show.
+
+9) Advanced CLM Superpowers (leapfrog competitors)
+
+AI Assist (local first; provider‑agnostic interface)
+
+Clause extraction + smart fields (title, parties, dates, amounts, auto‑tags).
+
+Risk scoring per clause with explanation; highlight risky terms vs playbooks.
+
+Playbooks: JSON rules (e.g., “NDA: term ≤ 2y, gov law = NL/UK/US, assignment restricted”) → mark pass/warn/fail with fix suggestions.
+
+One‑click edits: propose alternative clause text; insert into editor.
+
+Approvals & Intake
+
+Dynamic approval matrix: by value, region, department; pre‑approvers & final approver chain.
+
+Intake form builder: create forms that map to contract types; saved presets.
+
+Signature & Collaboration (stubs)
+
+e‑Signature provider interface (local stub now, adapters for DocuSign/HelloSign later).
+
+Counterparty share link (read‑only preview + comment thread).
+
+Delivery: feature‑flagged modules + sample playbooks + tests for rule engine. Stop & show.
+
+10) Data Model (multi‑tenant + audit)
+
+Add org_id to all tenant tables; enforce org scoping in every API.
+
+Tables (or equivalent ORM models):
+organizations, users, roles, role_permissions, contracts, counterparties, workflow_templates, workflows, tasks, documents, comments, audit_logs, tags, alerts, playbooks, signatures, views.
+
+Migrations + seed org with sample objects. Tests for org scoping. Stop & show.
+
+11) APIs (REST; OpenAPI spec)
+
+/api/contracts (list/filter/create/update/archive/bulk)
+
+/api/workflows (list/start/advance/block/reject/unblock)
+
+/api/tasks (list/move/assign/complete)
+
+/api/documents (upload/version/list/download)
+
+/api/search (contracts + tasks + docs)
+
+/api/alerts (expiring, approvals)
+
+/api/playbooks (CRUD; evaluate contract)
+All: pagination, sorting, filters, org_id enforcement, permission checks. Generate OpenAPI doc. Stop & show.
+
+12) Security, RBAC, Compliance
+
+Roles: Admin, Legal, Business Owner, Viewer with granular permissions (e.g., contracts.approve).
+
+Middleware: auth → org scope → permission.
+
+Soft delete deleted_at, full audit logs on create/update/delete/advance/approve.
+
+Privacy: PII masking toggle on exports; basic IP allowlist setting (stub).
+Tests for permission matrices. Stop & show.
+
+13) Performance & A11y
+
+Route code‑split; cache list queries; optimistic updates; skeleton loaders.
+
+Virtualize big tables; debounce typeahead.
+
+A11y: labels, roles, tab order, skip links, AA/AAA contrast checks. Stop & show.
+
+14) Integrations (stubs; clean adapters)
+
+Storage adapter: local now; S3‑compatible later.
+
+Email ingestion stub: parse inbound .eml to create tasks/contracts (behind flag).
+
+Webhook emitter: contract.created, workflow.advanced, task.completed.
+
+Docs + tests. Stop & show.
+
+15) Testing & CI
+
+Unit tests for utils/components/state machine.
+
+API tests: auth, RBAC, org scoping, filters.
+
+E2E (Playwright) critical paths:
+
+Create contract → upload doc → AI extract fields → start workflow → approvals → done.
+
+Task Kanban move with optimistic update.
+
+Save a view; it appears in left rail & dashboard.
+
+Add CI pipeline to run lint, typecheck, unit/API/E2E.
+
+16) Deliverables
+
+Tailwind theme + component library.
+
+New layout + redesigned pages.
+
+Advanced features (AI Assist, playbooks, approval matrix, intake builder) behind flag.
+
+Migrations, seeds, OpenAPI spec, and /docs/README.md with run steps and feature flags.
+
+Screenshots (where possible) after each section.
+
+Remember: work in order, show diffs + run instructions after each section, await my OK before continuing.

@@ -1,9 +1,5 @@
 
-{% if FEATURE_REDESIGN %}
-    {% extends "base_redesign.html" %}
-{% else %}
-    {% extends "base.html" %}
-{% endif %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block title %}Dashboard - Bolton CLM{% endblock %}
@@ -153,10 +149,10 @@
                         </a>
                     </td>
                     <td>
-                        <span class="pill {% if contract.status == 'active' %}status-completed{% elif contract.status == 'pending' %}status-pending{% else %}status-draft{% endif %}" data-legacy-class="status-badge">
-                            {% if contract.status == 'active' %}
+                        <span class="pill {% if contract.status == 'ACTIVE' %}status-completed{% elif contract.status == 'PENDING' %}status-pending{% else %}status-draft{% endif %}" data-legacy-class="status-badge">
+                            {% if contract.status == 'ACTIVE' %}
                                 Active
-                            {% elif contract.status == 'pending' %}
+                            {% elif contract.status == 'PENDING' %}
                                 Review
                             {% else %}
                                 Draft
