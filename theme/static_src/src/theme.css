@@ -1,42 +1,64 @@
 
 :root {
-  /* Bolton Brand Colors */
-  --bolton-blue-800: #0f347e;
-  --bolton-blue-700: #123e9e;   /* primary */
-  --bolton-blue-600: #174cbc;
-  --bolton-yellow-500: #f2c100; /* accent */
+  /* Design Tokens */
+  --bg: #FFFFFF;
+  --ink: #0B0B0C;
+  --muted: #6B7280;
+  --stroke: #E5E7EB;
+  --accent: #0E9F6E;
+  --warn: #F59E0B;
+  --danger: #DC2626;
+  --card: #FFFFFF;
   
-  /* Legacy mappings for compatibility */
-  --primary-900: #0e2a6b;
-  --primary-800: var(--bolton-blue-800);
-  --primary-700: var(--bolton-blue-700);
-  --primary-600: var(--bolton-blue-600);
-  --primary-500: #1e5bdc;
-  --primary-400: #3a73e8;
-  --accent-500: var(--bolton-yellow-500);
-
-  /* Neutrals */
-  --bg: #f4f7fb;            /* airy page background */
-  --card: #ffffff;
-  --border: #e6eaf1;
-  --muted: #667085;
-
-  /* State colors */
-  --success: #0f766e;
-  --warning: #b45309;
-  --danger: #b91c1c;
-
-  /* Bolton Button Styles */
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 20px;
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  
+  /* Radius */
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
   --radius-full: 9999px;
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
-  --shadow-md: 0 8px 24px rgba(16, 24, 40, 0.08);
-  --shadow-btn: 0 6px 14px rgba(18, 62, 158, 0.18);
-  --ring: 0 0 0 2px rgba(18, 62, 158, 0.35);
+  
+  /* Spacing scale (8px base) */
+  --space-1: 0.5rem;   /* 8px */
+  --space-2: 1rem;     /* 16px */
+  --space-3: 1.5rem;   /* 24px */
+  --space-4: 2rem;     /* 32px */
+  --space-5: 2.5rem;   /* 40px */
+  --space-6: 3rem;     /* 48px */
+  --space-8: 4rem;     /* 64px */
+  --space-10: 5rem;    /* 80px */
+  --space-12: 6rem;    /* 96px */
 }
 
-html, body {
-  background: var(--bg);
+/* Typography - Inter Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+  background-color: var(--bg);
 }
+
+.text-base { font-size: 14px; line-height: 16px; }
+.text-lg { font-size: 16px; line-height: 20px; }
+.text-xl { font-size: 18px; line-height: 22px; }
+.text-2xl { font-size: 24px; line-height: 28px; }
+.text-3xl { font-size: 32px; line-height: 36px; }
+
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+/* Focus rings for accessibility */
+.focus-ring:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Container max-width */
+.container-max { max-width: 1200px; margin: 0 auto; }
