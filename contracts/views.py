@@ -37,6 +37,32 @@ class ContractListView(LoginRequiredMixin, ListView):
     context_object_name = 'contracts'
     paginate_by = 25
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['FEATURE_REDESIGN'] = is_feature_redesign_enabled()
+        
+        if context['FEATURE_REDESIGN']:
+            # Prepare contracts data for JavaScript
+            contracts_data = []
+            for contract in self.get_queryset():
+                contracts_data.append({
+                    'id': contract.id,
+                    'title': contract.title,
+                    'status': contract.status,
+                    'status_display': contract.get_status_display() if hasattr(contract, 'get_status_display') else contract.status.title(),
+                    'start_date': contract.start_date.strftime('%b %d, %Y') if hasattr(contract, 'start_date') and contract.start_date else None,
+                    'value': float(contract.value) if hasattr(contract, 'value') and contract.value else None,
+                    'counterparty': getattr(contract, 'counterparty', None),
+                    'region': getattr(contract, 'region', 'North America'),
+                    'owner': contract.created_by.get_full_name() if contract.created_by else 'System',
+                    'updated_at': contract.updated_at.strftime('%b %d, %Y') if hasattr(contract, 'updated_at') and contract.updated_at else 'N/A',
+                })
+            
+            import json
+            context['contracts_json'] = json.dumps(contracts_data)
+        
+        return context
+
 class WorkflowDetailView(LoginRequiredMixin, DetailView):
     model = Workflow
     template_name = 'contracts/workflow_detail.html'
@@ -614,5 +640,6 @@ def dashboard(request):
         'dd_count': dd_count,
         'budget_count': budget_count,
         'upcoming_checklists': upcoming_checklists,
+        'FEATURE_REDESIGN': is_feature_redesign_enabled(),
     }
     return render(request, 'dashboard.html', context)

@@ -1,0 +1,147 @@
+You are refactoring my CLM into a world-class SaaS that combines the professional polish of Ironclad with the clarity of MochaDocs.
+Rebuild the full front-end layout and UX, step-by-step, while preserving working functions.
+
+1. Global Layout & Navigation
+
+Top bar:
+
+Left: Bolton CLM logo.
+
+Center: global search (/ shortcut).
+
+Right: “+ New Contract” (primary button), inbox bell, user menu (avatar, name, dropdown).
+
+Left navigation (collapsible):
+
+My Views (Dashboard, All Contracts, Legal Tasks, Active Workflows).
+
+Quick Actions (New Contract, Start Workflow).
+
+Repository sections (Contracts, Risks, Compliance, Budgets, M&A, Trademarks).
+
+Filters & Saved Views below divider.
+
+Page shell:
+
+Max-width container (1200px) centered.
+
+Use responsive grid system (12-col).
+
+Sticky nav & sidebar.
+
+Consistent 8px spacing scale.
+
+2. Design System (Ironclad-level polish)
+
+Implement a clean SaaS design system with React + Tailwind + Radix/shadcn components:
+
+Typography: Inter, 14/16 base, 24/28 section headers, 32/36 page titles.
+
+Theme tokens:
+
+--ink:#0B0B0C, --bg:#FFFFFF, --stroke:#E5E7EB, --accent:#0E9F6E, --warn:#F59E0B, --danger:#DC2626.
+
+Components: Button, Badge, Card, Stat, Table, Drawer, Modal, Tabs, DatePicker, Toast, Stepper, EmptyState, Progress.
+
+Icons: consistent line icons (lucide-react).
+
+3. Dashboard (MochaDocs clarity + Ironclad polish)
+
+Top row Stats: Total Contracts, Pending Tasks, Active Workflows, Expiring Soon. Each = Card with icon (left), number (large bold), label (small muted).
+
+Activity feed: contracts created/approved/blocked, tasks due.
+
+Quick Actions: New Contract, Start Workflow, Import, Upload.
+
+Saved Views row: filter chips under stats.
+
+4. Contracts Module (Ironclad-style power)
+
+Table: Name, Stage, Agreement Date, Region, Value, Counterparty, Owner, Updated.
+
+Row click → right-side Drawer Preview: contract metadata, tasks, workflow progress, files, comments.
+
+Filters (URL-synced): status, tags, owner, date, value.
+
+Save filters as “Views” → appear in sidebar + dashboard.
+
+Bulk actions: assign, tag, archive.
+
+5. Contract Create/Edit (guided workflow)
+
+Multi-step Stepper: 1) Overview 2) Parties 3) Terms & Dates 4) Files 5) Approval & Signature.
+
+Inline validation + autosave.
+
+Attachments: drag-drop, size/mime checks, version labels.
+
+After submit: redirect to contract detail with success toast.
+
+6. Workflow Designer (Ironclad-style)
+
+Templates: define stages (required fields, approvers, SLAs).
+
+Workflow instance view: progress bar, current stage, blockers, comments.
+
+Actions: advance, block/unblock, reject.
+
+Enforce required fields before advancing.
+
+7. Legal Tasks (MochaDocs simplicity)
+
+Dual view: Kanban (Backlog/In Progress/Blocked/Done) + Table.
+
+Task Drawer: details, linked contract, due, priority, assignee, activity log.
+
+Quick add from contract preview.
+
+8. Repository (MochaDocs style)
+
+Faceted search: doc type, counterparty, jurisdiction, year, tags.
+
+Folder tree on left; table of docs on right.
+
+Version history & compare.
+
+9. Risk / Compliance / Budgets / M&A / Trademarks
+
+Shared Table + Drawer pattern.
+
+Index = sortable/filterable table.
+
+Drawer = metadata + linked contracts + tasks.
+
+10. Advanced Features (Ironclad+ level)
+
+AI Assist: extract clauses, auto-tag, risk score vs playbooks.
+
+Approval matrix: route approvals by value/region.
+
+Intake forms: customizable intake mapped to workflows.
+
+Signature integration stub: prepare for DocuSign/HelloSign.
+
+11. Polish
+
+Smooth transitions (Framer Motion).
+
+Skeleton loaders for all tables/drawers.
+
+Responsive down to mobile.
+
+A11y: focus states, aria labels, AA contrast.
+
+12. Deliverables
+
+Rebuilt layout + design system.
+
+Dashboard, Contracts, Contract Editor, Workflow Designer, Tasks, Repository, Risk/Compliance/Budgets/M&A/Trademarks.
+
+Feature flags for new modules.
+
+Seed data for demo org (contracts, tasks, workflows).
+
+Tests: unit (components), API (filters, workflows), E2E (contract creation → workflow completion).
+
+⚡ Instruction to Replit AI:
+Recreate the full app per above. Start with global layout & design system (#1–2), then move sequentially through modules (#3–9). Show diffs and working outputs after each major step. Do not flatten the UI into plain text — use cards, drawers, tables, proper grid layout. Keep everything behind FEATURE_REDESIGN=true until stable.
