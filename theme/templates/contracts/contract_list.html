@@ -1,136 +1,523 @@
-{% extends 'base.html' %}
+
+{% if FEATURE_REDESIGN %}
+    {% extends "base_redesign.html" %}
+{% else %}
+    {% extends "base.html" %}
+{% endif %}
+{% load static %}
 
 {% block title %}Contracts{% endblock %}
 
-{% block page_title %}
-My Contracts
-{% endblock %}
-
-{% block page_actions %}
-<a href="{% url 'contracts:contract_create' %}" class="btn-primary shadow-sm">New Contract</a>
-{% endblock %}
-
 {% block content %}
-<div class="theme-layout">
-    <!-- Left Sidebar -->
-    <aside class="sidebar">
-        <div class="section-title">Contract Views</div>
-        <a href="{% url 'contracts:contract_list' %}" class="item active" data-legacy-class="nav-link">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            All Contracts
-            <span class="item-count">{{ contracts.count }}</span>
-        </a>
-        <a href="{% url 'contracts:contract_list' %}?status=active" class="item" data-legacy-class="nav-link">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            Active
-        </a>
-        <a href="{% url 'contracts:contract_list' %}?status=pending" class="item" data-legacy-class="nav-link">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            Pending Review
-        </a>
-        <a href="{% url 'contracts:contract_list' %}?status=draft" class="item" data-legacy-class="nav-link">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-            </svg>
-            Drafts
-        </a>
-    </aside>
+{% if FEATURE_REDESIGN %}
+<!-- New Contracts Index -->
+<div class="space-y-6" x-data="contractsTable()">
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <h1 class="text-h1 font-titles text-ink">Contracts</h1>
+            <div class="search ml-6">
+                <input type="text" class="search-input" placeholder="Search contracts..." x-model="searchTerm" @input="debounceSearch()">
+                <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="toolbar-right">
+            <button class="btn-secondary" @click="showFilters = !showFilters">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707v4.586a1 1 0 01-.293.707L9.414 15.414A1 1 0 019 14.707V10.293a1 1 0 00-.293-.707L2.293 3.586A1 1 0 012 2.879V4z"></path>
+                </svg>
+                Filters
+            </button>
+            <a href="{% url 'contracts:contract_create' %}" class="btn-primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                New Contract
+            </button>
+        </div>
+    </div>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Toolbar -->
-        <div class="toolbar">
-            <div class="toolbar-left">
-                <a href="{% url 'contracts:contract_create' %}" class="btn-primary" data-legacy-class="btn-new-contract">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                    New Contract
-                </a>
-                <div class="search">
-                    <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    <input type="search" placeholder="Search contracts" data-legacy-class="search-input">
+    <!-- Filters Panel -->
+    <div x-show="showFilters" x-transition class="card">
+        <div class="card-content">
+            <div class="grid md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-labels text-ink mb-2">Status</label>
+                    <select class="select" x-model="filters.status" @change="applyFilters()">
+                        <option value="">All Statuses</option>
+                        <option value="DRAFT">Draft</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="COMPLETED">Completed</option>
+                        <option value="CANCELLED">Cancelled</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-labels text-ink mb-2">Owner</label>
+                    <select class="select" x-model="filters.owner" @change="applyFilters()">
+                        <option value="">All Owners</option>
+                        <option value="current_user">My Contracts</option>
+                        <option value="john_doe">John Doe</option>
+                        <option value="jane_smith">Jane Smith</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-labels text-ink mb-2">Date Range</label>
+                    <select class="select" x-model="filters.dateRange" @change="applyFilters()">
+                        <option value="">All Time</option>
+                        <option value="7days">Last 7 Days</option>
+                        <option value="30days">Last 30 Days</option>
+                        <option value="90days">Last 90 Days</option>
+                        <option value="year">This Year</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-labels text-ink mb-2">Value Range</label>
+                    <select class="select" x-model="filters.valueRange" @change="applyFilters()">
+                        <option value="">Any Value</option>
+                        <option value="0-10000">$0 - $10,000</option>
+                        <option value="10000-50000">$10,000 - $50,000</option>
+                        <option value="50000-100000">$50,000 - $100,000</option>
+                        <option value="100000+">$100,000+</option>
+                    </select>
                 </div>
             </div>
-            <div class="toolbar-right">
-                <button class="btn-outline" data-legacy-class="filter-btn">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
-                    </svg>
-                    Filter
-                </button>
-                <button class="btn-outline" data-legacy-class="columns-btn">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
-                    </svg>
-                    Columns
-                </button>
+            
+            <div class="flex justify-between items-center mt-4">
+                <div class="flex gap-2">
+                    <button class="btn-ghost" @click="clearFilters()">Clear All</button>
+                    <button class="btn-secondary" @click="saveCurrentFilters()">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                        </svg>
+                        Save View
+                    </button>
+                </div>
             </div>
         </div>
+    </div>
 
-<!-- Main Table -->
-        {% if contracts %}
-        <table class="data" data-legacy-class="contracts-table">
-            <thead>
-                <tr>
-                    <th>Contract Title</th>
-                    <th>Status</th>
-                    <th>Counterparty</th>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                    <th>Value</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for contract in contracts %}
-                <tr data-legacy-class="contract-row" data-contract-id="{{ contract.id }}">
-                    <td>
-                        <a href="{% url 'contracts:contract_detail' contract.pk %}" class="font-medium text-blue-600 hover:text-blue-800" data-legacy-class="contract-link">
-                            {{ contract.title }}
-                        </a>
-                    </td>
-                    <td>
-                        <span class="pill {% if contract.status == 'active' %}status-completed{% elif contract.status == 'pending' %}status-pending{% else %}status-draft{% endif %}" data-legacy-class="status-badge">
-                            {{ contract.get_status_display }}
-                        </span>
-                    </td>
-                    <td>{{ contract.counterparty|default:"—" }}</td>
-                    <td>{{ contract.start_date|date:"M d, Y"|default:"—" }}</td>
-                    <td>{{ contract.end_date|date:"M d, Y"|default:"—" }}</td>
-                    <td>
-                        {% if contract.value %}
-                            ${{ contract.value|floatformat:2 }}
-                        {% else %}
-                            —
-                        {% endif %}
-                    </td>
-                    <td>
-                        <a href="{% url 'contracts:contract_detail' contract.pk %}" class="text-blue-600 hover:text-blue-800 font-medium" data-legacy-class="view-link">View</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <div class="empty" data-when="no-contracts" data-legacy-class="empty-state">
-            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            <h3>No contracts found</h3>
-            <p>Get started by creating your first contract.</p>
-            <a href="{% url 'contracts:contract_create' %}" data-legacy-class="create-first-contract">Create your first contract</a>
+    <!-- Applied Filters -->
+    <div x-show="activeFilters.length > 0" class="filter-chips">
+        <template x-for="filter in activeFilters" :key="filter.key">
+            <div class="filter-chip">
+                <span x-text="filter.label"></span>
+                <button @click="removeFilter(filter.key)">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </template>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div x-show="selectedRows.length > 0" x-transition class="toolbar bg-accent/5 border border-accent/20">
+        <div class="toolbar-left">
+            <span class="text-sm font-labels text-accent" x-text="`${selectedRows.length} selected`"></span>
         </div>
-        {% endif %}
+        <div class="toolbar-right">
+            <button class="btn-secondary" @click="bulkTag()">Tag</button>
+            <button class="btn-secondary" @click="bulkAssign()">Assign</button>
+            <button class="btn-secondary" @click="bulkArchive()">Archive</button>
+        </div>
+    </div>
 
-    </main>
+    <!-- Contracts Table -->
+    <div class="card">
+        <div class="overflow-x-auto">
+            <table class="table">
+                <thead class="sticky top-0 z-10">
+                    <tr>
+                        <th class="w-12">
+                            <input type="checkbox" @change="toggleAllRows()" :checked="allRowsSelected" class="rounded border-stroke">
+                        </th>
+                        <th class="cursor-pointer" @click="sort('title')">
+                            <div class="flex items-center gap-2">
+                                Name
+                                <svg x-show="sortField === 'title'" class="w-4 h-4" :class="sortDirection === 'asc' ? '' : 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                </svg>
+                            </div>
+                        </th>
+                        <th class="cursor-pointer" @click="sort('status')">
+                            <div class="flex items-center gap-2">
+                                Stage
+                                <svg x-show="sortField === 'status'" class="w-4 h-4" :class="sortDirection === 'asc' ? '' : 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                </svg>
+                            </div>
+                        </th>
+                        <th class="cursor-pointer" @click="sort('created_at')">Agreement Date</th>
+                        <th>Region</th>
+                        <th class="cursor-pointer" @click="sort('value')">Value</th>
+                        <th>Counterparty</th>
+                        <th>Owner</th>
+                        <th class="cursor-pointer" @click="sort('updated_at')">Updated</th>
+                        <th class="w-12"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template x-for="contract in filteredContracts" :key="contract.id">
+                        <tr class="cursor-pointer hover:bg-gray-50" @click="openPreview(contract)">
+                            <td @click.stop="">
+                                <input type="checkbox" :value="contract.id" x-model="selectedRows" class="rounded border-stroke">
+                            </td>
+                            <td>
+                                <div class="flex flex-col">
+                                    <span class="font-labels text-ink" x-text="contract.title"></span>
+                                    <span class="text-xs text-muted" x-text="contract.id"></span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge" :class="getStatusBadgeClass(contract.status)" x-text="contract.status"></span>
+                            </td>
+                            <td class="text-muted" x-text="formatDate(contract.created_at)"></td>
+                            <td class="text-muted" x-text="contract.region || 'Global'"></td>
+                            <td class="text-muted" x-text="formatCurrency(contract.value)"></td>
+                            <td class="text-muted" x-text="contract.counterparty || 'N/A'"></td>
+                            <td class="text-muted" x-text="contract.owner"></td>
+                            <td class="text-muted" x-text="formatDate(contract.updated_at)"></td>
+                            <td @click.stop="">
+                                <button class="p-1 text-muted hover:text-ink">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                                    </svg>
+                                </button>
+                            </td>
+                        </tr>
+                    </template>
+                    
+                    <tr x-show="filteredContracts.length === 0">
+                        <td colspan="10">
+                            <div class="empty-state">
+                                <svg class="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <h3>No contracts found</h3>
+                                <p>Try adjusting your search or filters, or create a new contract.</p>
+                                <a href="{% url 'contracts:contract_create' %}" class="btn-primary">Create Contract</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Preview Drawer -->
+    <div x-show="previewOpen" class="drawer-overlay" @click="closePreview()">
+        <div class="drawer" :class="previewOpen ? '' : 'closed'" @click.stop="">
+            <div class="p-6 border-b border-stroke flex justify-between items-center">
+                <h2 class="text-h2 font-titles text-ink" x-text="selectedContract?.title || 'Contract Preview'"></h2>
+                <button @click="closePreview()" class="p-2 text-muted hover:text-ink">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-6" x-show="selectedContract">
+                <!-- Key Metadata -->
+                <div>
+                    <h3 class="font-titles text-ink mb-3">Key Information</h3>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-muted">Status:</span>
+                            <span class="badge ml-2" :class="getStatusBadgeClass(selectedContract?.status)" x-text="selectedContract?.status"></span>
+                        </div>
+                        <div>
+                            <span class="text-muted">Value:</span>
+                            <span class="font-labels ml-2" x-text="formatCurrency(selectedContract?.value)"></span>
+                        </div>
+                        <div>
+                            <span class="text-muted">Created:</span>
+                            <span class="ml-2" x-text="formatDate(selectedContract?.created_at)"></span>
+                        </div>
+                        <div>
+                            <span class="text-muted">Owner:</span>
+                            <span class="ml-2" x-text="selectedContract?.owner"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Files -->
+                <div>
+                    <h3 class="font-titles text-ink mb-3">Files</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-3 p-2 border border-stroke rounded">
+                            <svg class="w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <span class="flex-1 text-sm" x-text="selectedContract?.title + '.pdf'"></span>
+                            <button class="text-xs text-accent hover:underline">Download</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Workflow Status -->
+                <div>
+                    <h3 class="font-titles text-ink mb-3">Workflow Status</h3>
+                    <div class="stepper">
+                        <div class="step completed">
+                            <div class="step-number">1</div>
+                            <span class="ml-2 text-sm">Draft</span>
+                        </div>
+                        <div class="step-connector"></div>
+                        <div class="step active">
+                            <div class="step-number">2</div>
+                            <span class="ml-2 text-sm">Review</span>
+                        </div>
+                        <div class="step-connector"></div>
+                        <div class="step inactive">
+                            <div class="step-number">3</div>
+                            <span class="ml-2 text-sm">Approval</span>
+                        </div>
+                        <div class="step-connector"></div>
+                        <div class="step inactive">
+                            <div class="step-number">4</div>
+                            <span class="ml-2 text-sm">Signed</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex gap-3">
+                    <a :href="`{% url 'contracts:contract_detail' 0 %}`.replace('0', selectedContract?.id)" class="btn-primary">
+                        View Details
+                    </a>
+                    <a :href="`{% url 'contracts:contract_update' 0 %}`.replace('0', selectedContract?.id)" class="btn-secondary">
+                        Edit
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+function contractsTable() {
+    return {
+        contracts: [
+            {% for contract in contracts %}
+            {
+                id: {{ contract.id }},
+                title: "{{ contract.title|escapejs }}",
+                status: "{{ contract.status }}",
+                created_at: "{{ contract.created_at|date:'Y-m-d' }}",
+                updated_at: "{{ contract.updated_at|date:'Y-m-d' }}",
+                owner: "{{ contract.created_by.username|default:'N/A' }}",
+                value: {{ contract.value|default:0 }},
+                region: "{{ contract.region|default:'Global' }}",
+                counterparty: "{{ contract.counterparty|default:'N/A' }}"
+            },
+            {% endfor %}
+        ],
+        searchTerm: '',
+        showFilters: false,
+        filters: {
+            status: '',
+            owner: '',
+            dateRange: '',
+            valueRange: ''
+        },
+        activeFilters: [],
+        selectedRows: [],
+        sortField: '',
+        sortDirection: 'asc',
+        previewOpen: false,
+        selectedContract: null,
+        
+        get filteredContracts() {
+            let filtered = this.contracts;
+            
+            // Search
+            if (this.searchTerm) {
+                filtered = filtered.filter(contract => 
+                    contract.title.toLowerCase().includes(this.searchTerm.toLowerCase())
+                );
+            }
+            
+            // Filters
+            if (this.filters.status) {
+                filtered = filtered.filter(contract => contract.status === this.filters.status);
+            }
+            
+            // Sort
+            if (this.sortField) {
+                filtered.sort((a, b) => {
+                    let aVal = a[this.sortField];
+                    let bVal = b[this.sortField];
+                    
+                    if (this.sortDirection === 'desc') {
+                        [aVal, bVal] = [bVal, aVal];
+                    }
+                    
+                    return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+                });
+            }
+            
+            return filtered;
+        },
+        
+        get allRowsSelected() {
+            return this.selectedRows.length === this.filteredContracts.length && this.filteredContracts.length > 0;
+        },
+        
+        debounceSearch() {
+            clearTimeout(this.searchTimeout);
+            this.searchTimeout = setTimeout(() => {
+                this.updateActiveFilters();
+            }, 300);
+        },
+        
+        sort(field) {
+            if (this.sortField === field) {
+                this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                this.sortField = field;
+                this.sortDirection = 'asc';
+            }
+        },
+        
+        applyFilters() {
+            this.updateActiveFilters();
+        },
+        
+        updateActiveFilters() {
+            this.activeFilters = [];
+            
+            if (this.searchTerm) {
+                this.activeFilters.push({ key: 'search', label: `Search: ${this.searchTerm}` });
+            }
+            
+            Object.keys(this.filters).forEach(key => {
+                if (this.filters[key]) {
+                    this.activeFilters.push({ 
+                        key: key, 
+                        label: `${key}: ${this.filters[key]}` 
+                    });
+                }
+            });
+        },
+        
+        removeFilter(key) {
+            if (key === 'search') {
+                this.searchTerm = '';
+            } else {
+                this.filters[key] = '';
+            }
+            this.updateActiveFilters();
+        },
+        
+        clearFilters() {
+            this.searchTerm = '';
+            this.filters = {
+                status: '',
+                owner: '',
+                dateRange: '',
+                valueRange: ''
+            };
+            this.activeFilters = [];
+        },
+        
+        toggleAllRows() {
+            if (this.allRowsSelected) {
+                this.selectedRows = [];
+            } else {
+                this.selectedRows = this.filteredContracts.map(c => c.id);
+            }
+        },
+        
+        openPreview(contract) {
+            this.selectedContract = contract;
+            this.previewOpen = true;
+        },
+        
+        closePreview() {
+            this.previewOpen = false;
+            setTimeout(() => {
+                this.selectedContract = null;
+            }, 300);
+        },
+        
+        getStatusBadgeClass(status) {
+            const statusClasses = {
+                'DRAFT': 'badge-default',
+                'PENDING': 'badge-warning',
+                'ACTIVE': 'badge-success',
+                'COMPLETED': 'badge-success',
+                'CANCELLED': 'badge-danger'
+            };
+            return statusClasses[status] || 'badge-default';
+        },
+        
+        formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString();
+        },
+        
+        formatCurrency(value) {
+            if (!value) return 'N/A';
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(value);
+        },
+        
+        bulkTag() { alert('Bulk tag feature coming soon!'); },
+        bulkAssign() { alert('Bulk assign feature coming soon!'); },
+        bulkArchive() { alert('Bulk archive feature coming soon!'); },
+        saveCurrentFilters() { alert('Save filters feature coming soon!'); }
+    }
+}
+</script>
+
+{% else %}
+<!-- Original Contracts List -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="py-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Contracts</h1>
+        
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            <ul class="divide-y divide-gray-200">
+                {% for contract in contracts %}
+                <li>
+                    <a href="{% url 'contracts:contract_detail' contract.pk %}" class="block hover:bg-gray-50">
+                        <div class="px-4 py-4 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-medium text-indigo-600 truncate">{{ contract.title }}</p>
+                                <div class="ml-2 flex-shrink-0 flex">
+                                    <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        {{ contract.get_status_display }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="mt-2 sm:flex sm:justify-between">
+                                <div class="sm:flex">
+                                    <p class="flex items-center text-sm text-gray-500">
+                                        Created: {{ contract.created_at|date:"M d, Y" }}
+                                    </p>
+                                </div>
+                                <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                    <p>Updated: {{ contract.updated_at|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+                {% empty %}
+                <li class="px-4 py-8 text-center text-gray-500">
+                    No contracts available.
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

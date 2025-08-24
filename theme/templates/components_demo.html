@@ -2,281 +2,256 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Component Demo - Design System{% endblock %}
+{% block title %}Components Demo{% endblock %}
 
 {% block content %}
 <div class="container py-8">
-    <!-- Page Header -->
-    <div class="page-header">
-        <h1>Design System Components</h1>
-        <p>Premium component library with clean, bold typography and minimal chrome</p>
-    </div>
+  <div class="page-header">
+    <h1>Design System Components</h1>
+    <p>Premium components for the CLM platform</p>
+  </div>
 
-    <!-- Typography Section -->
-    <div class="card mb-8">
-        <div class="card-header">
-            <h2 class="text-h2 font-titles text-ink">Typography</h2>
-        </div>
-        <div class="card-content space-y-4">
-            <div>
-                <h1 class="text-h1 font-titles text-ink">Heading 1 - 32px/36px, Weight 600</h1>
-                <h2 class="text-h2 font-titles text-ink">Heading 2 - 24px/28px, Weight 600</h2>
-                <p class="text-base text-ink">Base text - 14px/16px, Inter font</p>
-                <p class="text-base text-muted">Muted text - #6B7280</p>
-                <span class="text-base font-labels text-ink">Label text - Weight 500</span>
-            </div>
-        </div>
+  <!-- Buttons -->
+  <section class="mb-12">
+    <h2 class="text-h2 font-titles text-ink mb-4">Buttons</h2>
+    <div class="flex flex-wrap gap-4">
+      <button class="btn-primary">Primary Button</button>
+      <button class="btn-secondary">Secondary Button</button>
+      <button class="btn-ghost">Ghost Button</button>
+      <button class="btn-destructive">Destructive Button</button>
     </div>
+  </section>
 
-    <!-- Color Tokens -->
-    <div class="card mb-8">
+  <!-- Cards -->
+  <section class="mb-12">
+    <h2 class="text-h2 font-titles text-ink mb-4">Cards</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="card">
         <div class="card-header">
-            <h2 class="text-h2 font-titles text-ink">Color Tokens</h2>
+          <h3 class="font-titles text-ink">Card Title</h3>
         </div>
         <div class="card-content">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-bg border border-stroke rounded mx-auto mb-2"></div>
-                    <div class="text-sm">Background</div>
-                    <div class="text-xs text-muted">#FFFFFF</div>
-                </div>
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-ink rounded mx-auto mb-2"></div>
-                    <div class="text-sm">Ink</div>
-                    <div class="text-xs text-muted">#0B0B0C</div>
-                </div>
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-accent rounded mx-auto mb-2"></div>
-                    <div class="text-sm">Accent</div>
-                    <div class="text-xs text-muted">#0E9F6E</div>
-                </div>
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-danger rounded mx-auto mb-2"></div>
-                    <div class="text-sm">Danger</div>
-                    <div class="text-xs text-muted">#DC2626</div>
-                </div>
-            </div>
+          <p class="text-muted">This is a card with header, content, and footer sections.</p>
         </div>
-    </div>
-
-    <!-- Buttons -->
-    <div class="card mb-8">
-        <div class="card-header">
-            <h2 class="text-h2 font-titles text-ink">Buttons</h2>
+        <div class="card-footer">
+          <button class="btn-primary">Action</button>
         </div>
+      </div>
+      
+      <div class="card">
         <div class="card-content">
-            <div class="flex flex-wrap gap-4">
-                <button class="btn-primary">Primary Button</button>
-                <button class="btn-secondary">Secondary Button</button>
-                <button class="btn-ghost">Ghost Button</button>
-                <button class="btn-destructive">Destructive Button</button>
-                <button class="btn-primary" disabled>Disabled Button</button>
-            </div>
+          <h3 class="font-titles text-ink mb-2">Simple Card</h3>
+          <p class="text-muted">This card only has content.</p>
         </div>
+      </div>
     </div>
+  </section>
 
-    <!-- Stats -->
-    <div class="card mb-8">
-        <div class="card-header">
-            <h2 class="text-h2 font-titles text-ink">Stat Components</h2>
+  <!-- Stats -->
+  <section class="mb-12">
+    <h2 class="text-h2 font-titles text-ink mb-4">Stats</h2>
+    <div class="grid md:grid-cols-4 gap-6">
+      <div class="stat">
+        <div>
+          <div class="stat-label">Total Contracts</div>
+          <div class="stat-value">142</div>
         </div>
-        <div class="card-content">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="stat">
-                    <div>
-                        <div class="stat-label">Total Contracts</div>
-                        <div class="stat-value">1,247</div>
-                        <div class="stat-trend up">↑ 12% vs last month</div>
-                    </div>
-                    <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                </div>
-                <div class="stat">
-                    <div>
-                        <div class="stat-label">Pending Tasks</div>
-                        <div class="stat-value">23</div>
-                        <div class="stat-trend down">↓ 3% vs last month</div>
-                    </div>
-                    <svg class="w-8 h-8 text-warn" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-            </div>
+        <div class="stat-trend up">+12%</div>
+      </div>
+      
+      <div class="stat">
+        <div>
+          <div class="stat-label">Pending Tasks</div>
+          <div class="stat-value">23</div>
         </div>
+        <div class="stat-trend down">-5%</div>
+      </div>
+      
+      <div class="stat">
+        <div>
+          <div class="stat-label">Active Workflows</div>
+          <div class="stat-value">8</div>
+        </div>
+        <div class="stat-trend up">+2</div>
+      </div>
+      
+      <div class="stat">
+        <div>
+          <div class="stat-label">Expiring Soon</div>
+          <div class="stat-value">5</div>
+        </div>
+        <div class="stat-trend">No change</div>
+      </div>
     </div>
+  </section>
 
-    <!-- Badges -->
-    <div class="card mb-8">
-        <div class="card-header">
-            <h2 class="text-h2 font-titles text-ink">Badges</h2>
-        </div>
-        <div class="card-content">
-            <div class="flex flex-wrap gap-4">
-                <span class="badge-primary">Primary</span>
-                <span class="badge-secondary">Secondary</span>
-                <span class="badge-success">Success</span>
-                <span class="badge-warning">Warning</span>
-                <span class="badge-danger">Danger</span>
-            </div>
-        </div>
+  <!-- Badges -->
+  <section class="mb-12">
+    <h2 class="text-h2 font-titles text-ink mb-4">Badges</h2>
+    <div class="flex flex-wrap gap-4">
+      <span class="badge-default">Draft</span>
+      <span class="badge-success">Active</span>
+      <span class="badge-warning">Pending</span>
+      <span class="badge-danger">Expired</span>
     </div>
+  </section>
 
-    <!-- Form Controls -->
-    <div class="card mb-8">
-        <div class="card-header">
-            <h2 class="text-h2 font-titles text-ink">Form Controls</h2>
-        </div>
-        <div class="card-content space-y-4">
-            <div>
-                <label class="block text-base font-labels text-ink mb-2">Text Input</label>
-                <input type="text" class="input" placeholder="Enter text here...">
-            </div>
-            <div>
-                <label class="block text-base font-labels text-ink mb-2">Select</label>
-                <select class="select">
-                    <option>Choose an option</option>
-                    <option>Option 1</option>
-                    <option>Option 2</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-base font-labels text-ink mb-2">Textarea</label>
-                <textarea class="textarea" placeholder="Enter longer text here..."></textarea>
-            </div>
-        </div>
+  <!-- Form Controls -->
+  <section class="mb-12">
+    <h2 class="text-h2 font-titles text-ink mb-4">Form Controls</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div>
+        <label class="block text-sm font-labels text-ink mb-2">Input Field</label>
+        <input type="text" class="input" placeholder="Enter text here">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-labels text-ink mb-2">Select Field</label>
+        <select class="select">
+          <option>Choose an option</option>
+          <option>Option 1</option>
+          <option>Option 2</option>
+        </select>
+      </div>
+      
+      <div class="md:col-span-2">
+        <label class="block text-sm font-labels text-ink mb-2">Textarea</label>
+        <textarea class="textarea" placeholder="Enter longer text here"></textarea>
+      </div>
     </div>
+  </section>
 
-    <!-- Table -->
-    <div class="card mb-8">
-        <div class="card-header">
-            <h2 class="text-h2 font-titles text-ink">Table</h2>
-        </div>
-        <div class="card-content">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                        <th>Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Contract Alpha</td>
-                        <td><span class="badge-success">Active</span></td>
-                        <td>Jan 15, 2024</td>
-                        <td>$25,000</td>
-                    </tr>
-                    <tr>
-                        <td>Contract Beta</td>
-                        <td><span class="badge-warning">Pending</span></td>
-                        <td>Jan 20, 2024</td>
-                        <td>$15,000</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+  <!-- Search -->
+  <section class="mb-12">
+    <h2 class="text-h2 font-titles text-ink mb-4">Search</h2>
+    <div class="search max-w-md">
+      <input type="text" class="search-input" placeholder="Search contracts...">
+      <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
     </div>
+  </section>
 
-    <!-- Filter Chips -->
-    <div class="card mb-8">
-        <div class="card-header">
-            <h2 class="text-h2 font-titles text-ink">Filter Chips</h2>
-        </div>
-        <div class="card-content">
-            <div class="filter-chips">
-                <div class="filter-chip">
-                    Status: Active
-                    <svg class="filter-chip-remove" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </div>
-                <div class="filter-chip">
-                    Type: MSA
-                    <svg class="filter-chip-remove" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </div>
-                <div class="filter-chip">
-                    Owner: John Doe
-                    <svg class="filter-chip-remove" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
+  <!-- Tabs -->
+  <section class="mb-12">
+    <h2 class="text-h2 font-titles text-ink mb-4">Tabs</h2>
+    <div class="tabs">
+      <button class="tab active">Dashboard</button>
+      <button class="tab">Contracts</button>
+      <button class="tab">Legal Tasks</button>
+      <button class="tab">Workflows</button>
     </div>
+  </section>
 
-    <!-- Empty State -->
-    <div class="card mb-8">
-        <div class="card-header">
-            <h2 class="text-h2 font-titles text-ink">Empty State</h2>
-        </div>
-        <div class="card-content">
-            <div class="empty-state">
-                <svg class="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                <h3>No contracts found</h3>
-                <p>Get started by creating your first contract or importing existing ones.</p>
-                <button class="btn-primary">Create Contract</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Progress -->
-    <div class="card mb-8">
-        <div class="card-header">
-            <h2 class="text-h2 font-titles text-ink">Progress</h2>
-        </div>
-        <div class="card-content space-y-4">
-            <div>
-                <div class="flex justify-between text-sm mb-2">
-                    <span>Contract Review Progress</span>
-                    <span>75%</span>
-                </div>
-                <div class="progress">
-                    <div class="progress-bar" style="width: 75%"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Skeleton Loading -->
+  <!-- Table -->
+  <section class="mb-12">
+    <h2 class="text-h2 font-titles text-ink mb-4">Table</h2>
     <div class="card">
-        <div class="card-header">
-            <h2 class="text-h2 font-titles text-ink">Skeleton Loading</h2>
-        </div>
-        <div class="card-content space-y-4">
-            <div class="skeleton-title w-1/4"></div>
-            <div class="skeleton-text"></div>
-            <div class="skeleton-text w-3/4"></div>
-            <div class="skeleton-text w-1/2"></div>
-        </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Contract Name</th>
+            <th>Status</th>
+            <th>Value</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Software License Agreement</td>
+            <td><span class="badge-success">Active</span></td>
+            <td>$25,000</td>
+            <td>2024-01-15</td>
+          </tr>
+          <tr>
+            <td>Service Agreement</td>
+            <td><span class="badge-warning">Pending</span></td>
+            <td>$50,000</td>
+            <td>2024-01-20</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-</div>
+  </section>
 
-<!-- Demo JavaScript -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Filter chip removal
-    document.querySelectorAll('.filter-chip-remove').forEach(button => {
-        button.addEventListener('click', function() {
-            this.closest('.filter-chip').remove();
-        });
-    });
-    
-    // Progress bar animation
-    const progressBars = document.querySelectorAll('.progress-bar');
-    progressBars.forEach(bar => {
-        const width = bar.style.width;
-        bar.style.width = '0%';
-        setTimeout(() => {
-            bar.style.width = width;
-        }, 100);
-    });
-});
-</script>
+  <!-- Filter Chips -->
+  <section class="mb-12">
+    <h2 class="text-h2 font-titles text-ink mb-4">Filter Chips</h2>
+    <div class="filter-chips">
+      <div class="filter-chip">
+        Status: Active
+        <button>
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="filter-chip">
+        Owner: John Doe
+        <button>
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Progress -->
+  <section class="mb-12">
+    <h2 class="text-h2 font-titles text-ink mb-4">Progress</h2>
+    <div class="space-y-4">
+      <div>
+        <div class="flex justify-between text-sm mb-2">
+          <span>Contract Review Progress</span>
+          <span>75%</span>
+        </div>
+        <div class="progress">
+          <div class="progress-bar" style="width: 75%"></div>
+        </div>
+      </div>
+      
+      <div>
+        <div class="flex justify-between text-sm mb-2">
+          <span>Compliance Check</span>
+          <span>40%</span>
+        </div>
+        <div class="progress">
+          <div class="progress-bar" style="width: 40%"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Empty State -->
+  <section class="mb-12">
+    <h2 class="text-h2 font-titles text-ink mb-4">Empty State</h2>
+    <div class="card">
+      <div class="empty-state">
+        <svg class="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <h3>No contracts found</h3>
+        <p>Get started by creating your first contract or importing existing ones.</p>
+        <button class="btn-primary">Create Contract</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Skeleton Loading -->
+  <section class="mb-12">
+    <h2 class="text-h2 font-titles text-ink mb-4">Skeleton Loading</h2>
+    <div class="card">
+      <div class="card-content space-y-4">
+        <div class="skeleton-title w-1/3"></div>
+        <div class="skeleton-text w-full"></div>
+        <div class="skeleton-text w-2/3"></div>
+        <div class="flex gap-3">
+          <div class="skeleton-button"></div>
+          <div class="skeleton-button"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
 {% endblock %}
