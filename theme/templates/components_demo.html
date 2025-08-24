@@ -2,295 +2,281 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Bolton CLM - Design System{% endblock %}
+{% block title %}Component Demo - Design System{% endblock %}
 
 {% block content %}
 <div class="container py-8">
-  <div class="page-header">
-    <h1 class="page-title">Bolton CLM Design System</h1>
-    <div class="flex space-x-2">
-      <button class="btn btn-secondary btn-sm" onclick="toggleTheme()">Toggle Theme</button>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>Design System Components</h1>
+        <p>Premium component library with clean, bold typography and minimal chrome</p>
     </div>
-  </div>
 
-  <!-- Typography -->
-  <section class="mb-12">
-    <h2 class="section-title mb-4">Typography</h2>
-    <div class="card">
-      <div class="card-body space-y-4">
-        <div>
-          <h1 class="page-title">Page Title (32/36px)</h1>
-          <h2 class="section-title">Section Title (24/28px)</h2>
-          <h3>Subsection Title (18/24px)</h3>
-          <p class="text-base">Body text (14/16px) - This is the default text size for most content.</p>
-          <p class="text-sm text-muted">Small text (12/14px) - Used for labels and secondary information.</p>
+    <!-- Typography Section -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-h2 font-titles text-ink">Typography</h2>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Colors -->
-  <section class="mb-12">
-    <h2 class="section-title mb-4">Colors</h2>
-    <div class="grid grid-cols-4 gap-4">
-      <div class="card p-4">
-        <div class="w-full h-16 bg-accent rounded mb-2"></div>
-        <div class="text-sm font-medium">Accent</div>
-        <div class="text-xs text-muted">#0E9F6E</div>
-      </div>
-      <div class="card p-4">
-        <div class="w-full h-16 bg-ink rounded mb-2"></div>
-        <div class="text-sm font-medium">Ink</div>
-        <div class="text-xs text-muted">#0B0B0C</div>
-      </div>
-      <div class="card p-4">
-        <div class="w-full h-16 bg-muted rounded mb-2"></div>
-        <div class="text-sm font-medium">Muted</div>
-        <div class="text-xs text-muted">#6B7280</div>
-      </div>
-      <div class="card p-4">
-        <div class="w-full h-16 bg-stroke rounded mb-2"></div>
-        <div class="text-sm font-medium">Stroke</div>
-        <div class="text-xs text-muted">#E5E7EB</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Buttons -->
-  <section class="mb-12">
-    <h2 class="section-title mb-4">Buttons</h2>
-    <div class="card">
-      <div class="card-body">
-        <div class="space-y-4">
-          <div class="flex space-x-4 items-center">
-            <button class="btn btn-primary">Primary</button>
-            <button class="btn btn-secondary">Secondary</button>
-            <button class="btn btn-ghost">Ghost</button>
-            <button class="btn btn-destructive">Destructive</button>
-          </div>
-          <div class="flex space-x-4 items-center">
-            <button class="btn btn-primary btn-sm">Small</button>
-            <button class="btn btn-primary">Default</button>
-            <button class="btn btn-primary btn-lg">Large</button>
-          </div>
-          <div class="flex space-x-4 items-center">
-            <button class="btn btn-primary" disabled>Disabled</button>
-            <button class="btn btn-primary">
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-              </svg>
-              With Icon
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Form Controls -->
-  <section class="mb-12">
-    <h2 class="section-title mb-4">Form Controls</h2>
-    <div class="card">
-      <div class="card-body space-y-4">
-        <div>
-          <label class="label">Input Field</label>
-          <input type="text" class="input" placeholder="Enter text here...">
-          <div class="help-text">This is help text for the input field.</div>
-        </div>
-        <div>
-          <label class="label">Select Field</label>
-          <select class="select">
-            <option>Option 1</option>
-            <option>Option 2</option>
-            <option>Option 3</option>
-          </select>
-        </div>
-        <div>
-          <label class="label">Textarea</label>
-          <textarea class="textarea" placeholder="Enter longer text here..."></textarea>
-        </div>
-        <div>
-          <label class="label">Input with Error</label>
-          <input type="text" class="input border-danger" placeholder="Invalid input">
-          <div class="error-text">This field is required.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Stats -->
-  <section class="mb-12">
-    <h2 class="section-title mb-4">Stats</h2>
-    <div class="grid grid-cols-4 gap-4">
-      <div class="stat">
-        <div class="flex items-center space-x-3">
-          <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-          <div>
-            <div class="stat-value">247</div>
-            <div class="stat-label">Total Contracts</div>
-          </div>
-        </div>
-      </div>
-      <div class="stat">
-        <div class="flex items-center space-x-3">
-          <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-          </svg>
-          <div>
-            <div class="stat-value">12</div>
-            <div class="stat-label">Pending Tasks</div>
-          </div>
-        </div>
-      </div>
-      <div class="stat">
-        <div class="flex items-center space-x-3">
-          <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-          </svg>
-          <div>
-            <div class="stat-value">8</div>
-            <div class="stat-label">Active Workflows</div>
-          </div>
-        </div>
-      </div>
-      <div class="stat">
-        <div class="flex items-center space-x-3">
-          <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <div>
-            <div class="stat-value">3</div>
-            <div class="stat-label">Expiring Soon</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Badges -->
-  <section class="mb-12">
-    <h2 class="section-title mb-4">Badges</h2>
-    <div class="card">
-      <div class="card-body">
-        <div class="flex space-x-2">
-          <span class="badge badge-primary">Primary</span>
-          <span class="badge badge-secondary">Secondary</span>
-          <span class="badge badge-success">Success</span>
-          <span class="badge badge-warning">Warning</span>
-          <span class="badge badge-danger">Danger</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Table -->
-  <section class="mb-12">
-    <h2 class="section-title mb-4">Table</h2>
-    <div class="card">
-      <table class="table">
-        <thead class="table-header">
-          <tr>
-            <th class="table-header-cell">Name</th>
-            <th class="table-header-cell">Status</th>
-            <th class="table-header-cell">Type</th>
-            <th class="table-header-cell">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="table-body">
-          <tr class="table-row">
-            <td class="table-cell font-medium">Contract Alpha</td>
-            <td class="table-cell"><span class="badge badge-success">Active</span></td>
-            <td class="table-cell">NDA</td>
-            <td class="table-cell">
-              <button class="btn btn-ghost btn-sm">Edit</button>
-            </td>
-          </tr>
-          <tr class="table-row">
-            <td class="table-cell font-medium">Contract Beta</td>
-            <td class="table-cell"><span class="badge badge-warning">Pending</span></td>
-            <td class="table-cell">Service</td>
-            <td class="table-cell">
-              <button class="btn btn-ghost btn-sm">Edit</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- Tabs -->
-  <section class="mb-12">
-    <h2 class="section-title mb-4">Tabs</h2>
-    <div class="card">
-      <div class="tabs">
-        <button class="tab tab-active">Overview</button>
-        <button class="tab">Details</button>
-        <button class="tab">History</button>
-      </div>
-      <div class="card-body">
-        <p>Tab content goes here...</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Progress & Stepper -->
-  <section class="mb-12">
-    <h2 class="section-title mb-4">Progress & Stepper</h2>
-    <div class="card">
-      <div class="card-body space-y-6">
-        <div>
-          <label class="label">Progress Bar</label>
-          <div class="progress">
-            <div class="progress-bar" style="width: 65%"></div>
-          </div>
-        </div>
-        <div>
-          <label class="label">Stepper</label>
-          <div class="stepper">
-            <div class="step step-completed">
-              <div class="step-number">1</div>
-              <div class="step-title">Overview</div>
+        <div class="card-content space-y-4">
+            <div>
+                <h1 class="text-h1 font-titles text-ink">Heading 1 - 32px/36px, Weight 600</h1>
+                <h2 class="text-h2 font-titles text-ink">Heading 2 - 24px/28px, Weight 600</h2>
+                <p class="text-base text-ink">Base text - 14px/16px, Inter font</p>
+                <p class="text-base text-muted">Muted text - #6B7280</p>
+                <span class="text-base font-labels text-ink">Label text - Weight 500</span>
             </div>
-            <div class="w-8 border-t border-stroke"></div>
-            <div class="step step-active">
-              <div class="step-number">2</div>
-              <div class="step-title">Details</div>
-            </div>
-            <div class="w-8 border-t border-stroke"></div>
-            <div class="step">
-              <div class="step-number">3</div>
-              <div class="step-title">Review</div>
-            </div>
-          </div>
         </div>
-      </div>
     </div>
-  </section>
 
-  <!-- Empty State -->
-  <section class="mb-12">
-    <h2 class="section-title mb-4">Empty State</h2>
-    <div class="card">
-      <div class="empty-state">
-        <svg class="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-        </svg>
-        <h3 class="empty-state-title">No contracts found</h3>
-        <p class="empty-state-text">Get started by creating your first contract.</p>
-        <button class="btn btn-primary">Create Contract</button>
-      </div>
+    <!-- Color Tokens -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-h2 font-titles text-ink">Color Tokens</h2>
+        </div>
+        <div class="card-content">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-bg border border-stroke rounded mx-auto mb-2"></div>
+                    <div class="text-sm">Background</div>
+                    <div class="text-xs text-muted">#FFFFFF</div>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-ink rounded mx-auto mb-2"></div>
+                    <div class="text-sm">Ink</div>
+                    <div class="text-xs text-muted">#0B0B0C</div>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-accent rounded mx-auto mb-2"></div>
+                    <div class="text-sm">Accent</div>
+                    <div class="text-xs text-muted">#0E9F6E</div>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-danger rounded mx-auto mb-2"></div>
+                    <div class="text-sm">Danger</div>
+                    <div class="text-xs text-muted">#DC2626</div>
+                </div>
+            </div>
+        </div>
     </div>
-  </section>
+
+    <!-- Buttons -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-h2 font-titles text-ink">Buttons</h2>
+        </div>
+        <div class="card-content">
+            <div class="flex flex-wrap gap-4">
+                <button class="btn-primary">Primary Button</button>
+                <button class="btn-secondary">Secondary Button</button>
+                <button class="btn-ghost">Ghost Button</button>
+                <button class="btn-destructive">Destructive Button</button>
+                <button class="btn-primary" disabled>Disabled Button</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-h2 font-titles text-ink">Stat Components</h2>
+        </div>
+        <div class="card-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="stat">
+                    <div>
+                        <div class="stat-label">Total Contracts</div>
+                        <div class="stat-value">1,247</div>
+                        <div class="stat-trend up">↑ 12% vs last month</div>
+                    </div>
+                    <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <div class="stat">
+                    <div>
+                        <div class="stat-label">Pending Tasks</div>
+                        <div class="stat-value">23</div>
+                        <div class="stat-trend down">↓ 3% vs last month</div>
+                    </div>
+                    <svg class="w-8 h-8 text-warn" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Badges -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-h2 font-titles text-ink">Badges</h2>
+        </div>
+        <div class="card-content">
+            <div class="flex flex-wrap gap-4">
+                <span class="badge-primary">Primary</span>
+                <span class="badge-secondary">Secondary</span>
+                <span class="badge-success">Success</span>
+                <span class="badge-warning">Warning</span>
+                <span class="badge-danger">Danger</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Controls -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-h2 font-titles text-ink">Form Controls</h2>
+        </div>
+        <div class="card-content space-y-4">
+            <div>
+                <label class="block text-base font-labels text-ink mb-2">Text Input</label>
+                <input type="text" class="input" placeholder="Enter text here...">
+            </div>
+            <div>
+                <label class="block text-base font-labels text-ink mb-2">Select</label>
+                <select class="select">
+                    <option>Choose an option</option>
+                    <option>Option 1</option>
+                    <option>Option 2</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-base font-labels text-ink mb-2">Textarea</label>
+                <textarea class="textarea" placeholder="Enter longer text here..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-h2 font-titles text-ink">Table</h2>
+        </div>
+        <div class="card-content">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Contract Alpha</td>
+                        <td><span class="badge-success">Active</span></td>
+                        <td>Jan 15, 2024</td>
+                        <td>$25,000</td>
+                    </tr>
+                    <tr>
+                        <td>Contract Beta</td>
+                        <td><span class="badge-warning">Pending</span></td>
+                        <td>Jan 20, 2024</td>
+                        <td>$15,000</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Filter Chips -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-h2 font-titles text-ink">Filter Chips</h2>
+        </div>
+        <div class="card-content">
+            <div class="filter-chips">
+                <div class="filter-chip">
+                    Status: Active
+                    <svg class="filter-chip-remove" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+                <div class="filter-chip">
+                    Type: MSA
+                    <svg class="filter-chip-remove" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+                <div class="filter-chip">
+                    Owner: John Doe
+                    <svg class="filter-chip-remove" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-h2 font-titles text-ink">Empty State</h2>
+        </div>
+        <div class="card-content">
+            <div class="empty-state">
+                <svg class="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <h3>No contracts found</h3>
+                <p>Get started by creating your first contract or importing existing ones.</p>
+                <button class="btn-primary">Create Contract</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-h2 font-titles text-ink">Progress</h2>
+        </div>
+        <div class="card-content space-y-4">
+            <div>
+                <div class="flex justify-between text-sm mb-2">
+                    <span>Contract Review Progress</span>
+                    <span>75%</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar" style="width: 75%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skeleton Loading -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="text-h2 font-titles text-ink">Skeleton Loading</h2>
+        </div>
+        <div class="card-content space-y-4">
+            <div class="skeleton-title w-1/4"></div>
+            <div class="skeleton-text"></div>
+            <div class="skeleton-text w-3/4"></div>
+            <div class="skeleton-text w-1/2"></div>
+        </div>
+    </div>
 </div>
 
+<!-- Demo JavaScript -->
 <script>
-function toggleTheme() {
-  const html = document.documentElement;
-  const currentTheme = html.getAttribute('data-theme');
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  html.setAttribute('data-theme', newTheme);
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter chip removal
+    document.querySelectorAll('.filter-chip-remove').forEach(button => {
+        button.addEventListener('click', function() {
+            this.closest('.filter-chip').remove();
+        });
+    });
+    
+    // Progress bar animation
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 100);
+    });
+});
 </script>
 {% endblock %}

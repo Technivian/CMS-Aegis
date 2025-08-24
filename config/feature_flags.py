@@ -1,4 +1,3 @@
-
 """
 Feature flags for enabling/disabling functionality
 """
@@ -7,12 +6,12 @@ from django.conf import settings
 
 class FeatureFlags:
     """Feature flag management"""
-    
+
     @staticmethod
     def is_enabled(flag_name: str) -> bool:
         """Check if a feature flag is enabled"""
         return getattr(settings, flag_name, False) or os.getenv(flag_name, '').lower() == 'true'
-    
+
     @staticmethod
     def ironclad_mode() -> bool:
         """Check if Ironclad mode is enabled"""
@@ -48,7 +47,7 @@ def get_feature_flag(flag_name, default=False):
     env_value = os.environ.get(flag_name)
     if env_value is not None:
         return env_value.lower() in ('true', '1', 'yes', 'on')
-    
+
     from django.conf import settings
     return getattr(settings, flag_name, default)
 
