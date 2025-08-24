@@ -1,4 +1,5 @@
 from django.urls import path
+from . import views  # Import views module
 from .views import (
     ContractListView, ContractDetailView, ContractCreateView, ContractUpdateView, AddNegotiationNoteView,
     TrademarkRequestListView, TrademarkRequestDetailView, TrademarkRequestCreateView, TrademarkRequestUpdateView,
@@ -64,11 +65,12 @@ urlpatterns = [
     path('budgets/<int:budget_pk>/add-expense/', AddExpenseView.as_view(), name='add_expense'),
 
     # Workflow URLs
-    path('workflows/', WorkflowDashboardView.as_view(), name='workflow_dashboard'),
-    path('workflows/create/', workflow_create, name='workflow_create'),
-    path('workflows/<int:pk>/', WorkflowDetailView.as_view(), name='workflow_detail'),
-    path('workflows/templates/', WorkflowTemplateListView.as_view(), name='workflow_template_list'),
-    path('workflows/templates/create/', workflow_template_create, name='workflow_template_create'),
+    path('workflows/', views.workflow_dashboard, name='workflow_dashboard'),
+    path('workflows/create/', views.workflow_create, name='workflow_create'),
+    path('workflows/templates/', views.workflow_template_list, name='workflow_template_list'),
+    path('workflows/templates/create/', views.workflow_template_create, name='workflow_template_create'),
+    path('workflows/templates/<int:pk>/', views.workflow_template_detail, name='workflow_template_detail'),
+    path('workflows/<int:pk>/', views.workflow_detail, name='workflow_detail'),
 
     # Templates
     path('templates/', WorkflowTemplateListView.as_view(), name='templates_list'),
