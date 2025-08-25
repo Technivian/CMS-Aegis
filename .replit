@@ -9,7 +9,7 @@ packages = ["freetype", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp
 run = ["sh", "-c", "run"]
 
 [workflows]
-runButton = "Django Development Server"
+runButton = "Django Server Port 8000"
 
 [[workflows.workflow]]
 name = "Django Development Server"
@@ -20,10 +20,15 @@ mode = "sequential"
 task = "shell.exec"
 args = "python manage.py runserver 0.0.0.0:5000"
 
+[[workflows.workflow]]
+name = "Django Server Port 8000"
+author = 40360714
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python manage.py runserver 0.0.0.0:8000"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 8000
-externalPort = 8000

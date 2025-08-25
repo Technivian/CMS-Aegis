@@ -3,7 +3,6 @@ from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -28,7 +27,12 @@ from config.feature_flags import get_feature_flag, is_feature_redesign_enabled
 from django.conf import settings
 from datetime import datetime, timedelta
 from django.db.models import Count, Q
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
+import json
+import logging
 
+logger = logging.getLogger(__name__)
 
 # --- Index View ---
 def index(request):
@@ -62,7 +66,6 @@ class ContractListView(LoginRequiredMixin, ListView):
                     'updated_at': contract.updated_at.strftime('%b %d, %Y') if hasattr(contract, 'updated_at') and contract.updated_at else 'N/A',
                 })
 
-            import json
             context['contracts_json'] = json.dumps(contracts_data)
 
         return context
@@ -570,7 +573,7 @@ def dashboard(request):
             if count > 0:
                 pipeline_data.append((display, count))
     except Exception as e:
-        print(f"Error fetching contract data: {e}")
+        logger.error(f"Error fetching contract data: {e}")
         total_contracts = 0
         recent_contracts = []
         pipeline_data = []
@@ -579,14 +582,14 @@ def dashboard(request):
     try:
         pending_tasks = LegalTask.objects.filter(status__in=['PENDING', 'IN_PROGRESS']).count()
     except Exception as e:
-        print(f"Error fetching legal task data: {e}")
+        logger.error(f"Error fetching legal task data: {e}")
         pending_tasks = 0
 
     # Workflow data
     try:
         active_workflows = Workflow.objects.filter(status='ACTIVE').count()
     except Exception as e:
-        print(f"Error fetching workflow data: {e}")
+        logger.error(f"Error fetching workflow data: {e}")
         active_workflows = 0
 
     # Trademark data
@@ -594,7 +597,7 @@ def dashboard(request):
         trademark_requests = TrademarkRequest.objects.all().count()
         pending_trademarks = TrademarkRequest.objects.filter(status__in=['PENDING', 'FILED', 'IN_REVIEW']).count()
     except Exception as e:
-        print(f"Error fetching trademark data: {e}")
+        logger.error(f"Error fetching trademark data: {e}")
         trademark_requests = 0
         pending_trademarks = 0
 
@@ -603,7 +606,7 @@ def dashboard(request):
         risk_count = RiskLog.objects.count()
         top_risks = RiskLog.objects.filter(risk_level='HIGH')[:5]
     except Exception as e:
-        print(f"Error fetching risk data: {e}")
+        logger.error(f"Error fetching risk data: {e}")
         risk_count = 0
         top_risks = []
 
@@ -611,21 +614,21 @@ def dashboard(request):
     try:
         dd_count = DueDiligenceProcess.objects.count()
     except Exception as e:
-        print(f"Error fetching due diligence data: {e}")
+        logger.error(f"Error fetching due diligence data: {e}")
         dd_count = 0
 
     # Budget data
     try:
         budget_count = Budget.objects.count()
     except Exception as e:
-        print(f"Error fetching budget data: {e}")
+        logger.error(f"Error fetching budget data: {e}")
         budget_count = 0
 
     # Compliance data
     try:
         upcoming_checklists = ComplianceChecklist.objects.all()[:5]
     except Exception as e:
-        print(f"Error fetching compliance data: {e}")
+        logger.error(f"Error fetching compliance data: {e}")
         upcoming_checklists = []
 
     context = {
