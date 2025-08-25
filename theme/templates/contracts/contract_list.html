@@ -1,4 +1,3 @@
-
 {% extends 'base_redesign.html' %}
 {% load static %}
 
@@ -175,19 +174,14 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="10" class="table-cell">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">
-                                <i data-lucide="file-text"></i>
-                            </div>
-                            <h3 class="empty-state-title">No contracts found</h3>
-                            <p class="empty-state-description">Get started by creating your first contract.</p>
-                            <div class="empty-state-actions">
-                                <a href="{% url 'contracts:contract_create' %}" class="btn btn-primary">
-                                    <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
-                                    Create Contract
-                                </a>
-                            </div>
+                    <td colspan="6" class="text-center py-12">
+                        <div class="empty" data-when="no-contracts" data-legacy-class="empty-state">
+                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <h3>No contracts found</h3>
+                            <p>Get started by creating your first contract or importing existing ones.</p>
+                            <a href="{% url 'contracts:contract_create' %}" data-legacy-class="create-first-contract">Create your first contract</a>
                         </div>
                     </td>
                 </tr>
@@ -254,7 +248,7 @@ document.addEventListener('change', function(e) {
 function updateBulkActions() {
     const bulkActions = document.getElementById('bulk-actions');
     const selectedCount = document.getElementById('selected-count');
-    
+
     if (selectedContracts.size > 0) {
         bulkActions.classList.remove('hidden');
         selectedCount.textContent = `${selectedContracts.size} contract${selectedContracts.size !== 1 ? 's' : ''} selected`;
@@ -267,7 +261,7 @@ function updateBulkActions() {
 function openContractDrawer(contractId) {
     const drawer = document.getElementById('contract-drawer');
     drawer.classList.remove('hidden');
-    
+
     // Load contract details via AJAX
     fetch(`/contracts/${contractId}/`)
         .then(response => response.json())
@@ -292,7 +286,7 @@ function openContractDrawer(contractId) {
                             </div>
                         </div>
                     </div>
-                    
+
                     <div>
                         <h4 class="font-medium text-ink mb-2">Tasks</h4>
                         <div class="space-y-2">
@@ -304,7 +298,7 @@ function openContractDrawer(contractId) {
                             `).join('') || '<p class="text-muted text-sm">No tasks</p>'}
                         </div>
                     </div>
-                    
+
                     <div>
                         <h4 class="font-medium text-ink mb-2">Files</h4>
                         <div class="space-y-2">
@@ -316,7 +310,7 @@ function openContractDrawer(contractId) {
                             `).join('') || '<p class="text-muted text-sm">No files</p>'}
                         </div>
                     </div>
-                    
+
                     <div>
                         <h4 class="font-medium text-ink mb-2">Comments</h4>
                         <div class="space-y-3">
@@ -349,10 +343,10 @@ function closeContractDrawer() {
 // Bulk actions
 function bulkAction(action) {
     if (selectedContracts.size === 0) return;
-    
+
     const contractIds = Array.from(selectedContracts);
     console.log(`Performing ${action} on contracts:`, contractIds);
-    
+
     // Implement bulk action logic here
     // For now, just show a toast message
     showToast(`${action.charAt(0).toUpperCase() + action.slice(1)} action applied to ${contractIds.length} contracts`);
@@ -370,7 +364,7 @@ function showToast(message, type = 'info') {
     `;
     document.body.appendChild(toast);
     lucide.createIcons();
-    
+
     setTimeout(() => {
         toast.remove();
     }, 3000);

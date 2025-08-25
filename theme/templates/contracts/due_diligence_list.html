@@ -11,7 +11,7 @@
         <div class="px-6 py-4 border-b border-gray-200">
             <div class="flex justify-between items-center">
                 <h2 class="text-lg font-medium text-gray-900">Active Processes</h2>
-                <a href="{% url 'contracts:due_diligence_create' %}" 
+                <a href="{% url 'contracts:due_diligence_create' %}"
                    class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
                     New Process
                 </a>
@@ -24,7 +24,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <h3 class="text-sm font-medium text-gray-900">
-                                <a href="{% url 'contracts:due_diligence_detail' process.pk %}" 
+                                <a href="{% url 'contracts:due_diligence_detail' process.pk %}"
                                    class="hover:text-blue-600">
                                     {{ process.name }}
                                 </a>
@@ -51,7 +51,7 @@
                     </div>
                     <h3 class="text-sm font-medium text-gray-900 mb-2">No due diligence processes</h3>
                     <p class="text-sm text-gray-500 mb-4">Get started by creating your first due diligence process.</p>
-                    <a href="{% url 'contracts:due_diligence_create' %}" 
+                    <a href="{% url 'contracts:due_diligence_create' %}"
                        class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
                         Create Process
                     </a>

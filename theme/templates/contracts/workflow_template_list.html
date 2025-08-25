@@ -64,6 +64,13 @@
                 Create your first template
             </a>
         </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <div class="text-gray-500 mb-4">No workflow templates found</div>
+            <a href="{% url 'contracts:workflow_template_create' %}" class="text-teal-600 hover:text-teal-800 font-medium">
+                Create your first template
+            </a>
+        </div>
         {% endfor %}
     </div>
 </div>
