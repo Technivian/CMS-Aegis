@@ -1,6 +1,18 @@
 from django.urls import path
 from . import views
 from .api import views as api_views
+from .views import (
+    DueDiligenceListView, DueDiligenceCreateView, DueDiligenceDetailView, 
+    DueDiligenceUpdateView, AddDueDiligenceItemView, AddDueDiligenceRiskView,
+    LegalTaskKanbanView, LegalTaskCreateView, LegalTaskUpdateView,
+    TrademarkRequestListView, TrademarkRequestCreateView, TrademarkRequestDetailView, TrademarkRequestUpdateView,
+    RiskLogListView, RiskLogCreateView, RiskLogUpdateView,
+    ComplianceChecklistListView, ComplianceChecklistCreateView, ComplianceChecklistDetailView, 
+    ComplianceChecklistUpdateView, ToggleChecklistItemView, AddChecklistItemView,
+    BudgetListView, BudgetCreateView, BudgetDetailView, BudgetUpdateView, AddExpenseView,
+    WorkflowTemplateListView, RepositoryView, ContractListView, ContractDetailView, 
+    ContractCreateView, ContractUpdateView, AddNegotiationNoteView
+)
 
 app_name = 'contracts'
 
@@ -17,7 +29,7 @@ urlpatterns = [
     path('due-diligence/<int:pk>/edit/', DueDiligenceUpdateView.as_view(), name='due_diligence_update'),
     path('due-diligence/<int:process_pk>/add-item/', AddDueDiligenceItemView.as_view(), name='add_dd_item'),
     path('due-diligence/<int:process_pk>/add-risk/', AddDueDiligenceRiskView.as_view(), name='add_dd_risk'),
-    path('dd-item/<int:pk>/toggle/', toggle_dd_item, name='toggle_dd_item'),
+    path('dd-item/<int:pk>/toggle/', views.toggle_dd_item, name='toggle_dd_item'),
 
     # Legal Task URLs
     path('legal-tasks/', LegalTaskKanbanView.as_view(), name='legal_task_kanban'),

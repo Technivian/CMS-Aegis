@@ -1,0 +1,122 @@
+Goal: make Django routes import real views (correct name/case), add a working Due Diligence list view, and run the server on Replit’s $PORT (no hardcoded :8000).
+
+1) Find the mismatch
+# Where is the bad reference?
+git grep -n "duediligencelistview" -- contracts || true
+
+# What views actually exist?
+git grep -n "DueDiligenceListView\|due_diligence_list_view\|duediligencelistview" -- contracts || true
+
+2) Use ONE canonical name (class-based) and import it
+
+contracts/views.py (create or update):
+
+# contracts/views.py
+from django.views.generic import ListView
+from django.shortcuts import render
+from .models import DueDiligence  # adjust if your model is named differently
+
+class DueDiligenceListView(ListView):
+    model = DueDiligence
+    template_name = "contracts/due_diligence_list.html"
+    context_object_name = "items"
+
+
+contracts/urls.py (fix imports + patterns):
+
+# contracts/urls.py
+from django.urls import path
+from .views import DueDiligenceListView  # ✅ exact, case-sensitive import
+
+app_name = "contracts"
+
+urlpatterns = [
+    path(
+        "due-diligence/",
+        DueDiligenceListView.as_view(),
+        name="due-diligence-list",
+    ),
+]
+
+
+Remove any usage of duediligencelistview (all lowercase). Django/Python are case-sensitive on Linux.
+
+3) Provide a minimal template so the page renders
+
+Create contracts/templates/contracts/due_diligence_list.html:
+
+{% extends "base.html" %}
+{% block content %}
+  <h1>Due Diligence</h1>
+  <ul>
+    {% for item in items %}
+      <li>{{ item }}</li>
+    {% empty %}
+      <li>No items yet.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
+
+
+(If you don’t have a base.html, change this to a plain HTML file.)
+
+4) Make sure the app is wired in settings
+
+In settings.py:
+
+INSTALLED_APPS = [
+    # ...
+    "contracts",
+]
+TEMPLATES[0]["DIRS"] += [BASE_DIR / "contracts" / "templates"]
+
+5) Stop Replit’s 503 by binding Django to $PORT (not :8000)
+
+Do NOT run runserver 0.0.0.0:8000. Run on the env port Replit exposes:
+
+.replit
+
+run = "python manage.py migrate && python manage.py runserver 0.0.0.0:$PORT"
+
+[env]
+PORT = "3000"
+
+[[ports]]
+localPort = 3000
+externalPort = 80
+visibility = "public"
+primary = true
+
+
+This maps internal :3000 to public :80. No more :8000/favicon.ico 503.
+
+6) Quick sanity checks
+python manage.py check
+python manage.py makemigrations contracts
+python manage.py migrate
+python manage.py runserver 0.0.0.0:$PORT
+
+
+Open the public repl URL (no port) → visit /due-diligence/.
+
+If you still get the NameError, you still have a lowercase reference somewhere; fix any duediligencelistview to DueDiligenceListView and ensure it’s imported in urls.py.
+
+7) Optional: allow function-based instead (if you prefer)
+
+If you really intended a function view, define it and reference that:
+
+contracts/views.py
+
+from django.shortcuts import render
+
+def duediligencelistview(request):
+    return render(request, "contracts/due_diligence_list.html", {"items": []})
+
+
+contracts/urls.py
+
+from .views import duediligencelistview
+urlpatterns = [ path("due-diligence/", duediligencelistview, name="due-diligence-list") ]
+
+
+Choose one style (class or function), import it explicitly, and use the exact same name in the URL pattern.
