@@ -648,7 +648,6 @@ def dashboard(request):
         'budget_count': budget_count,
         'upcoming_checklists': upcoming_checklists,
         'FEATURE_REDESIGN': is_feature_redesign_enabled(),
-        'user': request.user,  # Ensure user is in context
     }
     return render(request, 'dashboard.html', context)
 
