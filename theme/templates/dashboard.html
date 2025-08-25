@@ -1,10 +1,9 @@
 
 {% load static %}
-
 {% if FEATURE_REDESIGN %}
-    {% extends "base_redesign.html" %}
+{% extends "base_redesign.html" %}
 {% else %}
-    {% extends "base.html" %}
+{% extends "base.html" %}
 {% endif %}
 
 {% block title %}Dashboard - Bolton CLM{% endblock %}
