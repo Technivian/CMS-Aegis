@@ -9,28 +9,28 @@
     <!-- Left Sidebar -->
     <aside class="sidebar">
         <div class="section-title">My Views</div>
-        <a href="{% url 'dashboard' %}" class="item active" data-legacy-class="nav-link">
+        <a href="{% url 'dashboard' %}" class="item active">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 002 2"></path>
             </svg>
             Dashboard
             <span class="item-count">{{ total_contracts }}</span>
         </a>
-        <a href="{% url 'contracts:contract_list' %}" class="item" data-legacy-class="nav-link">
+        <a href="{% url 'contracts:contract_list' %}" class="item">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
             All Contracts
             <span class="item-count">{{ total_contracts }}</span>
         </a>
-        <a href="{% url 'contracts:legal_task_kanban' %}" class="item" data-legacy-class="nav-link">
+        <a href="{% url 'contracts:legal_task_kanban' %}" class="item">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 002 2m-6 9l2 2 4-4"></path>
             </svg>
             Legal Tasks
             <span class="item-count">{{ pending_tasks_count }}</span>
         </a>
-        <a href="{% url 'contracts:workflow_dashboard' %}" class="item" data-legacy-class="nav-link">
+        <a href="{% url 'contracts:workflow_dashboard' %}" class="item">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
             </svg>
@@ -39,13 +39,13 @@
         </a>
 
         <div class="section-title" style="margin-top: 32px;">Quick Actions</div>
-        <a href="{% url 'contracts:contract_create' %}" class="item" data-legacy-class="quick-action">
+        <a href="{% url 'contracts:contract_create' %}" class="item">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
             New Contract
         </a>
-        <a href="{% url 'contracts:workflow_template_list' %}" class="item" data-legacy-class="quick-action">
+        <a href="{% url 'contracts:workflow_template_list' %}" class="item">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
             </svg>
@@ -57,7 +57,7 @@
     <main class="main-content">
         <!-- Quick Stats -->
         <div class="quick-stats">
-            <div class="stat" data-legacy-class="stat-card">
+            <div class="stat">
                 <div>
                     <div class="stat-label">Total Contracts</div>
                     <div class="stat-value">{{ total_contracts }}</div>
@@ -66,7 +66,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
             </div>
-            <div class="stat" data-legacy-class="stat-card">
+            <div class="stat">
                 <div>
                     <div class="stat-label">Pending Tasks</div>
                     <div class="stat-value">{{ pending_tasks_count }}</div>
@@ -75,7 +75,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
-            <div class="stat" data-legacy-class="stat-card">
+            <div class="stat">
                 <div>
                     <div class="stat-label">Active Workflows</div>
                     <div class="stat-value">{{ active_workflows_count }}</div>
@@ -84,7 +84,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                 </svg>
             </div>
-            <div class="stat" data-legacy-class="stat-card">
+            <div class="stat">
                 <div>
                     <div class="stat-label">Expiring Soon</div>
                     <div class="stat-value">{{ expiring_soon_count }}</div>
@@ -98,7 +98,7 @@
         <!-- Toolbar -->
         <div class="toolbar">
             <div class="toolbar-left">
-                <a href="{% url 'contracts:workflow_template_list' %}" class="btn-primary" data-legacy-class="btn-start-workflow">
+                <a href="{% url 'contracts:workflow_template_list' %}" class="btn-primary">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </svg>
@@ -108,17 +108,17 @@
                     <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
-                    <input type="search" placeholder="Search for a workflow" data-legacy-class="search-input">
+                    <input type="search" placeholder="Search for a workflow">
                 </div>
             </div>
             <div class="toolbar-right">
-                <button class="btn-outline" data-legacy-class="filter-btn">
+                <button class="btn-outline">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
                     </svg>
                     Filter 2
                 </button>
-                <button class="btn-outline" data-legacy-class="columns-btn">
+                <button class="btn-outline">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
                     </svg>
@@ -129,7 +129,7 @@
 
         <!-- Main Table -->
         {% if recent_contracts %}
-        <table class="data" data-legacy-class="contracts-table">
+        <table class="data">
             <thead>
                 <tr>
                     <th>Contract Name</th>
@@ -142,22 +142,20 @@
             </thead>
             <tbody>
                 {% for contract in recent_contracts %}
-                <tr data-legacy-class="contract-row" data-contract-id="{{ contract.id }}">
+                <tr>
                     <td>
-                        <a href="{% url 'contracts:contract_detail' contract.pk %}" class="font-medium text-blue-600 hover:text-blue-800" data-legacy-class="contract-link">
+                        <a href="{% url 'contracts:contract_detail' contract.pk %}" class="font-medium text-blue-600 hover:text-blue-800">
                             {{ contract.title|truncatechars:50 }}
                         </a>
                     </td>
                     <td>
-                        <span class="pill {% if contract.status == 'active' %}status-completed{% elif contract.status == 'pending' %}status-pending{% else %}status-draft{% endif %}" data-legacy-class="status-badge">
-                            {% if contract.status == 'active' %}
-                                Active
-                            {% elif contract.status == 'pending' %}
-                                Review
-                            {% else %}
-                                Draft
-                            {% endif %}
-                        </span>
+                        {% if contract.status == 'active' %}
+                            <span class="pill status-completed">Active</span>
+                        {% elif contract.status == 'pending' %}
+                            <span class="pill status-pending">Review</span>
+                        {% else %}
+                            <span class="pill status-draft">Draft</span>
+                        {% endif %}
                     </td>
                     <td>{{ contract.start_date|date:"F d, Y"|default:"—" }}</td>
                     <td>{{ contract.counterparty|default:"—" }}</td>
@@ -170,23 +168,17 @@
                     </td>
                     <td>{{ contract.counterparty|default:"—" }}</td>
                 </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="text-center text-gray-500 py-8">
-                        No recent contracts found.
-                    </td>
-                </tr>
                 {% endfor %}
             </tbody>
         </table>
         {% else %}
-        <div class="empty" data-when="no-contracts" data-legacy-class="empty-state">
+        <div class="empty">
             <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
             <h3>No contracts found</h3>
             <p>Get started by creating your first contract or importing existing ones.</p>
-            <a href="{% url 'contracts:contract_create' %}" data-legacy-class="create-first-contract">Create your first contract</a>
+            <a href="{% url 'contracts:contract_create' %}">Create your first contract</a>
         </div>
         {% endif %}
     </main>
