@@ -1,16 +1,12 @@
-
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
+from django.utils import timezone
 from decimal import Decimal
+from datetime import date
 
 User = get_user_model()
 
-
-from django.db import models
-from django.contrib.auth.models import User
-from django.utils import timezone
-from datetime import date
 
 class Contract(models.Model):
     class Status(models.TextChoices):
@@ -33,51 +29,6 @@ class Contract(models.Model):
 
     def __str__(self):
         return self.title
-
-class WorkflowTemplate(models.Model):
-    name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name
-
-class WorkflowTemplateStep(models.Model):
-    template = models.ForeignKey(WorkflowTemplate, on_delete=models.CASCADE, related_name='steps')
-    name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    order = models.PositiveIntegerField(default=0)
-    estimated_duration = models.DurationField(null=True, blank=True)
-
-    class Meta:
-        ordering = ['order']
-
-    def __str__(self):
-        return f"{self.template.name} - {self.name}"
-
-
-class NegotiationThread(models.Model):
-    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='negotiation_threads')
-    round_number = models.PositiveIntegerField()
-    internal_note = models.TextField(blank=True)
-    external_note = models.TextField(blank=True)
-    attachment = models.FileField(upload_to='negotiation_attachments/', blank=True, null=True)
-    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='negotiation_posts')
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['timestamp']
-
-    def __str__(self):
-        return f"{self.contract.title} - Round {self.round_number}"
-
-
-class Tag(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-
-    def __str__(self):
-        return self.name
 
 
 class TrademarkRequest(models.Model):
@@ -126,23 +77,13 @@ class LegalTask(models.Model):
     def __str__(self):
         return self.title
 
-class TrademarkRequest(models.Model):
-    class Status(models.TextChoices):
-        PENDING = 'PENDING', 'Pending'
-        FILED = 'FILED', 'Filed'
-        IN_REVIEW = 'IN_REVIEW', 'In Review'
-        APPROVED = 'APPROVED', 'Approved'
-        REJECTED = 'REJECTED', 'Rejected'
 
-    name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
-    filing_date = models.DateField(null=True, blank=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return self.name
+
 
 class RiskLog(models.Model):
     class RiskLevel(models.TextChoices):
@@ -162,109 +103,6 @@ class RiskLog(models.Model):
     def __str__(self):
         return self.title
 
-class ComplianceChecklist(models.Model):
-    name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name
-
-class ChecklistItem(models.Model):
-    checklist = models.ForeignKey(ComplianceChecklist, on_delete=models.CASCADE, related_name='items')
-    title = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    is_completed = models.BooleanField(default=False)
-    completed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    completed_at = models.DateTimeField(null=True, blank=True)
-
-    def __str__(self):
-        return self.title
-
-class DueDiligenceProcess(models.Model):
-    name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name
-
-class DueDiligenceTask(models.Model):
-    class Status(models.TextChoices):
-        PENDING = 'PENDING', 'Pending'
-        COMPLETED = 'COMPLETED', 'Completed'
-
-    process = models.ForeignKey(DueDiligenceProcess, on_delete=models.CASCADE, related_name='tasks')
-    title = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
-    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-
-    def __str__(self):
-        return self.title
-
-class DueDiligenceRisk(models.Model):
-    process = models.ForeignKey(DueDiligenceProcess, on_delete=models.CASCADE, related_name='risks')
-    title = models.CharField(max_length=200)
-    description = models.TextField()
-    risk_level = models.CharField(max_length=10, choices=RiskLog.RiskLevel.choices, default=RiskLog.RiskLevel.MEDIUM)
-
-    def __str__(self):
-        return self.title
-
-class Budget(models.Model):
-    name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
-    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name
-
-class BudgetExpense(models.Model):
-    budget = models.ForeignKey(Budget, on_delete=models.CASCADE, related_name='expenses')
-    description = models.CharField(max_length=200)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    date = models.DateField(default=date.today)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.budget.name} - {self.description}"
-
-class NegotiationThread(models.Model):
-    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='negotiations')
-    title = models.CharField(max_length=200)
-    content = models.TextField()
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.contract.title} - {self.title}"
-
-
-class RiskLog(models.Model):
-    class RiskLevel(models.TextChoices):
-        LOW = 'LOW', 'Low'
-        MEDIUM = 'MEDIUM', 'Medium'
-        HIGH = 'HIGH', 'High'
-
-    title = models.CharField(max_length=200)
-    description = models.TextField()
-    risk_level = models.CharField(max_length=10, choices=RiskLevel.choices)
-    mitigation_strategy = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.title
-
 
 class ComplianceChecklist(models.Model):
     class RegulationType(models.TextChoices):
@@ -277,6 +115,8 @@ class ComplianceChecklist(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     regulation_type = models.CharField(max_length=20, choices=RegulationType.choices)
+    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -289,6 +129,8 @@ class ChecklistItem(models.Model):
     title = models.CharField(max_length=200, default='Untitled Item')
     description = models.TextField(blank=True)
     is_completed = models.BooleanField(default=False)
+    completed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     order = models.PositiveIntegerField(default=1)
 
     class Meta:
@@ -309,6 +151,7 @@ class WorkflowTemplate(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
     category = models.CharField(max_length=30, choices=Category.choices, default=Category.GENERAL)
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -317,16 +160,16 @@ class WorkflowTemplate(models.Model):
 
 class WorkflowTemplateStep(models.Model):
     template = models.ForeignKey(WorkflowTemplate, on_delete=models.CASCADE, related_name='steps')
-    title = models.CharField(max_length=200)
-    description = models.TextField()
-    order = models.PositiveIntegerField()
-    estimated_duration_days = models.PositiveIntegerField(default=1)
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+    estimated_duration = models.DurationField(null=True, blank=True)
 
     class Meta:
         ordering = ['order']
 
     def __str__(self):
-        return f"{self.template.name} - {self.title}"
+        return f"{self.template.name} - {self.name}"
 
 
 class Workflow(models.Model):
@@ -345,6 +188,7 @@ class Workflow(models.Model):
 
     def __str__(self):
         return self.title
+
 
 class WorkflowStep(models.Model):
     class Status(models.TextChoices):
@@ -367,29 +211,6 @@ class WorkflowStep(models.Model):
 
     def __str__(self):
         return f"{self.workflow.title} - {self.name}"
-
-
-class WorkflowStep(models.Model):
-    class Status(models.TextChoices):
-        PENDING = 'PENDING', 'Pending'
-        IN_PROGRESS = 'IN_PROGRESS', 'In Progress'
-        COMPLETED = 'COMPLETED', 'Completed'
-        SKIPPED = 'SKIPPED', 'Skipped'
-
-    workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE, related_name='steps')
-    title = models.CharField(max_length=200)
-    description = models.TextField()
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
-    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    order = models.PositiveIntegerField()
-    due_date = models.DateField(null=True, blank=True)
-    completed_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        ordering = ['order']
-
-    def __str__(self):
-        return f"{self.workflow.title} - {self.title}"
 
 
 class DueDiligenceProcess(models.Model):
@@ -541,3 +362,17 @@ class BudgetExpense(models.Model):
 
     def __str__(self):
         return f'{self.budget} - {self.description} (${self.amount})'
+
+
+class NegotiationThread(models.Model):
+    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='negotiation_threads')
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.contract.title} - {self.title}"

@@ -22,10 +22,9 @@ class ContractForm(forms.ModelForm):
 class NegotiationThreadForm(forms.ModelForm):
     class Meta:
         model = NegotiationThread
-        fields = ['round_number', 'internal_note', 'external_note', 'attachment']
+        fields = ['title', 'content']
         widgets = {
-            'internal_note': forms.Textarea(attrs={'rows': 3}),
-            'external_note': forms.Textarea(attrs={'rows': 3}),
+            'content': forms.Textarea(attrs={'rows': 5}),
         }
 
 
