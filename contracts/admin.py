@@ -99,13 +99,13 @@ class WorkflowTemplateAdmin(admin.ModelAdmin):
 
 @admin.register(WorkflowTemplateStep)
 class WorkflowTemplateStepAdmin(admin.ModelAdmin):
-    list_display = ['template', 'title', 'order', 'estimated_duration_days']
+    list_display = ['template', 'name', 'order', 'duration_days']
     list_filter = ['template']
-    search_fields = ['template__name', 'title']
+    search_fields = ['template__name', 'name']
     ordering = ['template', 'order']
 
 @admin.register(WorkflowStep)
 class WorkflowStepAdmin(admin.ModelAdmin):
-    list_display = ['workflow', 'title', 'status', 'assigned_to', 'due_date']
+    list_display = ['workflow', 'name', 'status', 'assigned_to', 'due_date']
     list_filter = ['status', 'due_date']
-    search_fields = ['workflow__title', 'title']
+    search_fields = ['workflow__title', 'name']
