@@ -1,257 +1,121 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Bolton CLM{% endblock %}</title>
 
-    <!-- Fonts -->
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="{% static 'css/theme-iron.css' %}" rel="stylesheet">
+
+    <!-- Inter Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Icons -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <!-- Styles -->
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/theme-iron.css' %}">
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
 
-    <!-- Custom Styles -->
-    {% block extra_css %}{% endblock %}
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
-<body class="h-full bg-surface">
-    <!-- Top Navigation Bar -->
-    <header class="bg-white border-b border-stroke sticky top-0 z-30">
-        <div class="mx-auto max-w-none px-6">
+<body class="bg-gray-50 min-h-screen">
+    <!-- Top Navigation -->
+    <nav class="bg-white border-b border-gray-200 fixed w-full top-0 z-50">
+        <div class="max-w-[1200px] mx-auto px-6">
             <div class="flex justify-between items-center h-16">
-                <!-- Left: Logo -->
-                <div class="flex items-center">
-                    <a href="{% url 'dashboard' %}" class="flex items-center space-x-3">
-                        <div class="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
-                            <span class="text-white font-bold text-sm">B</span>
-                        </div>
-                        <span class="text-xl font-semibold text-ink">Bolton CLM</span>
-                    </a>
-                </div>
+                <!-- Left side -->
+                <div class="flex items-center space-x-8">
+                    <div class="font-semibold text-lg text-gray-900">Bolton CLM</div>
 
-                <!-- Center: Global Search -->
-                <div class="flex-1 max-w-lg mx-8">
-                    <div class="relative">
-                        <input type="text"
-                               placeholder="Search contracts, tasks, workflows... (Press / to focus)"
-                               class="w-full pl-10 pr-4 py-2 border border-stroke rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent text-sm">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i data-lucide="search" class="h-4 w-4 text-muted"></i>
-                        </div>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <kbd class="px-2 py-1 text-xs bg-surface border border-stroke rounded text-muted">/</kbd>
-                        </div>
+                    <!-- Tab Navigation -->
+                    <div class="hidden lg:flex space-x-6">
+                        <a href="{% url 'dashboard' %}" class="nav-tab {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                            Dashboard
+                        </a>
+                        <a href="{% url 'contracts:contract_list' %}" class="nav-tab">
+                            Contracts
+                        </a>
+                        <a href="#" class="nav-tab">
+                            Repository
+                        </a>
+                        <a href="{% url 'contracts:workflow_dashboard' %}" class="nav-tab">
+                            Workflow Designer
+                        </a>
+                        <a href="#" class="nav-tab">
+                            Insights
+                        </a>
+                        <a href="#" class="nav-tab">
+                            Obligations
+                        </a>
+                        <a href="#" class="nav-tab">
+                            Entities
+                        </a>
                     </div>
                 </div>
 
-                <!-- Right: Actions & User Menu -->
+                <!-- Right side -->
                 <div class="flex items-center space-x-4">
-                    <!-- New Contract Button -->
-                    <a href="{% url 'contracts:contract_create' %}" class="btn btn-primary">
-                        <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
-                        New Contract
-                    </a>
-
-                    <!-- Notifications -->
-                    <button class="relative p-2 text-muted hover:text-ink rounded-lg hover:bg-surface">
-                        <i data-lucide="bell" class="h-5 w-5"></i>
-                        <span class="absolute top-1 right-1 h-2 w-2 bg-danger rounded-full"></span>
-                    </button>
+                    <!-- Global Search -->
+                    <div class="relative">
+                        <input type="search" 
+                               placeholder="Search contracts, workflows..." 
+                               class="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
 
                     <!-- User Menu -->
-                    <div class="relative">
-                        <button class="flex items-center space-x-2 p-2 rounded-lg hover:bg-surface" id="user-menu-button">
-                            <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
-                                <span class="text-white text-sm font-medium">
-                                    {% if user.first_name and user.first_name|length > 0 %}{{ user.first_name|first|upper }}{% elif user.username and user.username|length > 0 %}{{ user.username|first|upper }}{% else %}U{% endif %}
-                                </span>
-                            </div>
-                            <span class="text-sm font-medium text-ink">
-                                {% if user.is_authenticated %}
-                                    {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username|default:"User" }}{% endif %}
-                                {% else %}User{% endif %}
-                            </span>
-                            <i data-lucide="chevron-down" class="h-4 w-4 text-muted"></i>
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
+                            <span class="text-sm font-medium">{{ user.get_full_name|default:user.username }}</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
                         </button>
 
-                        <!-- Dropdown Menu -->
-                        <div class="absolute right-0 mt-2 w-48 bg-white border border-stroke rounded-lg shadow-lg hidden" id="user-menu">
-                            <div class="py-1">
-                                <a href="{% url 'profile' %}" class="flex items-center px-4 py-2 text-sm text-ink hover:bg-surface">
-                                    <i data-lucide="user" class="h-4 w-4 mr-3"></i>
-                                    Profile
-                                </a>
-                                <a href="#" class="flex items-center px-4 py-2 text-sm text-ink hover:bg-surface">
-                                    <i data-lucide="settings" class="h-4 w-4 mr-3"></i>
-                                    Settings
-                                </a>
-                                <div class="border-t border-stroke my-1"></div>
-                                <a href="{% url 'logout' %}" class="flex items-center px-4 py-2 text-sm text-ink hover:bg-surface">
-                                    <i data-lucide="log-out" class="h-4 w-4 mr-3"></i>
-                                    Sign out
-                                </a>
-                            </div>
+                        <div x-show="open" @click.away="open = false" x-cloak 
+                             class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
+                            <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Profile</a>
+                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Sign out</a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </header>
+    </nav>
 
-    <!-- Main Layout -->
-    <div class="flex h-[calc(100vh-4rem)]">
-        <!-- Left Sidebar Navigation -->
-        <nav class="w-64 bg-white border-r border-stroke flex-shrink-0 overflow-y-auto">
-            <div class="p-6">
-                <!-- My Views Section -->
-                <div class="mb-8">
-                    <h3 class="text-xs font-semibold text-muted uppercase tracking-wider mb-3">My Views</h3>
-                    <ul class="space-y-1">
-                        <li><a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                            <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
-                            Dashboard
-                        </a></li>
-                        <li><a href="{% url 'contracts:contract_list' %}" class="nav-link {% if 'contract' in request.resolver_match.url_name %}active{% endif %}">
-                            <i data-lucide="file-text" class="h-4 w-4"></i>
-                            All Contracts
-                        </a></li>
-                        <li><a href="{% url 'contracts:legal_task_board' %}" class="nav-link {% if 'legal_task' in request.resolver_match.url_name %}active{% endif %}">
-                            <i data-lucide="check-square" class="h-4 w-4"></i>
-                            Legal Tasks
-                        </a></li>
-                        <li><a href="{% url 'contracts:workflow_dashboard' %}" class="nav-link {% if 'workflow' in request.resolver_match.url_name %}active{% endif %}">
-                            <i data-lucide="workflow" class="h-4 w-4"></i>
-                            Active Workflows
-                        </a></li>
-                    </ul>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="mb-8">
-                    <h3 class="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Quick Actions</h3>
-                    <ul class="space-y-1">
-                        <li><a href="{% url 'contracts:contract_create' %}" class="nav-link">
-                            <i data-lucide="plus-circle" class="h-4 w-4"></i>
-                            New Contract
-                        </a></li>
-                        <li><a href="{% url 'contracts:workflow_create' %}" class="nav-link">
-                            <i data-lucide="play-circle" class="h-4 w-4"></i>
-                            Start Workflow
-                        </a></li>
-                    </ul>
-                </div>
-
-                <!-- Repository Sections -->
-                <div class="mb-8">
-                    <h3 class="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Repository</h3>
-                    <ul class="space-y-1">
-                        <li><a href="{% url 'contracts:contract_list' %}" class="nav-link">
-                            <i data-lucide="folder" class="h-4 w-4"></i>
-                            Contracts
-                        </a></li>
-                        <li><a href="{% url 'contracts:risk_log_list' %}" class="nav-link">
-                            <i data-lucide="alert-triangle" class="h-4 w-4"></i>
-                            Risks
-                        </a></li>
-                        <li><a href="{% url 'contracts:compliance_checklist_list' %}" class="nav-link">
-                            <i data-lucide="shield-check" class="h-4 w-4"></i>
-                            Compliance
-                        </a></li>
-                        <li><a href="{% url 'contracts:budget_list' %}" class="nav-link">
-                            <i data-lucide="dollar-sign" class="h-4 w-4"></i>
-                            Budgets
-                        </a></li>
-                        <li><a href="{% url 'contracts:due_diligence_list' %}" class="nav-link">
-                            <i data-lucide="building" class="h-4 w-4"></i>
-                            M&A
-                        </a></li>
-                        <li><a href="{% url 'contracts:trademark_request_list' %}" class="nav-link">
-                            <i data-lucide="award" class="h-4 w-4"></i>
-                            Trademarks
-                        </a></li>
-                    </ul>
-                </div>
-
-                <!-- Filters & Saved Views -->
-                <div class="border-t border-stroke pt-6">
-                    <h3 class="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Saved Views</h3>
-                    <ul class="space-y-1">
-                        <li><a href="?status=pending" class="nav-link">
-                            <i data-lucide="clock" class="h-4 w-4"></i>
-                            Pending Review
-                        </a></li>
-                        <li><a href="?status=expiring" class="nav-link">
-                            <i data-lucide="calendar-x" class="h-4 w-4"></i>
-                            Expiring Soon
-                        </a></li>
-                        <li><a href="?priority=high" class="nav-link">
-                            <i data-lucide="flag" class="h-4 w-4"></i>
-                            High Priority
-                        </a></li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Main Content Area -->
-        <main class="flex-1 overflow-hidden">
-            <div class="h-full overflow-y-auto">
-                <div class="container-main py-8">
-                    {% block content %}
-                    {% endblock %}
-                </div>
-            </div>
-        </main>
+    <!-- Main Content -->
+    <div class="pt-16">
+        {% block content %}{% endblock %}
     </div>
 
-    <!-- Scripts -->
-    <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
+    <!-- Messages -->
+    {% if messages %}
+        <div class="fixed bottom-4 right-4 z-50">
+            {% for message in messages %}
+                <div class="bg-white border border-gray-200 rounded-lg shadow-lg p-4 mb-2">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
-        // User menu toggle
-        document.getElementById('user-menu-button').addEventListener('click', function() {
-            document.getElementById('user-menu').classList.toggle('hidden');
-        });
-
-        // Close user menu when clicking outside
-        document.addEventListener('click', function(e) {
-            const userMenu = document.getElementById('user-menu');
-            const userMenuButton = document.getElementById('user-menu-button');
-            if (!userMenuButton.contains(e.target)) {
-                userMenu.classList.add('hidden');
-            }
-        });
-
-        // Global search shortcut
-        document.addEventListener('keydown', function(e) {
-            if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
-                e.preventDefault();
-                document.querySelector('input[placeholder*="Search"]').focus();
-            }
-        });
-    </script>
-
-    {% block extra_js %}{% endblock %}
+    <style>
+        .nav-tab {
+            @apply text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300 pb-4 transition-colors;
+        }
+        .nav-tab.active {
+            @apply text-blue-600 border-blue-600;
+        }
+        [x-cloak] { display: none !important; }
+    </style>
 </body>
 </html>
-
-<style>
-.nav-link {
-    @apply flex items-center space-x-3 px-3 py-2 text-sm text-muted rounded-lg hover:bg-surface hover:text-ink transition-colors;
-}
-
-.nav-link.active {
-    @apply bg-accent bg-opacity-10 text-accent font-medium;
-}
-
-.nav-link i {
-    @apply flex-shrink-0;
-}
-</style>

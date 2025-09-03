@@ -1,11 +1,16 @@
-from django.conf import settings
-from .models import Contract, WorkflowStep
-from config.feature_flags import is_feature_redesign_enabled
 
+from config.feature_flags import (
+    is_feature_redesign_enabled,
+    is_ironclad_mode_enabled,
+    is_mochadocs_mode_enabled,
+    is_test_mode_enabled
+)
 
 def feature_flags(request):
     """Add feature flags to template context"""
     return {
-        'ironclad_mode': getattr(settings, 'IRONCLAD_MODE', False),
-        'feature_redesign': is_feature_redesign_enabled(),
+        'FEATURE_REDESIGN': is_feature_redesign_enabled(),
+        'IRONCLAD_MODE': is_ironclad_mode_enabled(),
+        'MOCHADOCS_MODE': is_mochadocs_mode_enabled(),
+        'TEST_MODE': is_test_mode_enabled(),
     }
