@@ -99,7 +99,7 @@ class WorkflowTemplateAdmin(admin.ModelAdmin):
 
 @admin.register(WorkflowTemplateStep)
 class WorkflowTemplateStepAdmin(admin.ModelAdmin):
-    list_display = ['template', 'name', 'order', 'duration_days']
+    list_display = ['template', 'name', 'order']
     list_filter = ['template']
     search_fields = ['template__name', 'name']
     ordering = ['template', 'order']
