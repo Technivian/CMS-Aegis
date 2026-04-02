@@ -770,7 +770,7 @@ class WorkflowTemplateUpdateView(LoginRequiredMixin, UpdateView):
 
 class WorkflowListView(LoginRequiredMixin, ListView):
     model = Workflow
-    template_name = 'contracts/workflow_list.html'
+    template_name = 'contracts/workflow_template_list.html'
     context_object_name = 'workflows'
 
     def get_queryset(self):
@@ -1184,6 +1184,19 @@ def workflow_detail(request, pk):
     return render(request, 'contracts/workflow_detail.html', {'workflow': workflow, 'steps': steps})
 
 
+@login_required
+def update_workflow_step(request, pk):
+    step = get_object_or_404(WorkflowStep, pk=pk)
+    if request.method == 'POST':
+        new_status = request.POST.get('status', step.status)
+        step.status = new_status
+        if new_status == 'COMPLETED':
+            step.completed_at = timezone.now()
+        step.save()
+        return redirect('contracts:workflow_detail', pk=step.workflow.pk)
+    return redirect('contracts:workflow_detail', pk=step.workflow.pk)
+
+
 def workflow_template_create(request):
     if request.method == 'POST':
         form = WorkflowTemplateForm(request.POST)
@@ -1353,6 +1366,13 @@ class ClauseCategoryListView(LoginRequiredMixin, ListView):
 
 
 class ClauseCategoryCreateView(LoginRequiredMixin, CreateView):
+    model = ClauseCategory
+    form_class = ClauseCategoryForm
+    template_name = 'contracts/clause_category_form.html'
+    success_url = reverse_lazy('contracts:clause_category_list')
+
+
+class ClauseCategoryUpdateView(LoginRequiredMixin, UpdateView):
     model = ClauseCategory
     form_class = ClauseCategoryForm
     template_name = 'contracts/clause_category_form.html'

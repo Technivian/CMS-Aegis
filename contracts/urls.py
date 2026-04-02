@@ -113,6 +113,7 @@ urlpatterns = [
     path('workflows/templates/create/', views.workflow_template_create, name='workflow_template_create'),
     path('workflows/templates/<int:pk>/', views.workflow_template_detail, name='workflow_template_detail'),
     path('workflows/<int:pk>/', views.workflow_detail, name='workflow_detail'),
+    path('workflows/step/<int:pk>/update/', views.update_workflow_step, name='update_workflow_step'),
 
     # Templates
     path('templates/', views.WorkflowTemplateListView.as_view(), name='templates_list'),
@@ -129,6 +130,7 @@ urlpatterns = [
     # Clause Library
     path('clause-categories/', views.ClauseCategoryListView.as_view(), name='clause_category_list'),
     path('clause-categories/new/', views.ClauseCategoryCreateView.as_view(), name='clause_category_create'),
+    path('clause-categories/<int:pk>/edit/', views.ClauseCategoryUpdateView.as_view(), name='clause_category_update'),
     path('clause-library/', views.ClauseTemplateListView.as_view(), name='clause_template_list'),
     path('clause-library/new/', views.ClauseTemplateCreateView.as_view(), name='clause_template_create'),
     path('clause-library/<int:pk>/', views.ClauseTemplateDetailView.as_view(), name='clause_template_detail'),

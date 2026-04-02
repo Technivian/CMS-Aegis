@@ -1,77 +1,56 @@
-
-{% extends 'base.html' %}
-
-{% block title %}Workflow Templates{% endblock %}
-
+{% extends "base.html" %}
+{% block title %}Workflow Templates - CMS Aegis{% endblock %}
 {% block content %}
 <div class="space-y-6">
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Workflow Templates</h1>
-            <p class="text-gray-600">Manage reusable workflow templates</p>
+            <p class="text-sm text-gray-500 mt-1">Manage reusable workflow templates</p>
         </div>
         <div class="flex space-x-3">
-            <a href="{% url 'contracts:workflow_template_create' %}" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md">
-                + Create Template
+            <a href="{% url 'contracts:workflow_template_create' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                Create Template
             </a>
-            <a href="{% url 'contracts:workflow_dashboard' %}" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50">
-                Back to Dashboard
+            <a href="{% url 'contracts:workflow_dashboard' %}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg">
+                Back to Workflows
             </a>
         </div>
     </div>
-
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for template in templates %}
-        <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+        {% for template in workflow_templates %}
+        <div class="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
             <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ template.name }}</h3>
             {% if template.description %}
-                <p class="text-gray-600 text-sm mb-4">{{ template.description }}</p>
+            <p class="text-gray-500 text-sm mb-4">{{ template.description }}</p>
             {% endif %}
             <div class="text-sm text-gray-500 mb-4">
                 {{ template.template_steps.count }} step{{ template.template_steps.count|pluralize }}
-                {% if template.contract_type %}
-                    • {{ template.get_contract_type_display }}
-                {% endif %}
+                {% if template.contract_type %} &middot; {{ template.get_contract_type_display }}{% endif %}
             </div>
             <div class="space-y-2">
                 {% for step in template.template_steps.all|slice:":3" %}
-                    <div class="text-xs bg-gray-100 px-2 py-1 rounded">
-                        {{ step.order }}. {{ step.get_step_type_display }}
-                    </div>
+                <div class="text-xs bg-gray-100 px-2 py-1 rounded">
+                    {{ step.order }}. {{ step.get_step_type_display }}
+                </div>
                 {% endfor %}
                 {% if template.template_steps.count > 3 %}
-                    <div class="text-xs text-gray-500">
-                        +{{ template.template_steps.count|add:"-3" }} more step{{ template.template_steps.count|add:"-3"|pluralize }}
-                    </div>
+                <div class="text-xs text-gray-500">+{{ template.template_steps.count|add:"-3" }} more</div>
                 {% endif %}
             </div>
             <div class="mt-4 pt-4 border-t border-gray-200">
                 <div class="flex justify-between items-center">
-                    <span class="text-xs text-gray-500">
-                        Created {{ template.created_at|date:"M d, Y" }}
-                    </span>
-                    <a href="{% url 'contracts:workflow_dashboard' %}" 
-                       class="text-teal-600 hover:text-teal-800 text-sm font-medium">
-                        Use Template
-                    </a>
+                    <span class="text-xs text-gray-500">Created {{ template.created_at|date:"M d, Y" }}</span>
+                    <a href="{% url 'contracts:workflow_template_detail' template.pk %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View</a>
                 </div>
             </div>
         </div>
         {% empty %}
         <div class="col-span-full text-center py-12">
-            <div class="text-gray-500 mb-4">No workflow templates found</div>
-            <a href="{% url 'contracts:workflow_template_create' %}" class="text-teal-600 hover:text-teal-800 font-medium">
-                Create your first template
-            </a>
-        </div>
-        {% empty %}
-        <div class="col-span-full text-center py-12">
-            <div class="text-gray-500 mb-4">No workflow templates found</div>
-            <a href="{% url 'contracts:workflow_template_create' %}" class="text-teal-600 hover:text-teal-800 font-medium">
-                Create your first template
-            </a>
+            <div class="text-gray-400 mb-4">No workflow templates found</div>
+            <a href="{% url 'contracts:workflow_template_create' %}" class="text-blue-600 hover:text-blue-800 font-medium">Create your first template</a>
         </div>
         {% endfor %}
     </div>
 </div>
-{% endblock %} %}
+{% endblock %}

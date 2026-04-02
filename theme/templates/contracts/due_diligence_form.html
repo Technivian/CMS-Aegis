@@ -1,208 +1,68 @@
-{% extends 'base.html' %}
-
-{% block title %}{% if object %}Edit Due Diligence{% else %}Create New Due Diligence{% endif %}{% endblock %}
-
-{% block page_title %}
-{% if object %}Edit Due Diligence{% else %}Create New Due Diligence{% endif %}
-{% endblock %}
-
+{% extends "base.html" %}
+{% block title %}{% if object %}Edit{% else %}New{% endif %} Due Diligence - CMS Aegis{% endblock %}
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-lg border border-gray-200 p-6">
-        <form method="post" class="space-y-6">
-            {% csrf_token %}
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Deal Title
-                    </label>
-                    {{ form.title }}
-                </div>
-
-                <div>
-                    <label for="{{ form.target_company.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Target Company
-                    </label>
-                    {{ form.target_company }}
-                </div>
-
-                <div>
-                    <label for="{{ form.transaction_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Transaction Type
-                    </label>
-                    {{ form.transaction_type }}
-                </div>
-
-                <div>
-                    <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Status
-                    </label>
-                    {{ form.status }}
-                </div>
-
-                <div>
-                    <label for="{{ form.deal_value.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Deal Value ($)
-                    </label>
-                    {{ form.deal_value }}
-                </div>
-
-                <div>
-                    <label for="{{ form.expected_closing.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Expected Closing
-                    </label>
-                    {{ form.expected_closing }}
-                </div>
-
-                <div>
-                    <label for="{{ form.lead_attorney.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Lead Attorney
-                    </label>
-                    {{ form.lead_attorney }}
-                </div>
-            </div>
-
-            <div>
-                <label for="{{ form.assigned_team.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                    Assigned Team
-                </label>
-                {{ form.assigned_team }}
-            </div>
-
-            <div>
-                <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                    Notes
-                </label>
-                {{ form.notes }}
-            </div>
-
-            <div class="flex justify-end space-x-3">
-                <a href="{% url 'contracts:due_diligence_list' %}" class="btn-outline">Cancel</a>
-                <button type="submit" class="btn-primary">
-                    {% if object %}Update{% else %}Create{% endif %} Due Diligence
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-{% endblock %}
 <div class="max-w-4xl mx-auto space-y-6">
-    <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">
                 {% if object %}Edit Due Diligence Process{% else %}New Due Diligence Process{% endif %}
             </h1>
-            <p class="text-gray-600">Track M&A due diligence processes and risk management</p>
+            <p class="text-sm text-gray-500 mt-1">Track M&A due diligence processes and risk management</p>
         </div>
-        <a href="{% url 'contracts:due_diligence_list' %}" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50">
-            Back to List
-        </a>
+        <a href="{% url 'contracts:due_diligence_list' %}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition">Back to List</a>
     </div>
-
-    <!-- Form -->
-    <div class="bg-white rounded-lg border border-gray-200 p-6">
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
         <form method="post" class="space-y-6">
             {% csrf_token %}
-
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Process Title
-                    </label>
+                    <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Process Title <span class="text-red-500">*</span></label>
                     {{ form.title }}
-                    {% if form.title.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
-                    {% endif %}
+                    {% if form.title.errors %}<p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>{% endif %}
                 </div>
-
                 <div>
-                    <label for="{{ form.transaction_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Transaction Type
-                    </label>
+                    <label for="{{ form.transaction_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Transaction Type</label>
                     {{ form.transaction_type }}
-                    {% if form.transaction_type.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.transaction_type.errors.0 }}</p>
-                    {% endif %}
+                    {% if form.transaction_type.errors %}<p class="mt-1 text-sm text-red-600">{{ form.transaction_type.errors.0 }}</p>{% endif %}
                 </div>
-
                 <div>
-                    <label for="{{ form.target_company.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Target Company
-                    </label>
+                    <label for="{{ form.target_company.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Target Company</label>
                     {{ form.target_company }}
-                    {% if form.target_company.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.target_company.errors.0 }}</p>
-                    {% endif %}
+                    {% if form.target_company.errors %}<p class="mt-1 text-sm text-red-600">{{ form.target_company.errors.0 }}</p>{% endif %}
                 </div>
-
                 <div>
-                    <label for="{{ form.deal_value.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Deal Value ($)
-                    </label>
+                    <label for="{{ form.deal_value.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Deal Value ($)</label>
                     {{ form.deal_value }}
-                    {% if form.deal_value.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.deal_value.errors.0 }}</p>
-                    {% endif %}
+                    {% if form.deal_value.errors %}<p class="mt-1 text-sm text-red-600">{{ form.deal_value.errors.0 }}</p>{% endif %}
                 </div>
-
                 <div>
-                    <label for="{{ form.lead_attorney.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Lead Attorney
-                    </label>
+                    <label for="{{ form.lead_attorney.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Lead Attorney</label>
                     {{ form.lead_attorney }}
-                    {% if form.lead_attorney.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.lead_attorney.errors.0 }}</p>
-                    {% endif %}
+                    {% if form.lead_attorney.errors %}<p class="mt-1 text-sm text-red-600">{{ form.lead_attorney.errors.0 }}</p>{% endif %}
                 </div>
-
                 <div>
-                    <label for="{{ form.start_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Start Date
-                    </label>
+                    <label for="{{ form.start_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                     {{ form.start_date }}
-                    {% if form.start_date.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.start_date.errors.0 }}</p>
-                    {% endif %}
+                    {% if form.start_date.errors %}<p class="mt-1 text-sm text-red-600">{{ form.start_date.errors.0 }}</p>{% endif %}
                 </div>
-
-                <div class="md:col-span-1">
-                    <label for="{{ form.target_completion_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Target Completion Date
-                    </label>
+                <div>
+                    <label for="{{ form.target_completion_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Target Completion Date</label>
                     {{ form.target_completion_date }}
-                    {% if form.target_completion_date.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.target_completion_date.errors.0 }}</p>
-                    {% endif %}
+                    {% if form.target_completion_date.errors %}<p class="mt-1 text-sm text-red-600">{{ form.target_completion_date.errors.0 }}</p>{% endif %}
                 </div>
             </div>
-
             <div>
-                <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                </label>
+                <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 {{ form.description }}
-                {% if form.description.errors %}
-                    <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
-                {% endif %}
+                {% if form.description.errors %}<p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>{% endif %}
             </div>
-
-            <div class="flex space-x-3">
-                <button type="submit" class="btn-primary">
-                    {% if object %}Update Process{% else %}Create Process{% endif %}
+            <div class="flex items-center gap-3 pt-6 border-t border-gray-100">
+                <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
+                    {% if object %}Update{% else %}Create{% endif %} Process
                 </button>
-                <a href="{% url 'contracts:due_diligence_list' %}" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50">
-                    Cancel
-                </a>
+                <a href="{% url 'contracts:due_diligence_list' %}" class="px-5 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-800 transition">Cancel</a>
             </div>
         </form>
     </div>
 </div>
-
-<style>
-.form-control {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
-}
-</style>
 {% endblock %}
