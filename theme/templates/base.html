@@ -1,73 +1,235 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}CMS Aegis{% endblock %}</title>
     {% load static %}
     <link href="{% static 'css/dist/styles.css' %}" rel="stylesheet">
-    <link href="{% static 'css/theme-iron.css' %}" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        (function() {
+            var t = localStorage.getItem('cms-aegis-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+        function toggleTheme() {
+            var html = document.documentElement;
+            var current = html.getAttribute('data-theme');
+            var next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('cms-aegis-theme', next);
+        }
+    </script>
     <style>
         * { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        .nav-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; padding: 12px 20px 6px; margin-top: 4px; }
-        .nav-link { display: flex; align-items: center; gap: 10px; padding: 8px 20px; font-size: 13px; color: #64748b; border-radius: 0; margin: 0; transition: all 0.2s; text-decoration: none; border-left: 3px solid transparent; }
-        .nav-link:hover { background: linear-gradient(90deg, #f1f5f9, transparent); color: #0f172a; border-left-color: #cbd5e1; }
-        .nav-link.active { background: linear-gradient(90deg, #eff6ff, transparent); color: #1e40af; font-weight: 600; border-left-color: #2563eb; }
+
+        :root, [data-theme="dark"] {
+            --bg: #0B0F19;
+            --surface: #111827;
+            --surface-alt: #0B0F19;
+            --primary: #2563EB;
+            --primary-hover: #3B82F6;
+            --primary-light: #60A5FA;
+            --accent: #22C55E;
+            --text-primary: #F9FAFB;
+            --text-secondary: #9CA3AF;
+            --text-muted: #6B7280;
+            --text-dim: #4B5563;
+            --border: #1F2937;
+            --primary-glow: rgba(37,99,235,0.3);
+            --primary-subtle: rgba(37,99,235,0.1);
+            --primary-bg: rgba(37,99,235,0.15);
+            --accent-bg: rgba(34,197,94,0.12);
+            --sidebar-bg: #111827;
+            --sidebar-hover: rgba(255,255,255,0.05);
+            --sidebar-active-bg: rgba(37,99,235,0.1);
+            --sidebar-active-border: #2563EB;
+            --sidebar-active-text: #60A5FA;
+            --topbar-bg: #111827;
+            --topbar-border: #1F2937;
+            --content-bg: #0B0F19;
+            --card-bg: #111827;
+            --card-border: #1F2937;
+            --input-bg: #0B0F19;
+            --badge-bg: rgba(239,68,68,0.9);
+            --msg-success-bg: rgba(34,197,94,0.1);
+            --msg-success-text: #4ADE80;
+            --msg-success-border: rgba(34,197,94,0.2);
+            --msg-error-bg: rgba(239,68,68,0.1);
+            --msg-error-text: #F87171;
+            --msg-error-border: rgba(239,68,68,0.2);
+            --msg-warning-bg: rgba(245,158,11,0.1);
+            --msg-warning-text: #FBBF24;
+            --msg-warning-border: rgba(245,158,11,0.2);
+            --avatar-gradient: linear-gradient(135deg, #2563EB, #1D4ED8);
+            --btn-gradient: linear-gradient(135deg, #2563EB, #1D4ED8);
+            --logo-gradient: linear-gradient(135deg, #2563EB, #1D4ED8);
+        }
+
+        [data-theme="light"] {
+            --bg: #FFFFFF;
+            --surface: #F1F5F9;
+            --surface-alt: #FFFFFF;
+            --primary: #2563EB;
+            --primary-hover: #1D4ED8;
+            --primary-light: #2563EB;
+            --accent: #16A34A;
+            --text-primary: #0F172A;
+            --text-secondary: #64748B;
+            --text-muted: #94A3B8;
+            --text-dim: #CBD5E1;
+            --border: #E2E8F0;
+            --primary-glow: rgba(37,99,235,0.15);
+            --primary-subtle: rgba(37,99,235,0.06);
+            --primary-bg: rgba(37,99,235,0.08);
+            --accent-bg: rgba(22,163,74,0.08);
+            --sidebar-bg: #FFFFFF;
+            --sidebar-hover: #F1F5F9;
+            --sidebar-active-bg: #EFF6FF;
+            --sidebar-active-border: #2563EB;
+            --sidebar-active-text: #1E40AF;
+            --topbar-bg: #FFFFFF;
+            --topbar-border: #E2E8F0;
+            --content-bg: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --card-border: #E2E8F0;
+            --input-bg: #FFFFFF;
+            --badge-bg: #EF4444;
+            --msg-success-bg: #ECFDF5;
+            --msg-success-text: #065F46;
+            --msg-success-border: #A7F3D0;
+            --msg-error-bg: #FEF2F2;
+            --msg-error-text: #991B1B;
+            --msg-error-border: #FECACA;
+            --msg-warning-bg: #FFFBEB;
+            --msg-warning-text: #92400E;
+            --msg-warning-border: #FDE68A;
+            --avatar-gradient: linear-gradient(135deg, #1e3a5f, #2563eb);
+            --btn-gradient: linear-gradient(135deg, #1e3a5f, #2563eb);
+            --logo-gradient: linear-gradient(135deg, #1e3a5f, #2563eb);
+        }
+
+        .nav-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); padding: 12px 20px 6px; margin-top: 4px; }
+        .nav-link { display: flex; align-items: center; gap: 10px; padding: 8px 20px; font-size: 13px; color: var(--text-secondary); border-radius: 0; margin: 0; transition: all 0.2s; text-decoration: none; border-left: 3px solid transparent; }
+        .nav-link:hover { background: var(--sidebar-hover); color: var(--text-primary); border-left-color: var(--text-dim); }
+        .nav-link.active { background: var(--sidebar-active-bg); color: var(--sidebar-active-text); font-weight: 600; border-left-color: var(--sidebar-active-border); }
         .nav-link svg { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.7; }
         .nav-link.active svg { opacity: 1; }
-        .nav-badge { font-size: 10px; background: #ef4444; color: white; border-radius: 9999px; padding: 0 6px; margin-left: auto; min-width: 18px; text-align: center; line-height: 18px; font-weight: 600; }
-        .sidebar-container { width: 240px; min-height: calc(100vh - 64px); border-right: 1px solid #e2e8f0; background: #ffffff; overflow-y: auto; flex-shrink: 0; }
-        .main-layout { display: flex; min-height: calc(100vh - 64px); }
-        .main-area { flex: 1; overflow-y: auto; background: #f8fafc; }
-        .top-bar { background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-badge { font-size: 10px; background: var(--badge-bg); color: white; border-radius: 9999px; padding: 0 6px; margin-left: auto; min-width: 18px; text-align: center; line-height: 18px; font-weight: 600; }
+        .sidebar-container { width: 240px; min-height: calc(100vh - 56px); border-right: 1px solid var(--border); background: var(--sidebar-bg); overflow-y: auto; flex-shrink: 0; }
+        .main-layout { display: flex; min-height: calc(100vh - 56px); }
+        .main-area { flex: 1; overflow-y: auto; background: var(--content-bg); }
+        .top-bar { background: var(--topbar-bg); border-bottom: 1px solid var(--topbar-border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
         .messages-container .msg { padding: 12px 16px; margin: 8px 24px; border-radius: 8px; font-size: 14px; }
-        .msg-success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-        .msg-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-        .msg-warning { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+        .msg-success { background: var(--msg-success-bg); color: var(--msg-success-text); border: 1px solid var(--msg-success-border); }
+        .msg-error { background: var(--msg-error-bg); color: var(--msg-error-text); border: 1px solid var(--msg-error-border); }
+        .msg-warning { background: var(--msg-warning-bg); color: var(--msg-warning-text); border: 1px solid var(--msg-warning-border); }
+
+        .theme-toggle-btn { cursor: pointer; background: var(--surface-alt); border: 1px solid var(--border); border-radius: 0.5rem; padding: 6px; color: var(--text-secondary); transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .theme-toggle-btn:hover { color: var(--text-primary); border-color: var(--primary); }
+        [data-theme="dark"] .icon-sun { display: block; }
+        [data-theme="dark"] .icon-moon { display: none; }
+        [data-theme="light"] .icon-sun { display: none; }
+        [data-theme="light"] .icon-moon { display: block; }
+
+        [data-theme="dark"] .bg-white { background-color: #111827 !important; }
+        [data-theme="dark"] .bg-slate-50, [data-theme="dark"] .bg-gray-50 { background-color: #0B0F19 !important; }
+        [data-theme="dark"] .bg-gray-100 { background-color: #1F2937 !important; }
+        [data-theme="dark"] .hover\:bg-gray-50:hover, [data-theme="dark"] .hover\:bg-slate-50:hover { background-color: #1F2937 !important; }
+        [data-theme="dark"] .text-gray-900, [data-theme="dark"] .text-slate-900 { color: #F9FAFB !important; }
+        [data-theme="dark"] .text-gray-800, [data-theme="dark"] .text-slate-800 { color: #E5E7EB !important; }
+        [data-theme="dark"] .text-gray-700, [data-theme="dark"] .text-slate-700 { color: #D1D5DB !important; }
+        [data-theme="dark"] .text-gray-600, [data-theme="dark"] .text-slate-600 { color: #9CA3AF !important; }
+        [data-theme="dark"] .text-gray-500, [data-theme="dark"] .text-slate-500 { color: #9CA3AF !important; }
+        [data-theme="dark"] .text-gray-400, [data-theme="dark"] .text-slate-400 { color: #6B7280 !important; }
+        [data-theme="dark"] .text-gray-300, [data-theme="dark"] .text-slate-300 { color: #4B5563 !important; }
+        [data-theme="dark"] .border-gray-200, [data-theme="dark"] .border-slate-200 { border-color: #1F2937 !important; }
+        [data-theme="dark"] .border-gray-100, [data-theme="dark"] .border-slate-100 { border-color: #1F2937 !important; }
+        [data-theme="dark"] .border-gray-300 { border-color: #374151 !important; }
+        [data-theme="dark"] .divide-gray-100 > * + *, [data-theme="dark"] .divide-gray-200 > * + * { border-color: #1F2937 !important; }
+        [data-theme="dark"] .ring-gray-300 { --tw-ring-color: #374151 !important; }
+        [data-theme="dark"] .bg-green-100 { background-color: rgba(34,197,94,0.15) !important; }
+        [data-theme="dark"] .text-green-800, [data-theme="dark"] .text-green-700 { color: #4ADE80 !important; }
+        [data-theme="dark"] .text-green-600 { color: #22C55E !important; }
+        [data-theme="dark"] .bg-yellow-100 { background-color: rgba(245,158,11,0.15) !important; }
+        [data-theme="dark"] .text-yellow-800, [data-theme="dark"] .text-yellow-700 { color: #FBBF24 !important; }
+        [data-theme="dark"] .bg-red-100 { background-color: rgba(239,68,68,0.15) !important; }
+        [data-theme="dark"] .text-red-800, [data-theme="dark"] .text-red-700 { color: #F87171 !important; }
+        [data-theme="dark"] .text-red-600 { color: #F87171 !important; }
+        [data-theme="dark"] .text-orange-600 { color: #FB923C !important; }
+        [data-theme="dark"] .bg-blue-100 { background-color: rgba(37,99,235,0.15) !important; }
+        [data-theme="dark"] .text-blue-800, [data-theme="dark"] .text-blue-700 { color: #60A5FA !important; }
+        [data-theme="dark"] .text-blue-600 { color: #3B82F6 !important; }
+        [data-theme="dark"] .bg-purple-100, [data-theme="dark"] .bg-indigo-100 { background-color: rgba(139,92,246,0.15) !important; }
+        [data-theme="dark"] .text-purple-800, [data-theme="dark"] .text-indigo-800 { color: #A78BFA !important; }
+        [data-theme="dark"] .bg-orange-100 { background-color: rgba(249,115,22,0.15) !important; }
+        [data-theme="dark"] .text-orange-800 { color: #FB923C !important; }
+        [data-theme="dark"] .bg-emerald-100, [data-theme="dark"] .bg-teal-100 { background-color: rgba(16,185,129,0.15) !important; }
+        [data-theme="dark"] .text-emerald-800, [data-theme="dark"] .text-teal-800 { color: #34D399 !important; }
+        [data-theme="dark"] .shadow-sm, [data-theme="dark"] .shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important; }
+        [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea {
+            background-color: #0B0F19 !important; color: #F9FAFB !important; border-color: #1F2937 !important;
+        }
+        [data-theme="dark"] input::placeholder, [data-theme="dark"] textarea::placeholder { color: #4B5563 !important; }
+        [data-theme="dark"] input:focus, [data-theme="dark"] select:focus, [data-theme="dark"] textarea:focus {
+            border-color: #2563EB !important; box-shadow: 0 0 0 2px rgba(37,99,235,0.3) !important;
+        }
+        [data-theme="dark"] table { color: #F9FAFB; }
+        [data-theme="dark"] th { color: #9CA3AF !important; border-color: #1F2937 !important; }
+        [data-theme="dark"] td { border-color: #1F2937 !important; }
+        [data-theme="dark"] tbody tr:hover { background-color: #1F2937 !important; }
+        [data-theme="dark"] .p-6 { color: #F9FAFB; }
     </style>
 </head>
-<body class="bg-slate-50">
+<body style="background: var(--content-bg); color: var(--text-primary);">
     <div class="top-bar">
-        <div class="flex items-center gap-4">
-            <a href="{% url 'dashboard' %}" class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #1e3a5f, #2563eb);">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <a href="{% url 'dashboard' %}" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+                <div style="width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--btn-gradient);">
+                    <svg style="width: 18px; height: 18px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 </div>
                 <div>
-                    <span class="font-bold text-slate-900 text-base tracking-tight">CMS Aegis</span>
-                    <span class="text-[10px] text-slate-400 ml-1.5 font-medium tracking-wide uppercase">Legal</span>
+                    <span style="font-weight: 700; color: var(--text-primary); font-size: 15px; letter-spacing: -0.02em;">CMS Aegis</span>
+                    <span style="font-size: 10px; color: var(--text-muted); margin-left: 6px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;">Legal</span>
                 </div>
             </a>
         </div>
-        <div class="flex items-center gap-3">
+        <div style="display: flex; align-items: center; gap: 8px;">
             {% if user.is_authenticated %}
-                <a href="{% url 'contracts:notification_list' %}" class="relative p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-50 transition" title="Notifications">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                <button onclick="toggleTheme()" class="theme-toggle-btn" title="Toggle theme">
+                    <svg class="icon-sun" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <svg class="icon-moon" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                </button>
+                <a href="{% url 'contracts:notification_list' %}" style="position: relative; padding: 6px; color: var(--text-secondary); border-radius: 8px; transition: all 0.2s; text-decoration: none;" title="Notifications">
+                    <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                 </a>
-                <a href="{% url 'contracts:contract_create' %}" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-white text-sm font-medium rounded-lg transition shadow-sm" style="background: linear-gradient(135deg, #1e3a5f, #2563eb);">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                <a href="{% url 'contracts:contract_create' %}" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; color: white; font-size: 13px; font-weight: 500; border-radius: 8px; transition: all 0.2s; text-decoration: none; background: var(--btn-gradient);">
+                    <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                     New
                 </a>
-                <div class="w-px h-8 bg-slate-200 mx-1"></div>
-                <div class="flex items-center gap-2">
-                    <a href="{% url 'profile' %}" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background: linear-gradient(135deg, #1e3a5f, #2563eb);">
+                <div style="width: 1px; height: 28px; background: var(--border); margin: 0 4px;"></div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <a href="{% url 'profile' %}" style="display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 8px; transition: all 0.2s; text-decoration: none;">
+                        <div style="width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 700; background: var(--avatar-gradient);">
                             {{ user.first_name.0|default:user.username.0|upper }}
                         </div>
-                        <span class="text-sm font-medium text-slate-700">{{ user.first_name|default:user.username }}</span>
+                        <span style="font-size: 13px; font-weight: 500; color: var(--text-primary);">{{ user.first_name|default:user.username }}</span>
                     </a>
-                    <form method="post" action="{% url 'logout' %}" class="inline">
+                    <form method="post" action="{% url 'logout' %}" style="display: inline;">
                         {% csrf_token %}
-                        <button type="submit" class="text-xs text-slate-400 hover:text-slate-600 px-2 py-1 rounded hover:bg-slate-50 transition">Logout</button>
+                        <button type="submit" style="font-size: 11px; color: var(--text-muted); padding: 4px 8px; border-radius: 6px; background: none; border: none; cursor: pointer; transition: all 0.2s;">Logout</button>
                     </form>
                 </div>
             {% else %}
-                <a href="{% url 'login' %}" class="text-sm text-slate-600 hover:text-slate-900 px-4 py-2 font-medium transition">Sign in</a>
-                <a href="{% url 'register' %}" class="text-sm text-white px-4 py-2 rounded-lg font-medium transition shadow-sm" style="background: linear-gradient(135deg, #1e3a5f, #2563eb);">Get Started</a>
+                <button onclick="toggleTheme()" class="theme-toggle-btn" title="Toggle theme">
+                    <svg class="icon-sun" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <svg class="icon-moon" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                </button>
+                <a href="{% url 'login' %}" style="font-size: 14px; color: var(--text-secondary); padding: 8px 16px; font-weight: 500; transition: all 0.2s; text-decoration: none;">Sign in</a>
+                <a href="{% url 'register' %}" style="font-size: 14px; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 500; transition: all 0.2s; text-decoration: none; background: var(--btn-gradient);">Get Started</a>
             {% endif %}
         </div>
     </div>
@@ -75,7 +237,7 @@
     {% if user.is_authenticated %}
     <div class="main-layout">
         <nav class="sidebar-container" id="sidebar">
-            <div class="py-3">
+            <div style="padding: 12px 0;">
                 <div class="nav-section">Main</div>
                 <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
@@ -183,7 +345,7 @@
             </div>
             {% endif %}
 
-            <div class="p-6">
+            <div style="padding: 24px;">
                 {% block content %}{% endblock %}
             </div>
         </div>
