@@ -4,94 +4,85 @@
 {% block title %}Sign in - CMS Aegis{% endblock %}
 
 {% block body %}
-<div class="min-h-screen flex">
-    <div class="hidden lg:flex lg:w-1/2 relative items-center justify-center" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1d4ed8 100%);">
-        <div class="absolute inset-0 opacity-10">
-            <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.3"/>
-                    </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#grid)" />
-            </svg>
-        </div>
+<div class="min-h-screen flex" style="background: #0B0F19;">
+    <div class="hidden lg:flex lg:w-1/2 relative items-center justify-center" style="background: #111827; border-right: 1px solid #1F2937;">
+        <div class="absolute top-1/3 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full opacity-15 blur-3xl" style="background: #2563EB;"></div>
         <div class="relative z-10 px-12 max-w-lg">
-            <div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center mb-8">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-8" style="background: rgba(37,99,235,0.15);">
+                <svg class="w-7 h-7" style="color: #2563EB;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
             </div>
-            <h2 class="text-3xl font-bold text-white mb-4 leading-tight">Protect your practice.<br>Empower your team.</h2>
-            <p class="text-blue-200/80 text-base leading-relaxed">CMS Aegis provides the complete legal management toolkit your firm needs to stay organized, compliant, and profitable.</p>
+            <h2 class="text-3xl font-bold mb-4 leading-tight" style="color: #F9FAFB;">Protect your practice.<br>Empower your team.</h2>
+            <p class="text-base leading-relaxed" style="color: #9CA3AF;">CMS Aegis provides the complete legal management toolkit your firm needs to stay organized, compliant, and profitable.</p>
             <div class="mt-12 space-y-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(34,197,94,0.12);">
+                        <svg class="w-4 h-4" style="color: #22C55E;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                     </div>
-                    <span class="text-sm text-blue-100/90">Manage clients, matters & contracts</span>
+                    <span class="text-sm" style="color: #9CA3AF;">Manage clients, matters & contracts</span>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(34,197,94,0.12);">
+                        <svg class="w-4 h-4" style="color: #22C55E;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                     </div>
-                    <span class="text-sm text-blue-100/90">Track billable hours & generate invoices</span>
+                    <span class="text-sm" style="color: #9CA3AF;">Track billable hours & generate invoices</span>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(34,197,94,0.12);">
+                        <svg class="w-4 h-4" style="color: #22C55E;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                     </div>
-                    <span class="text-sm text-blue-100/90">Automated compliance & conflict checks</span>
+                    <span class="text-sm" style="color: #9CA3AF;">Automated compliance & conflict checks</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8" style="background: #0B0F19;">
         <div class="w-full max-w-md">
             <div class="flex items-center gap-3 mb-10">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #1e3a5f, #2563eb);">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: #2563EB;">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 </div>
-                <span class="text-xl font-bold text-slate-900 tracking-tight">CMS Aegis</span>
+                <span class="text-xl font-bold tracking-tight" style="color: #F9FAFB;">CMS Aegis</span>
             </div>
 
-            <h1 class="text-2xl font-bold text-slate-900 mb-1">Welcome back</h1>
-            <p class="text-sm text-slate-500 mb-8">Sign in to your account to continue</p>
+            <h1 class="text-2xl font-bold mb-1" style="color: #F9FAFB;">Welcome back</h1>
+            <p class="text-sm mb-8" style="color: #9CA3AF;">Sign in to your account to continue</p>
 
             {% if form.errors %}
-            <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-                <p class="text-sm text-red-700 font-medium">Invalid username or password. Please try again.</p>
+            <div class="mb-6 p-4 rounded-xl border" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.2);">
+                <p class="text-sm font-medium" style="color: #F87171;">Invalid username or password. Please try again.</p>
             </div>
             {% endif %}
 
             <form method="post" class="space-y-5">
                 {% csrf_token %}
                 <div>
-                    <label for="id_username" class="block text-sm font-semibold text-slate-700 mb-2">Username</label>
-                    <input type="text" name="username" id="id_username" autofocus required
-                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 transition"
+                    <label for="id_username" class="block text-sm font-semibold mb-2" style="color: #F9FAFB;">Username</label>
+                    <input type="text" name="username" id="id_username" autofocus required autocomplete="username"
+                        class="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 transition"
+                        style="background: #111827; border: 1px solid #1F2937; color: #F9FAFB; --tw-ring-color: #2563EB;"
                         placeholder="Enter your username">
                 </div>
                 <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <label for="id_password" class="block text-sm font-semibold text-slate-700">Password</label>
-                    </div>
-                    <input type="password" name="password" id="id_password" required
-                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 transition"
+                    <label for="id_password" class="block text-sm font-semibold mb-2" style="color: #F9FAFB;">Password</label>
+                    <input type="password" name="password" id="id_password" required autocomplete="current-password"
+                        class="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 transition"
+                        style="background: #111827; border: 1px solid #1F2937; color: #F9FAFB; --tw-ring-color: #2563EB;"
                         placeholder="Enter your password">
                 </div>
                 <div class="flex items-center gap-2">
-                    <input id="remember" name="remember" type="checkbox" class="h-4 w-4 border-slate-300 rounded text-blue-600 focus:ring-blue-500/40">
-                    <label for="remember" class="text-sm text-slate-600">Remember me</label>
+                    <input id="remember" name="remember" type="checkbox" class="h-4 w-4 rounded border-gray-600" style="accent-color: #2563EB;">
+                    <label for="remember" class="text-sm" style="color: #9CA3AF;">Remember me</label>
                 </div>
-                <button type="submit" class="w-full py-3 text-white rounded-xl font-semibold text-sm transition shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-[1.01]" style="background: linear-gradient(135deg, #1e3a5f, #2563eb);">
+                <button type="submit" class="w-full py-3 text-white rounded-xl font-semibold text-sm transition shadow-lg hover:opacity-90" style="background: #2563EB; box-shadow: 0 8px 24px rgba(37,99,235,0.3);">
                     Sign in
                 </button>
             </form>
 
             <div class="mt-8 text-center">
-                <p class="text-sm text-slate-500">
+                <p class="text-sm" style="color: #9CA3AF;">
                     Don't have an account?
-                    <a href="{% url 'register' %}" class="text-blue-600 hover:text-blue-800 font-semibold transition">Create one free</a>
+                    <a href="{% url 'register' %}" class="font-semibold transition hover:opacity-80" style="color: #2563EB;">Create one free</a>
                 </p>
             </div>
         </div>
