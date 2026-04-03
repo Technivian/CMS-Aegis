@@ -6,8 +6,8 @@ app_name = 'contracts'
 
 urlpatterns = [
     path('api/contracts/', api_views.contracts_api, name='contracts_api'),
-    path('api/contracts/<str:contract_id>/', api_views.contract_detail_api, name='contract_detail_api'),
     path('api/contracts/bulk-update/', api_views.contracts_bulk_update_api, name='contracts_bulk_update_api'),
+    path('api/contracts/<str:contract_id>/', api_views.contract_detail_api, name='contract_detail_api'),
 
     # Clients
     path('clients/', views.ClientListView.as_view(), name='client_list'),

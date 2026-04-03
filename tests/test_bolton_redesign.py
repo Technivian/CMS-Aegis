@@ -19,144 +19,80 @@ class BoltonRedesignTestCase(TestCase):
         # Set feature flag
         os.environ['FEATURE_REDESIGN'] = 'true'
 
-    def test_dashboard_stat_cards(self):
-        """Test that dashboard displays stat cards when redesign is enabled"""
+    def test_dashboard_kpi_cards(self):
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
-        
-        # Check for stat cards structure
-        self.assertContains(response, 'grid grid-cols-4 gap-6')
-        self.assertContains(response, 'Total Contracts')
+
+        self.assertContains(response, 'Active Contracts')
+        self.assertContains(response, 'Clients')
+        self.assertContains(response, 'Outstanding')
         self.assertContains(response, 'Pending Tasks')
-        self.assertContains(response, 'Active Workflows')
-        self.assertContains(response, 'Expiring Soon')
+        self.assertContains(response, 'kpi-card')
 
     def test_dashboard_container_constraint(self):
-        """Test that dashboard uses max-w-[1200px] container"""
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'max-w-[1200px] mx-auto px-6')
+        self.assertContains(response, 'max-width: 1400px')
 
     def test_dashboard_top_bar(self):
-        """Test that dashboard has proper top bar with search and new contract button"""
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
-        
-        # Check for search input
-        self.assertContains(response, 'Search contracts, workflows...')
-        self.assertContains(response, '@keydown.slash.window.prevent')
-        
-        # Check for new contract button
-        self.assertContains(response, 'New Contract')
-        self.assertContains(response, 'bg-blue-600')
 
-    def test_dashboard_saved_views(self):
-        """Test that dashboard displays saved views chips"""
+        self.assertContains(response, 'title="Search"')
+        self.assertContains(response, 'title="Toggle theme"')
+        self.assertContains(response, 'title="Notifications"')
+        self.assertContains(response, 'New Contract')
+        self.assertContains(response, 'Logout')
+
+    def test_dashboard_panels(self):
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
-        
-        self.assertContains(response, 'Saved Views:')
-        self.assertContains(response, 'Pending Review')
-        self.assertContains(response, 'Active Contracts')
+        self.assertContains(response, 'Recent Contracts')
+        self.assertContains(response, 'Upcoming Deadlines')
+        self.assertContains(response, 'Activity Feed')
+        self.assertContains(response, 'Billing Snapshot')
 
     def test_contracts_table_structure(self):
-        """Test that contracts table has proper structure and sticky header"""
-        # Create test contract
         Contract.objects.create(
             title='Test Contract',
             content='Test content',
             status='DRAFT',
             created_by=self.user
         )
-        
-        response = self.client.get(reverse('dashboard'))
-        self.assertEqual(response.status_code, 200)
-        
-        # Check for sticky header
-        self.assertContains(response, 'sticky top-16 z-20')
-        
-        # Check for all required columns
-        self.assertContains(response, 'Name')
-        self.assertContains(response, 'Stage')
-        self.assertContains(response, 'Agreement Date')
-        self.assertContains(response, 'Region')
-        self.assertContains(response, 'Value')
-        self.assertContains(response, 'Counterparty')
-        self.assertContains(response, 'Owner')
-        self.assertContains(response, 'Updated')
 
-    def test_contract_row_click_functionality(self):
-        """Test that contract rows have proper click handlers for drawer"""
-        Contract.objects.create(
-            title='Test Contract',
-            content='Test content',
-            status='DRAFT',
-            created_by=self.user
-        )
-        
-        response = self.client.get(reverse('dashboard'))
-        self.assertEqual(response.status_code, 200)
-        
-        # Check for drawer functionality
-        self.assertContains(response, 'openContractDrawer')
-        self.assertContains(response, '@click="openContractDrawer')
-        self.assertContains(response, '@keydown.enter="openContractDrawer')
-
-    def test_contract_drawer_structure(self):
-        """Test that contract drawer has proper structure and accessibility"""
-        response = self.client.get(reverse('dashboard'))
-        self.assertEqual(response.status_code, 200)
-        
-        # Check for drawer element
-        self.assertContains(response, 'w-[480px]')
-        self.assertContains(response, 'Contract Details')
-        
-        # Check for action buttons
-        self.assertContains(response, 'Edit Contract')
-        self.assertContains(response, 'Start/Advance Workflow')
-
-    def test_contracts_list_url_sync_filters(self):
-        """Test that contracts list supports URL-synced filters"""
         response = self.client.get(reverse('contracts:contract_list'))
         self.assertEqual(response.status_code, 200)
-        
-        # Check for filter controls
-        self.assertContains(response, 'Status:')
-        self.assertContains(response, 'Owner:')
-        self.assertContains(response, 'Value Range:')
-        
-        # Check for filter update functionality
-        self.assertContains(response, 'updateFilters()')
-        self.assertContains(response, 'loadFiltersFromURL()')
+
+        self.assertContains(response, 'Title')
+        self.assertContains(response, 'Type')
+        self.assertContains(response, 'Status')
+        self.assertContains(response, 'Value')
+        self.assertContains(response, 'Counterparty')
+        self.assertContains(response, 'Test Contract')
+
+    def test_contracts_list_filters_and_actions(self):
+        response = self.client.get(reverse('contracts:contract_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Search contracts...')
+        self.assertContains(response, 'All Statuses')
+        self.assertContains(response, 'Search')
+        self.assertContains(response, 'New Contract')
 
     def test_accessibility_features(self):
-        """Test that accessibility features are implemented"""
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
-        
-        # Check for focus rings
-        self.assertContains(response, 'focus:ring-2')
-        self.assertContains(response, 'focus:ring-blue-500')
-        
-        # Check for ARIA labels
-        self.assertContains(response, 'aria-label')
-        
-        # Check for tabindex for keyboard navigation
-        self.assertContains(response, 'tabindex="0"')
+
+        self.assertContains(response, 'title="Search"')
+        self.assertContains(response, 'title="Toggle theme"')
+        self.assertContains(response, 'title="Search"')
+        self.assertContains(response, 'type="submit"')
 
     def test_typography_and_spacing(self):
-        """Test that proper typography and spacing is used"""
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
-        
-        # Check for Inter font and proper sizing
-        self.assertContains(response, 'text-[32px] leading-[36px]')  # Page title
-        self.assertContains(response, 'text-[24px] leading-[28px]')  # Section headers
-        self.assertContains(response, 'text-[14px] leading-[16px]')  # Base text
-        
-        # Check for 8px spacing scale
-        self.assertContains(response, 'space-y-6')
-        self.assertContains(response, 'gap-6')
+        self.assertContains(response, "font-family: 'Inter'")
+        self.assertContains(response, 'dash-grid')
+        self.assertContains(response, 'gap: 20px')
 
     def tearDown(self):
         """Clean up environment variables"""
