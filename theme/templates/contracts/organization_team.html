@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Organization Team - CMS Aegis{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">Organization Team</h1>
+        <p class="text-sm text-gray-500 mt-1">Manage members and invite teammates to {{ organization.name }}.</p>
+    </div>
+    <a href="{% url 'contracts:organization_activity' %}" class="inline-flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">View Activity</a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Active Members</h2>
+        </div>
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">User</th>
+                    <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Email</th>
+                    <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Role</th>
+                    <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Joined</th>
+                    <th class="text-right px-5 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for membership in memberships %}
+                <tr>
+                    <td class="px-5 py-3 text-sm font-medium text-gray-800">{{ membership.user.get_full_name|default:membership.user.username }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-600">{{ membership.user.email|default:"-" }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-600">
+                        <form method="post" action="{% url 'contracts:update_membership_role' membership.id %}" class="inline-flex items-center gap-2">
+                            {% csrf_token %}
+                            <select name="role" class="px-2 py-1 border border-gray-300 rounded text-sm bg-white" {% if membership.role == 'OWNER' and not is_owner %}disabled{% endif %}>
+                                <option value="OWNER" {% if membership.role == 'OWNER' %}selected{% endif %}>Owner</option>
+                                <option value="ADMIN" {% if membership.role == 'ADMIN' %}selected{% endif %}>Admin</option>
+                                <option value="MEMBER" {% if membership.role == 'MEMBER' %}selected{% endif %}>Member</option>
+                            </select>
+                            <button type="submit" class="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200" {% if membership.role == 'OWNER' and not is_owner %}disabled{% endif %}>Save</button>
+                        </form>
+                    </td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ membership.created_at|date:"M j, Y" }}</td>
+                    <td class="px-5 py-3 text-right">
+                        {% if membership.user_id != current_user_id %}
+                        <form method="post" action="{% url 'contracts:deactivate_organization_member' membership.id %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-xs px-2 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100">Deactivate</button>
+                        </form>
+                        {% else %}
+                        <span class="text-xs text-gray-400">You</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-5 py-10 text-center text-sm text-gray-400">No members found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="space-y-6">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Inactive Members</h2>
+            <div class="space-y-3">
+                {% for membership in inactive_memberships %}
+                <div class="border border-gray-100 rounded-lg p-3 flex items-center justify-between gap-2">
+                    <div>
+                        <p class="text-sm font-medium text-gray-800">{{ membership.user.get_full_name|default:membership.user.username }}</p>
+                        <p class="text-xs text-gray-500">{{ membership.user.email|default:"-" }} | {{ membership.get_role_display }}</p>
+                    </div>
+                    <form method="post" action="{% url 'contracts:reactivate_organization_member' membership.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="text-xs px-2 py-1 bg-green-50 text-green-700 rounded hover:bg-green-100">Reactivate</button>
+                    </form>
+                </div>
+                {% empty %}
+                <p class="text-sm text-gray-400">No inactive members.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Invite Member</h2>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Email</label>
+                    {{ invite_form.email }}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Role</label>
+                    {{ invite_form.role }}
+                </div>
+                <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+                    Create Invitation
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Pending Invites</h2>
+            <div class="space-y-3">
+                {% for invitation in invitations %}
+                <div class="border border-gray-100 rounded-lg p-3">
+                    <p class="text-sm font-medium text-gray-800">{{ invitation.email }}</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ invitation.get_role_display }} | Expires {{ invitation.expires_at|date:"M j, Y g:i A" }}</p>
+                    <div class="flex items-center gap-2 mt-2">
+                        <form method="post" action="{% url 'contracts:resend_organization_invite' invitation.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100">Resend</button>
+                        </form>
+                        <form method="post" action="{% url 'contracts:revoke_organization_invite' invitation.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="text-xs px-2 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100">Revoke</button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-sm text-gray-400">No pending invitations.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Invitation History</h2>
+            <div class="space-y-3 max-h-72 overflow-auto pr-1">
+                {% for invitation in invitation_history %}
+                <div class="border border-gray-100 rounded-lg p-3">
+                    <p class="text-sm font-medium text-gray-800">{{ invitation.email }}</p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        {{ invitation.get_role_display }} | {{ invitation.get_status_display }} | {{ invitation.created_at|date:"M j, Y g:i A" }}
+                    </p>
+                </div>
+                {% empty %}
+                <p class="text-sm text-gray-400">No invitation history yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

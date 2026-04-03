@@ -3,7 +3,7 @@ import os
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
-from contracts.models import Contract
+from contracts.models import Contract, Organization, OrganizationMembership
 
 
 class BoltonRedesignTestCase(TestCase):
@@ -13,6 +13,13 @@ class BoltonRedesignTestCase(TestCase):
             username='testuser',
             password='testpass123',
             email='test@example.com'
+        )
+        self.organization = Organization.objects.create(name='Bolton Firm', slug='bolton-firm')
+        OrganizationMembership.objects.create(
+            organization=self.organization,
+            user=self.user,
+            role=OrganizationMembership.Role.OWNER,
+            is_active=True,
         )
         self.client.login(username='testuser', password='testpass123')
         
@@ -54,6 +61,7 @@ class BoltonRedesignTestCase(TestCase):
 
     def test_contracts_table_structure(self):
         Contract.objects.create(
+            organization=self.organization,
             title='Test Contract',
             content='Test content',
             status='DRAFT',

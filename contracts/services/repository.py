@@ -10,6 +10,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 import time
 from typing import List, Optional
+from contracts.tenancy import get_user_organization, scope_queryset_for_organization
 
 def get_repository_service(user: User, use_mock: bool = False):
     """Factory function to get repository service"""
@@ -35,10 +36,11 @@ class DjangoRepositoryService(RepositoryServiceInterface):
     
     def __init__(self, user: User):
         self.user = user
+        self.organization = get_user_organization(user)
     
     def list(self, params: ListParams) -> ListResult:
         """List contracts with filtering and pagination"""
-        queryset = Contract.objects.all()
+        queryset = scope_queryset_for_organization(Contract.objects.all(), self.organization)
         
         # Apply search
         if params.q:
@@ -98,7 +100,8 @@ class DjangoRepositoryService(RepositoryServiceInterface):
     def get_by_id(self, contract_id: str) -> Optional[ContractData]:
         """Get single contract by ID"""
         try:
-            contract = Contract.objects.get(id=contract_id)
+            queryset = scope_queryset_for_organization(Contract.objects.all(), self.organization)
+            contract = queryset.get(id=contract_id)
             return ContractData(
                 id=str(contract.id),
                 title=contract.title,
@@ -117,7 +120,7 @@ class DjangoRepositoryService(RepositoryServiceInterface):
     
     def bulk_update(self, contract_ids: List[str], updates: dict) -> int:
         """Bulk update contracts"""
-        queryset = Contract.objects.filter(id__in=contract_ids)
+        queryset = scope_queryset_for_organization(Contract.objects.filter(id__in=contract_ids), self.organization)
         return queryset.update(**updates)
 
 class MockRepositoryService(RepositoryServiceInterface):

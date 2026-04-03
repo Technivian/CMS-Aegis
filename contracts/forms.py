@@ -10,6 +10,7 @@ from .models import (
     Counterparty, ClauseCategory, ClauseTemplate, EthicalWall, SignatureRequest,
     DataInventoryRecord, DSARRequest, Subprocessor, TransferRecord, RetentionPolicy,
     LegalHold, ApprovalRule, ApprovalRequest,
+    OrganizationInvitation,
 )
 
 User = get_user_model()
@@ -256,6 +257,19 @@ class RegistrationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = User
         fields = ('username', 'email', 'first_name', 'last_name')
+
+
+class OrganizationInvitationForm(forms.ModelForm):
+    class Meta:
+        model = OrganizationInvitation
+        fields = ['email', 'role']
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': TAILWIND_INPUT, 'placeholder': 'name@company.com'}),
+            'role': forms.Select(attrs={'class': TAILWIND_SELECT}),
+        }
+
+    def clean_email(self):
+        return self.cleaned_data['email'].strip().lower()
 
 
 class ChecklistItemForm(forms.ModelForm):

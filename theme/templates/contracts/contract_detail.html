@@ -39,7 +39,21 @@
             <a href="{% url 'contracts:document_create' %}" class="block text-sm text-blue-600 hover:text-blue-800">Attach Document</a>
             <a href="{% url 'contracts:deadline_create' %}" class="block text-sm text-blue-600 hover:text-blue-800">Add Deadline</a>
             <a href="{% url 'contracts:add_negotiation_note' contract.pk %}" class="block text-sm text-blue-600 hover:text-blue-800">Add Negotiation Note</a>
+            <button id="ai-assistant-trigger" type="button" class="block text-sm text-left text-blue-600 hover:text-blue-800">Run Internal AI Review</button>
         </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+    <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Internal AI Assistant</h3>
+    <p class="text-sm text-gray-600 mb-3">Closed-server assistant. Data stays in your tenant context and is processed by internal rules.</p>
+    <div class="flex flex-col gap-3">
+        <textarea id="ai-assistant-prompt" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" rows="3" placeholder="Ask for risk, renewal, and action insights for this contract..."></textarea>
+        <div class="flex items-center gap-3">
+            <button id="ai-assistant-submit" type="button" class="px-3 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800">Analyze</button>
+            <span id="ai-assistant-status" class="text-xs text-gray-500"></span>
+        </div>
+        <pre id="ai-assistant-output" class="hidden text-xs bg-gray-50 border border-gray-200 rounded-lg p-3 text-gray-700 whitespace-pre-wrap"></pre>
     </div>
 </div>
 
@@ -93,4 +107,51 @@
     </div>
 </div>
 {% endif %}
+
+<script>
+(() => {
+    const prompt = document.getElementById('ai-assistant-prompt');
+    const submit = document.getElementById('ai-assistant-submit');
+    const trigger = document.getElementById('ai-assistant-trigger');
+    const status = document.getElementById('ai-assistant-status');
+    const output = document.getElementById('ai-assistant-output');
+    if (!prompt || !submit || !status || !output) {
+        return;
+    }
+
+    const runAssistant = async () => {
+        status.textContent = 'Analyzing...';
+        submit.disabled = true;
+        try {
+            const response = await fetch("{% url 'contracts:contract_ai_assistant' contract.pk %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ prompt: prompt.value })
+            });
+            if (!response.ok) {
+                throw new Error('Request failed');
+            }
+            const data = await response.json();
+            output.textContent = JSON.stringify(data.response, null, 2);
+            output.classList.remove('hidden');
+            status.textContent = 'Done';
+        } catch (err) {
+            status.textContent = 'Unable to run assistant right now.';
+        } finally {
+            submit.disabled = false;
+        }
+    };
+
+    submit.addEventListener('click', runAssistant);
+    if (trigger) {
+        trigger.addEventListener('click', () => {
+            prompt.focus();
+            runAssistant();
+        });
+    }
+})();
+</script>
 {% endblock %}

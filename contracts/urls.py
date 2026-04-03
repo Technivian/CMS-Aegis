@@ -62,6 +62,16 @@ urlpatterns = [
     path('notifications/', views.notification_list, name='notification_list'),
     path('notifications/<int:pk>/read/', views.mark_notification_read, name='mark_notification_read'),
     path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+    path('organizations/switch/', views.switch_organization, name='switch_organization'),
+    path('organizations/team/', views.organization_team, name='organization_team'),
+    path('organizations/invitations/<uuid:token>/accept/', views.accept_organization_invite, name='accept_organization_invite'),
+    path('organizations/invitations/<int:invite_id>/revoke/', views.revoke_organization_invite, name='revoke_organization_invite'),
+    path('organizations/invitations/<int:invite_id>/resend/', views.resend_organization_invite, name='resend_organization_invite'),
+    path('organizations/members/<int:membership_id>/role/', views.update_membership_role, name='update_membership_role'),
+    path('organizations/members/<int:membership_id>/deactivate/', views.deactivate_organization_member, name='deactivate_organization_member'),
+    path('organizations/members/<int:membership_id>/reactivate/', views.reactivate_organization_member, name='reactivate_organization_member'),
+    path('organizations/activity/', views.organization_activity, name='organization_activity'),
+    path('organizations/activity/export/', views.organization_activity_export, name='organization_activity_export'),
 
     # Reports
     path('reports/', views.reports_dashboard, name='reports_dashboard'),
@@ -189,4 +199,5 @@ urlpatterns = [
     path('new/', views.ContractCreateView.as_view(), name='contract_create'),
     path('<int:pk>/edit/', views.ContractUpdateView.as_view(), name='contract_update'),
     path('<int:pk>/add_note/', views.AddNegotiationNoteView.as_view(), name='add_negotiation_note'),
+    path('<int:pk>/ai-assistant/', views.contract_ai_assistant, name='contract_ai_assistant'),
 ]

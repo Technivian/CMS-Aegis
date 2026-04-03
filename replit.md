@@ -178,3 +178,7 @@ python manage.py runserver 0.0.0.0:5000
 
 ## Workflow
 - **Django Server**: `python manage.py migrate && python manage.py runserver 0.0.0.0:5000`
+- **Local Orchestration (server + reminders)**:
+  - `bash scripts/dev_up.sh` (default 60-minute reminder interval)
+  - `bash scripts/dev_up.sh 15` (run reminders every 15 minutes)
+  - `bash scripts/dev_down.sh`

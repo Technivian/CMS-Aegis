@@ -104,6 +104,28 @@ The tests cover:
 - Bulk operations
 - Template rendering with/without Ironclad mode
 
+## Automated Contract Reminder Scheduling
+
+Renewal and expiration reminders can run automatically via in-repo management commands:
+
+```bash
+# one-off execution
+python manage.py send_contract_reminders
+
+# scheduler loop (runs hourly by default)
+python manage.py run_reminder_scheduler
+
+# custom interval in minutes
+python manage.py run_reminder_scheduler --interval-minutes 15
+
+# run scheduler logic once and exit
+python manage.py run_reminder_scheduler --once
+```
+
+Recommended production setup:
+- Run `run_reminder_scheduler` as a dedicated background process.
+- Keep the web server and scheduler as separate processes for reliability.
+
 ## Switching to Real API
 
 To switch from the current Django backend to a real API:

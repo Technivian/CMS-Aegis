@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from contracts.models import Contract
+from contracts.models import Contract, Organization, OrganizationMembership
 
 
 class IroncladFeaturesTests(TestCase):
@@ -17,9 +17,17 @@ class IroncladFeaturesTests(TestCase):
             email='test@example.com',
             password='testpass123',
         )
+        self.organization = Organization.objects.create(name='Iron Firm', slug='iron-firm')
+        OrganizationMembership.objects.create(
+            organization=self.organization,
+            user=self.user,
+            role=OrganizationMembership.Role.OWNER,
+            is_active=True,
+        )
         os.environ['FEATURE_REDESIGN'] = 'true'
 
         self.contract = Contract.objects.create(
+            organization=self.organization,
             title='Test Contract',
             content='Test content',
             status='ACTIVE',

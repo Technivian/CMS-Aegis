@@ -1,9 +1,31 @@
 from django.contrib import admin
 from .models import (
+    Organization, OrganizationMembership, OrganizationInvitation,
     TrademarkRequest, LegalTask, RiskLog, ComplianceChecklist,
     Workflow, WorkflowTemplate, WorkflowTemplateStep, WorkflowStep, ChecklistItem,
     DueDiligenceProcess, DueDiligenceTask, DueDiligenceRisk, Budget, BudgetExpense, Contract
 )
+
+
+@admin.register(Organization)
+class OrganizationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'is_active', 'created_at')
+    list_filter = ('is_active',)
+    search_fields = ('name', 'slug')
+
+
+@admin.register(OrganizationMembership)
+class OrganizationMembershipAdmin(admin.ModelAdmin):
+    list_display = ('organization', 'user', 'role', 'is_active', 'created_at')
+    list_filter = ('role', 'is_active')
+    search_fields = ('organization__name', 'user__username', 'user__email')
+
+
+@admin.register(OrganizationInvitation)
+class OrganizationInvitationAdmin(admin.ModelAdmin):
+    list_display = ('organization', 'email', 'role', 'status', 'invited_by', 'expires_at', 'created_at')
+    list_filter = ('role', 'status')
+    search_fields = ('organization__name', 'email', 'invited_by__username')
 
 @admin.register(RiskLog)
 class RiskLogAdmin(admin.ModelAdmin):

@@ -14,6 +14,69 @@ def document_upload_path(instance, filename):
     return f'documents/{instance.matter.id if instance.matter else "general"}/{filename}'
 
 
+class Organization(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+    slug = models.SlugField(max_length=120, unique=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class OrganizationMembership(models.Model):
+    class Role(models.TextChoices):
+        OWNER = 'OWNER', 'Owner'
+        ADMIN = 'ADMIN', 'Admin'
+        MEMBER = 'MEMBER', 'Member'
+
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='memberships')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organization_memberships')
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.MEMBER)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('organization', 'user')
+        ordering = ['organization__name', 'user__username']
+
+    def __str__(self):
+        return f'{self.user.username} @ {self.organization.name} ({self.role})'
+
+
+class OrganizationInvitation(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'PENDING', 'Pending'
+        ACCEPTED = 'ACCEPTED', 'Accepted'
+        REVOKED = 'REVOKED', 'Revoked'
+        EXPIRED = 'EXPIRED', 'Expired'
+
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='invitations')
+    email = models.EmailField()
+    role = models.CharField(max_length=20, choices=OrganizationMembership.Role.choices, default=OrganizationMembership.Role.MEMBER)
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    invited_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='sent_organization_invitations')
+    invited_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='accepted_organization_invitations')
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['organization', 'status']),
+            models.Index(fields=['email', 'status']),
+        ]
+
+    def __str__(self):
+        return f'Invite {self.email} to {self.organization.name} ({self.get_status_display()})'
+
+
 class UserProfile(models.Model):
     class Role(models.TextChoices):
         PARTNER = 'PARTNER', 'Partner'
@@ -64,6 +127,7 @@ class Client(models.Model):
         PROSPECTIVE = 'PROSPECTIVE', 'Prospective'
         FORMER = 'FORMER', 'Former'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='clients')
     name = models.CharField(max_length=200)
     client_type = models.CharField(max_length=20, choices=ClientType.choices, default=ClientType.INDIVIDUAL)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
@@ -127,6 +191,7 @@ class Matter(models.Model):
         ENVIRONMENTAL = 'ENVIRONMENTAL', 'Environmental'
         OTHER = 'OTHER', 'Other'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='matters')
     matter_number = models.CharField(max_length=50, unique=True)
     title = models.CharField(max_length=300)
     description = models.TextField(blank=True)
@@ -220,6 +285,7 @@ class Contract(models.Model):
         AUD = 'AUD', 'AUD (A$)'
         OTHER = 'OTHER', 'Other'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='contracts')
     title = models.CharField(max_length=200)
     contract_type = models.CharField(max_length=20, choices=ContractType.choices, default=ContractType.OTHER)
     content = models.TextField(blank=True)
@@ -298,6 +364,7 @@ class Document(models.Model):
         FINAL = 'FINAL', 'Final'
         ARCHIVED = 'ARCHIVED', 'Archived'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='documents')
     title = models.CharField(max_length=300)
     document_type = models.CharField(max_length=20, choices=DocType.choices, default=DocType.OTHER)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
@@ -350,6 +417,7 @@ class TimeEntry(models.Model):
         ADMIN = 'ADMIN', 'Administrative'
         OTHER = 'OTHER', 'Other'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='time_entries')
     matter = models.ForeignKey(Matter, on_delete=models.CASCADE, related_name='time_entries')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='time_entries')
     date = models.DateField(default=date.today)
@@ -397,6 +465,7 @@ class Invoice(models.Model):
         VOID = 'VOID', 'Void'
         WRITTEN_OFF = 'WRITTEN_OFF', 'Written Off'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='invoices')
     invoice_number = models.CharField(max_length=50, unique=True)
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='invoices')
     matter = models.ForeignKey(Matter, on_delete=models.CASCADE, null=True, blank=True, related_name='invoices')
