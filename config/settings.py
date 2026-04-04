@@ -17,6 +17,22 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def _load_dotenv(dotenv_path: Path) -> None:
+    if not dotenv_path.exists():
+        return
+    for raw_line in dotenv_path.read_text(encoding='utf-8').splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+        key, value = line.split('=', 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        os.environ.setdefault(key, value)
+
+
+_load_dotenv(BASE_DIR / '.env')
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -183,7 +199,8 @@ if SSO_ENABLED:
 OIDC_RP_CLIENT_ID = os.getenv('OIDC_RP_CLIENT_ID', '')
 OIDC_RP_CLIENT_SECRET = os.getenv('OIDC_RP_CLIENT_SECRET', '')
 OIDC_RP_SIGN_ALGO = os.getenv('OIDC_RP_SIGN_ALGO', 'RS256')
-OIDC_RP_SCOPES = os.getenv('OIDC_RP_SCOPES', 'openid email profile').split()
+# Keep as a space-delimited string to match mozilla-django-oidc expectations.
+OIDC_RP_SCOPES = os.getenv('OIDC_RP_SCOPES', 'openid email profile')
 SSO_ALLOWED_EMAIL_DOMAINS = [
     d.strip().lower()
     for d in os.getenv('SSO_ALLOWED_EMAIL_DOMAINS', '').split(',')
