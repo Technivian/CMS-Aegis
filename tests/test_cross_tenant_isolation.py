@@ -8,19 +8,18 @@ For every resource that carries an `organization` FK the suite verifies:
 Models now fixed to filter via related-field org lookups (no direct FK):
   - Deadline  → filtered via contract__organization | matter__organization
   - RiskLog   → filtered via contract__organization | matter__organization
+    - LegalTask → filtered via contract__organization | matter__organization
   - TrademarkRequest → filtered via client__organization | matter__organization
 
-Known gaps (require a schema migration to add organization FK before they
-can be fully isolated):
-  - Budget            (KNOWN_GAP — no indirect org link)
-  - DueDiligenceProcess (KNOWN_GAP — no indirect org link)
+Direct organization FK models covered in this suite:
+    - Budget
+    - DueDiligenceProcess
 
 Run:
   python manage.py test tests.test_cross_tenant_isolation
 """
 
 import datetime
-import unittest
 
 from django.test import TestCase
 from django.urls import reverse
@@ -34,6 +33,7 @@ from contracts.models import (
     Contract,
     Document,
     Deadline,
+    LegalTask,
     RiskLog,
     TrademarkRequest,
     Budget,
@@ -98,6 +98,13 @@ class CrossTenantFixtureMixin:
             due_date=datetime.date.today() + datetime.timedelta(days=30),
             contract=self.contract_a,
         )
+        self.legal_task_a = LegalTask.objects.create(
+            title='Alpha Task',
+            description='Task A',
+            due_date=datetime.date.today() + datetime.timedelta(days=10),
+            contract=self.contract_a,
+            assigned_to=self.user_a,
+        )
         # RiskLog linked to org_a via contract FK
         self.risk_a = RiskLog.objects.create(
             title='Alpha Risk', description='A risk',
@@ -133,6 +140,13 @@ class CrossTenantFixtureMixin:
             title='Beta Deadline',
             due_date=datetime.date.today() + datetime.timedelta(days=30),
             contract=self.contract_b,
+        )
+        self.legal_task_b = LegalTask.objects.create(
+            title='Beta Task',
+            description='Task B',
+            due_date=datetime.date.today() + datetime.timedelta(days=10),
+            contract=self.contract_b,
+            assigned_to=self.user_b,
         )
         self.risk_b = RiskLog.objects.create(
             title='Beta Risk', description='A risk',
@@ -269,6 +283,31 @@ class DeadlineIsolationTest(CrossTenantFixtureMixin, TestCase):
         url = reverse('contracts:deadline_update', kwargs={'pk': self.deadline_a.pk})
         self.assertEqual(self.client.get(url).status_code, 404)
 
+    def test_complete_cross_org_returns_404(self):
+        self.client.login(username='user_b', password='passB1234!')
+        url = reverse('contracts:deadline_complete', kwargs={'pk': self.deadline_a.pk})
+        self.assertEqual(self.client.post(url).status_code, 404)
+
+
+class LegalTaskIsolationTest(CrossTenantFixtureMixin, TestCase):
+    """
+    LegalTask has no direct organization FK. Isolation enforced via
+    contract__organization | matter__organization.
+    """
+
+    def test_list_excludes_other_org(self):
+        self.client.login(username='user_b', password='passB1234!')
+        response = self.client.get(reverse('contracts:legal_task_kanban'))
+        self.assertEqual(response.status_code, 200)
+        ids = [t.id for t in response.context.get('legal_tasks', [])]
+        self.assertNotIn(self.legal_task_a.id, ids)
+        self.assertIn(self.legal_task_b.id, ids)
+
+    def test_update_cross_org_returns_404(self):
+        self.client.login(username='user_b', password='passB1234!')
+        url = reverse('contracts:legal_task_update', kwargs={'pk': self.legal_task_a.pk})
+        self.assertEqual(self.client.get(url).status_code, 404)
+
 
 class RiskLogIsolationTest(CrossTenantFixtureMixin, TestCase):
     """
@@ -329,6 +368,7 @@ class UnauthenticatedAccessTest(TestCase):
         ('contracts:document_list', {}),
         ('contracts:client_list', {}),
         ('contracts:matter_list', {}),
+        ('contracts:legal_task_kanban', {}),
         ('contracts:risk_log_list', {}),
         ('contracts:deadline_list', {}),
         ('contracts:trademark_request_list', {}),

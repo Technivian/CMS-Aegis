@@ -605,7 +605,13 @@ class DeadlineUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateVi
 @require_POST
 def deadline_complete(request, pk):
     organization = get_user_organization(request.user)
-    deadline = get_object_or_404(scope_queryset_for_organization(Deadline.objects.all(), organization), pk=pk)
+    if organization:
+        deadline_qs = Deadline.objects.filter(
+            Q(contract__organization=organization) | Q(matter__organization=organization)
+        )
+    else:
+        deadline_qs = Deadline.objects.none()
+    deadline = get_object_or_404(deadline_qs, pk=pk)
     if deadline.contract and not can_access_contract_action(request.user, deadline.contract, ContractAction.EDIT):
         return HttpResponseForbidden('You do not have permission to complete this contract deadline.')
     deadline.is_completed = True
@@ -1262,8 +1268,16 @@ def reports_dashboard(request):
     matters_qs = scope_queryset_for_organization(Matter.objects.all(), org)
     time_entries_qs = scope_queryset_for_organization(TimeEntry.objects.all(), org)
     invoices_qs = scope_queryset_for_organization(Invoice.objects.all(), org)
-    deadlines_qs = scope_queryset_for_organization(Deadline.objects.all(), org)
-    risks_qs = scope_queryset_for_organization(RiskLog.objects.all(), org)
+    if org:
+        deadlines_qs = Deadline.objects.filter(
+            Q(contract__organization=org) | Q(matter__organization=org)
+        )
+        risks_qs = RiskLog.objects.filter(
+            Q(contract__organization=org) | Q(matter__organization=org)
+        )
+    else:
+        deadlines_qs = Deadline.objects.none()
+        risks_qs = RiskLog.objects.none()
 
     total_contracts = contracts_qs.count()
     active_contracts = contracts_qs.filter(status='ACTIVE').count()
@@ -1550,6 +1564,14 @@ class LegalTaskKanbanView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListVie
     template_name = 'contracts/legal_task_board.html'
     context_object_name = 'legal_tasks'
 
+    def get_queryset(self):
+        org = get_user_organization(self.request.user)
+        if not org:
+            return LegalTask.objects.none()
+        return LegalTask.objects.select_related('contract', 'matter', 'assigned_to').filter(
+            Q(contract__organization=org) | Q(matter__organization=org)
+        ).order_by('-updated_at', '-created_at')
+
 
 class LegalTaskCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
     model = LegalTask
@@ -1557,9 +1579,23 @@ class LegalTaskCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateVie
     template_name = 'contracts/legal_task_form.html'
     success_url = reverse_lazy('contracts:legal_task_kanban')
 
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        org = get_user_organization(self.request.user)
+        if org:
+            form.fields['contract'].queryset = scope_queryset_for_organization(Contract.objects.all(), org)
+            form.fields['matter'].queryset = scope_queryset_for_organization(Matter.objects.all(), org)
+        else:
+            form.fields['contract'].queryset = Contract.objects.none()
+            form.fields['matter'].queryset = Matter.objects.none()
+        return form
+
     def form_valid(self, form):
+        org = get_user_organization(self.request.user)
         if form.instance.contract and not can_access_contract_action(self.request.user, form.instance.contract, ContractAction.EDIT):
             return HttpResponseForbidden('You do not have permission to create tasks for this contract.')
+        if form.instance.matter and org and form.instance.matter.organization_id != org.id:
+            return HttpResponseForbidden('You do not have permission to create tasks for this matter.')
         return super().form_valid(form)
 
 
@@ -1569,10 +1605,32 @@ class LegalTaskUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateV
     template_name = 'contracts/legal_task_form.html'
     success_url = reverse_lazy('contracts:legal_task_kanban')
 
+    def get_queryset(self):
+        org = get_user_organization(self.request.user)
+        if not org:
+            return LegalTask.objects.none()
+        return LegalTask.objects.filter(
+            Q(contract__organization=org) | Q(matter__organization=org)
+        )
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        org = get_user_organization(self.request.user)
+        if org:
+            form.fields['contract'].queryset = scope_queryset_for_organization(Contract.objects.all(), org)
+            form.fields['matter'].queryset = scope_queryset_for_organization(Matter.objects.all(), org)
+        else:
+            form.fields['contract'].queryset = Contract.objects.none()
+            form.fields['matter'].queryset = Matter.objects.none()
+        return form
+
     def dispatch(self, request, *args, **kwargs):
         task = self.get_object()
         if task.contract and not can_access_contract_action(request.user, task.contract, ContractAction.EDIT):
             return HttpResponseForbidden('You do not have permission to edit tasks for this contract.')
+        org = get_user_organization(request.user)
+        if task.matter and org and task.matter.organization_id != org.id:
+            return HttpResponseForbidden('You do not have permission to edit tasks for this matter.')
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -2277,10 +2335,21 @@ def dashboard(request):
     contracts_qs = scope_queryset_for_organization(Contract.objects.all(), org)
     clients_qs = scope_queryset_for_organization(Client.objects.all(), org)
     matters_qs = scope_queryset_for_organization(Matter.objects.all(), org)
-    legal_tasks_qs = scope_queryset_for_organization(LegalTask.objects.all(), org)
+    if org:
+        legal_tasks_qs = LegalTask.objects.filter(
+            Q(contract__organization=org) | Q(matter__organization=org)
+        )
+        risks_qs = RiskLog.objects.filter(
+            Q(contract__organization=org) | Q(matter__organization=org)
+        )
+        deadlines_qs = Deadline.objects.filter(
+            Q(contract__organization=org) | Q(matter__organization=org)
+        )
+    else:
+        legal_tasks_qs = LegalTask.objects.none()
+        risks_qs = RiskLog.objects.none()
+        deadlines_qs = Deadline.objects.none()
     workflows_qs = scope_queryset_for_organization(Workflow.objects.all(), org)
-    risks_qs = scope_queryset_for_organization(RiskLog.objects.all(), org)
-    deadlines_qs = scope_queryset_for_organization(Deadline.objects.all(), org)
     invoices_qs = scope_queryset_for_organization(Invoice.objects.all(), org)
     documents_qs = scope_queryset_for_organization(Document.objects.all(), org)
     approvals_qs = scope_queryset_for_organization(ApprovalRequest.objects.all(), org)
