@@ -81,6 +81,10 @@ Detailed provider guide:
 - `docs/SSO_AZURE_SETUP.md`
 - `docs/SSO_GOOGLE_SETUP.md`
 
+Operational takeover guide:
+
+- `docs/TAKEOVER_30_60_90_PLAN.md`
+
 ## RBAC Model
 
 Permission policy lives in `contracts/permissions.py`.
