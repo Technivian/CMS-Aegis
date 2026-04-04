@@ -19,6 +19,43 @@ CMS Aegis is a Django-based contract and legal operations platform with multi-te
 - Internal reminder system for contract renewals and expirations
 - Internal AI assistant endpoint scoped to contract organization membership
 - Audit logging across key actions
+- Optional enterprise SSO via OpenID Connect (OIDC)
+
+## SSO (OIDC)
+
+CMS Aegis supports optional SSO using OIDC (for example: Azure AD / Entra ID, Okta, Auth0, Keycloak).
+
+Install dependency:
+
+```bash
+.venv/bin/pip install mozilla-django-oidc
+```
+
+Set environment variables before starting Django:
+
+```bash
+export SSO_ENABLED=true
+export OIDC_RP_CLIENT_ID="your-client-id"
+export OIDC_RP_CLIENT_SECRET="your-client-secret"
+export OIDC_OP_AUTHORIZATION_ENDPOINT="https://issuer.example.com/oauth2/v1/authorize"
+export OIDC_OP_TOKEN_ENDPOINT="https://issuer.example.com/oauth2/v1/token"
+export OIDC_OP_USER_ENDPOINT="https://issuer.example.com/oauth2/v1/userinfo"
+export OIDC_OP_JWKS_ENDPOINT="https://issuer.example.com/oauth2/v1/keys"
+```
+
+Optional:
+
+```bash
+export OIDC_OP_LOGOUT_ENDPOINT="https://issuer.example.com/logout"
+export OIDC_RP_SCOPES="openid email profile"
+export OIDC_VERIFY_SSL=true
+```
+
+Behavior:
+
+- Password login remains available.
+- When `SSO_ENABLED=true`, the login page shows a **Sign in with SSO** button.
+- Users are matched by email. If no user exists, one is provisioned automatically.
 
 ## RBAC Model
 

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -50,6 +51,31 @@ INSTALLED_APPS = [
     'theme',
     'contracts',
 ]
+
+
+def _bool_env(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+SSO_ENABLED = _bool_env('SSO_ENABLED', default=False)
+
+try:
+    import mozilla_django_oidc  # noqa: F401
+    OIDC_PACKAGE_AVAILABLE = True
+except Exception:
+    OIDC_PACKAGE_AVAILABLE = False
+
+if OIDC_PACKAGE_AVAILABLE:
+    INSTALLED_APPS.append('mozilla_django_oidc')
+
+if SSO_ENABLED and not OIDC_PACKAGE_AVAILABLE:
+    raise ImportError(
+        'SSO_ENABLED is true but mozilla-django-oidc is not installed. '
+        'Install it with: pip install mozilla-django-oidc'
+    )
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -146,6 +172,44 @@ IRONCLAD_MODE = False  # Set to True to enable Ironclad-like features
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+if SSO_ENABLED:
+    AUTHENTICATION_BACKENDS.insert(0, 'contracts.auth_backends.AegisOIDCAuthenticationBackend')
+
+OIDC_RP_CLIENT_ID = os.getenv('OIDC_RP_CLIENT_ID', '')
+OIDC_RP_CLIENT_SECRET = os.getenv('OIDC_RP_CLIENT_SECRET', '')
+OIDC_RP_SIGN_ALGO = os.getenv('OIDC_RP_SIGN_ALGO', 'RS256')
+OIDC_RP_SCOPES = os.getenv('OIDC_RP_SCOPES', 'openid email profile').split()
+
+OIDC_OP_AUTHORIZATION_ENDPOINT = os.getenv('OIDC_OP_AUTHORIZATION_ENDPOINT', '')
+OIDC_OP_TOKEN_ENDPOINT = os.getenv('OIDC_OP_TOKEN_ENDPOINT', '')
+OIDC_OP_USER_ENDPOINT = os.getenv('OIDC_OP_USER_ENDPOINT', '')
+OIDC_OP_JWKS_ENDPOINT = os.getenv('OIDC_OP_JWKS_ENDPOINT', '')
+OIDC_OP_LOGOUT_ENDPOINT = os.getenv('OIDC_OP_LOGOUT_ENDPOINT', '')
+
+OIDC_USE_NONCE = True
+OIDC_STORE_ACCESS_TOKEN = False
+OIDC_VERIFY_SSL = _bool_env('OIDC_VERIFY_SSL', default=True)
+
+if SSO_ENABLED:
+    required_oidc = [
+        OIDC_RP_CLIENT_ID,
+        OIDC_RP_CLIENT_SECRET,
+        OIDC_OP_AUTHORIZATION_ENDPOINT,
+        OIDC_OP_TOKEN_ENDPOINT,
+        OIDC_OP_USER_ENDPOINT,
+        OIDC_OP_JWKS_ENDPOINT,
+    ]
+    if not all(required_oidc):
+        raise ImportError(
+            'SSO_ENABLED is true but one or more required OIDC settings are missing. '
+            'Set OIDC_RP_CLIENT_ID, OIDC_RP_CLIENT_SECRET, OIDC_OP_AUTHORIZATION_ENDPOINT, '
+            'OIDC_OP_TOKEN_ENDPOINT, OIDC_OP_USER_ENDPOINT, and OIDC_OP_JWKS_ENDPOINT.'
+        )
 
 # Media files
 MEDIA_URL = '/media/'

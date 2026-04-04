@@ -115,6 +115,22 @@
                 </button>
             </form>
 
+            {% if SSO_ENABLED %}
+            <div class="my-5 flex items-center gap-3">
+                <div class="h-px flex-1" style="background: var(--border);"></div>
+                <span class="text-xs font-semibold uppercase tracking-wide" style="color: var(--text-muted);">or</span>
+                <div class="h-px flex-1" style="background: var(--border);"></div>
+            </div>
+            {% with next_url=request.GET.next|default:'/dashboard/' %}
+            <a href="{% url 'oidc_authentication_init' %}?next={{ next_url|urlencode }}"
+               class="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold border transition-all duration-200"
+               style="border-color: var(--border); color: var(--text-primary); background: var(--surface);">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                Sign in with SSO
+            </a>
+            {% endwith %}
+            {% endif %}
+
             <div class="mt-8 text-center">
                 <p class="text-sm login-subtitle">
                     Don't have an account?

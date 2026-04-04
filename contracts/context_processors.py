@@ -1,4 +1,6 @@
 
+from django.conf import settings
+
 from config.feature_flags import (
     is_feature_redesign_enabled,
     is_ironclad_mode_enabled,
@@ -14,6 +16,7 @@ def feature_flags(request):
         'IRONCLAD_MODE': is_ironclad_mode_enabled(),
         'MOCHADOCS_MODE': is_mochadocs_mode_enabled(),
         'TEST_MODE': is_test_mode_enabled(),
+        'SSO_ENABLED': getattr(settings, 'SSO_ENABLED', False),
         'CURRENT_ORGANIZATION': getattr(request, 'organization', None),
         'USER_ORGANIZATION_MEMBERSHIPS': (
             OrganizationMembership.objects.filter(user=request.user, is_active=True).select_related('organization')
