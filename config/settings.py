@@ -190,25 +190,28 @@ OIDC_OP_TOKEN_ENDPOINT = os.getenv('OIDC_OP_TOKEN_ENDPOINT', '')
 OIDC_OP_USER_ENDPOINT = os.getenv('OIDC_OP_USER_ENDPOINT', '')
 OIDC_OP_JWKS_ENDPOINT = os.getenv('OIDC_OP_JWKS_ENDPOINT', '')
 OIDC_OP_LOGOUT_ENDPOINT = os.getenv('OIDC_OP_LOGOUT_ENDPOINT', '')
+OIDC_OP_DISCOVERY_ENDPOINT = os.getenv('OIDC_OP_DISCOVERY_ENDPOINT', '')
 
 OIDC_USE_NONCE = True
 OIDC_STORE_ACCESS_TOKEN = False
 OIDC_VERIFY_SSL = _bool_env('OIDC_VERIFY_SSL', default=True)
 
 if SSO_ENABLED:
-    required_oidc = [
-        OIDC_RP_CLIENT_ID,
-        OIDC_RP_CLIENT_SECRET,
+    has_discovery = bool(OIDC_OP_DISCOVERY_ENDPOINT)
+    has_explicit_endpoints = all([
         OIDC_OP_AUTHORIZATION_ENDPOINT,
         OIDC_OP_TOKEN_ENDPOINT,
         OIDC_OP_USER_ENDPOINT,
         OIDC_OP_JWKS_ENDPOINT,
-    ]
-    if not all(required_oidc):
+    ])
+
+    if not (OIDC_RP_CLIENT_ID and OIDC_RP_CLIENT_SECRET and (has_discovery or has_explicit_endpoints)):
         raise ImportError(
-            'SSO_ENABLED is true but one or more required OIDC settings are missing. '
-            'Set OIDC_RP_CLIENT_ID, OIDC_RP_CLIENT_SECRET, OIDC_OP_AUTHORIZATION_ENDPOINT, '
-            'OIDC_OP_TOKEN_ENDPOINT, OIDC_OP_USER_ENDPOINT, and OIDC_OP_JWKS_ENDPOINT.'
+            'SSO_ENABLED is true but required OIDC settings are missing. '
+            'Set OIDC_RP_CLIENT_ID and OIDC_RP_CLIENT_SECRET, plus either '
+            'OIDC_OP_DISCOVERY_ENDPOINT or all explicit endpoints '
+            '(OIDC_OP_AUTHORIZATION_ENDPOINT, OIDC_OP_TOKEN_ENDPOINT, '
+            'OIDC_OP_USER_ENDPOINT, OIDC_OP_JWKS_ENDPOINT).'
         )
 
 # Media files

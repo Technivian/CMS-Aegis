@@ -51,11 +51,24 @@ export OIDC_RP_SCOPES="openid email profile"
 export OIDC_VERIFY_SSL=true
 ```
 
+Azure Entra quick setup (recommended):
+
+```bash
+export SSO_ENABLED=true
+export OIDC_RP_CLIENT_ID="<CLIENT_ID>"
+export OIDC_RP_CLIENT_SECRET="<CLIENT_SECRET>"
+export OIDC_OP_DISCOVERY_ENDPOINT="https://login.microsoftonline.com/<TENANT_ID>/v2.0/.well-known/openid-configuration"
+```
+
 Behavior:
 
 - Password login remains available.
 - When `SSO_ENABLED=true`, the login page shows a **Sign in with SSO** button.
 - Users are matched by email. If no user exists, one is provisioned automatically.
+
+Detailed provider guide:
+
+- `docs/SSO_AZURE_SETUP.md`
 
 ## RBAC Model
 
