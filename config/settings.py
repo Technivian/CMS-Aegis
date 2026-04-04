@@ -184,6 +184,11 @@ OIDC_RP_CLIENT_ID = os.getenv('OIDC_RP_CLIENT_ID', '')
 OIDC_RP_CLIENT_SECRET = os.getenv('OIDC_RP_CLIENT_SECRET', '')
 OIDC_RP_SIGN_ALGO = os.getenv('OIDC_RP_SIGN_ALGO', 'RS256')
 OIDC_RP_SCOPES = os.getenv('OIDC_RP_SCOPES', 'openid email profile').split()
+SSO_ALLOWED_EMAIL_DOMAINS = [
+    d.strip().lower()
+    for d in os.getenv('SSO_ALLOWED_EMAIL_DOMAINS', '').split(',')
+    if d.strip()
+]
 
 OIDC_OP_AUTHORIZATION_ENDPOINT = os.getenv('OIDC_OP_AUTHORIZATION_ENDPOINT', '')
 OIDC_OP_TOKEN_ENDPOINT = os.getenv('OIDC_OP_TOKEN_ENDPOINT', '')

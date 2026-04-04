@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 
@@ -15,8 +16,18 @@ class AegisOIDCAuthenticationBackend(OIDCAuthenticationBackend):
             or ''
         ).strip().lower()
 
+    def _is_allowed_email_domain(self, email: str) -> bool:
+        allowed_domains = getattr(settings, 'SSO_ALLOWED_EMAIL_DOMAINS', [])
+        if not allowed_domains:
+            return True
+        if '@' not in email:
+            return False
+        domain = email.split('@', 1)[1].lower()
+        return domain in allowed_domains
+
     def verify_claims(self, claims):
-        return super().verify_claims(claims) and bool(self._email_from_claims(claims))
+        email = self._email_from_claims(claims)
+        return super().verify_claims(claims) and bool(email) and self._is_allowed_email_domain(email)
 
     def filter_users_by_claims(self, claims):
         email = self._email_from_claims(claims)

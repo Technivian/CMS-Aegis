@@ -49,6 +49,7 @@ Optional:
 export OIDC_OP_LOGOUT_ENDPOINT="https://issuer.example.com/logout"
 export OIDC_RP_SCOPES="openid email profile"
 export OIDC_VERIFY_SSL=true
+export SSO_ALLOWED_EMAIL_DOMAINS="yourcompany.com"
 ```
 
 Azure Entra quick setup (recommended):
@@ -60,6 +61,15 @@ export OIDC_RP_CLIENT_SECRET="<CLIENT_SECRET>"
 export OIDC_OP_DISCOVERY_ENDPOINT="https://login.microsoftonline.com/<TENANT_ID>/v2.0/.well-known/openid-configuration"
 ```
 
+Google quick setup:
+
+```bash
+export SSO_ENABLED=true
+export OIDC_RP_CLIENT_ID="<GOOGLE_CLIENT_ID>"
+export OIDC_RP_CLIENT_SECRET="<GOOGLE_CLIENT_SECRET>"
+export OIDC_OP_DISCOVERY_ENDPOINT="https://accounts.google.com/.well-known/openid-configuration"
+```
+
 Behavior:
 
 - Password login remains available.
@@ -69,6 +79,7 @@ Behavior:
 Detailed provider guide:
 
 - `docs/SSO_AZURE_SETUP.md`
+- `docs/SSO_GOOGLE_SETUP.md`
 
 ## RBAC Model
 
