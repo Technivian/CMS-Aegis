@@ -2,6 +2,42 @@
 {% block title %}Contracts - CMS Aegis{% endblock %}
 {% block content %}
 
+<style>
+    /* Fallback utilities scoped to this page to prevent oversized icons and broken layout. */
+    .contracts-list-page .grid { display: grid; }
+    .contracts-list-page .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .contracts-list-page .gap-4 { gap: 1rem; }
+    .contracts-list-page .flex { display: flex; }
+    .contracts-list-page .inline-flex { display: inline-flex; }
+    .contracts-list-page .items-center { align-items: center; }
+    .contracts-list-page .justify-between { justify-content: space-between; }
+    .contracts-list-page .flex-wrap { flex-wrap: wrap; }
+    .contracts-list-page .flex-1 { flex: 1 1 0%; }
+    .contracts-list-page .flex-shrink-0 { flex-shrink: 0; }
+    .contracts-list-page .min-w-0 { min-width: 0; }
+
+    .contracts-list-page .w-1\.5 { width: 0.375rem; }
+    .contracts-list-page .h-1\.5 { height: 0.375rem; }
+    .contracts-list-page .w-2 { width: 0.5rem; }
+    .contracts-list-page .h-2 { height: 0.5rem; }
+    .contracts-list-page .w-3 { width: 0.75rem; }
+    .contracts-list-page .h-3 { height: 0.75rem; }
+    .contracts-list-page .w-3\.5 { width: 0.875rem; }
+    .contracts-list-page .h-3\.5 { height: 0.875rem; }
+    .contracts-list-page .w-4 { width: 1rem; }
+    .contracts-list-page .h-4 { height: 1rem; }
+    .contracts-list-page .w-6 { width: 1.5rem; }
+    .contracts-list-page .h-6 { height: 1.5rem; }
+    .contracts-list-page .w-12 { width: 3rem; }
+    .contracts-list-page .h-12 { height: 3rem; }
+
+    @media (max-width: 1100px) {
+        .contracts-list-page .grid-cols-3 { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="contracts-list-page">
+
 {# ── Page header ───────────────────────────────────────────────────────────── #}
 <div class="flex items-center justify-between mb-6">
     <div>
@@ -293,5 +329,7 @@
     </div>
 </div>
 {% endif %}
+
+</div>
 
 {% endblock %}
