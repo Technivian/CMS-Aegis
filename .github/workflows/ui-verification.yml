@@ -1,0 +1,39 @@
+name: UI Verification
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  verify-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ensure verifier is executable
+        run: chmod +x scripts/verify_ui.sh
+
+      - name: Run UI verification suite
+        run: ./scripts/verify_ui.sh
