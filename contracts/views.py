@@ -216,11 +216,6 @@ def sync_automatic_deadlines_for_organization(org, user=None):
         sync_case_phase_auto_tasks(case, user=user)
 
 
-# Backward-compatible aliases for older call sites.
-AUTO_DUE_DILIGENCE_TASKS = AUTO_INTAKE_TASKS
-sync_due_diligence_auto_tasks = sync_intake_auto_tasks
-
-
 PHASE_TO_PROCESS_STATUS = {
     CareCase.CasePhase.INTAKE: CaseIntakeProcess.ProcessStatus.INTAKE,
     CareCase.CasePhase.BEOORDELING: CaseIntakeProcess.ProcessStatus.ASSESSMENT,
@@ -356,7 +351,7 @@ def sync_case_flow_state(case, user=None):
             if placement_updates:
                 placement.save(update_fields=placement_updates)
 
-    sync_due_diligence_auto_tasks(process, user=user)
+    sync_intake_auto_tasks(process, user=user)
     return process, assessment, placement
 
 
@@ -2553,7 +2548,7 @@ def dashboard(request):
                 'meta': f'Wacht op beoordeling ({review.get_assessment_status_display()}) • {days_waiting} dagen open',
                 'badge': 'Beoordeling',
                 'badge_class': 'badge-yellow',
-                'href': reverse('contracts:conflict_check_update', args=[review.pk]),
+                'href': reverse('contracts:assessment_update', args=[review.pk]),
             },
         )
 
@@ -2566,7 +2561,7 @@ def dashboard(request):
                 'meta': f'Wacht op aanbiederreactie van {signature.signer_name} • {days_waiting} dagen',
                 'badge': 'Aanbiederreactie',
                 'badge_class': 'badge-blue',
-                'href': reverse('contracts:signature_request_list'),
+                'href': reverse('contracts:case_detail', args=[signature.contract_id]),
             },
         )
 
@@ -2829,58 +2824,6 @@ def dashboard(request):
         'FEATURE_REDESIGN': is_feature_redesign_enabled(),
     }
     return render(request, 'dashboard.html', context)
-
-
-@login_required
-def privacy_dashboard(request):
-    org = get_user_organization(request.user)
-    is_privacy_admin = can_manage_organization(request.user, org)
-
-    dsars_qs = (
-        DSARRequest.objects.filter(client__organization=org)
-        if org else DSARRequest.objects.none()
-    )
-    case_records_qs = (
-        CareCase.objects.filter(organization=org)
-        if org else CareCase.objects.none()
-    )
-
-    dsar_open_count = dsars_qs.filter(status__in=['RECEIVED', 'VERIFIED', 'IN_PROGRESS']).count()
-    dsar_overdue_count = dsars_qs.filter(
-        status__in=['RECEIVED', 'VERIFIED', 'IN_PROGRESS'],
-        due_date__lt=date.today(),
-    ).count()
-    active_retention_count = RetentionPolicy.objects.filter(is_active=True).count()
-    sensitive_cases_count = sum(
-        1
-        for case_record in case_records_qs.only('data_transfer_flag')
-        if getattr(case_record, 'is_confidential', False) or case_record.data_transfer_flag
-    )
-
-    if is_privacy_admin and org:
-        member_ids = OrganizationMembership.objects.filter(
-            organization=org,
-            is_active=True,
-        ).values_list('user_id', flat=True)
-        audit_events_count = AuditLog.objects.filter(user_id__in=member_ids).count()
-        recent_audit_events = AuditLog.objects.filter(user_id__in=member_ids).select_related('user').order_by('-timestamp')[:8]
-    else:
-        audit_events_count = AuditLog.objects.filter(user=request.user).count()
-        recent_audit_events = AuditLog.objects.filter(user=request.user).select_related('user').order_by('-timestamp')[:8]
-
-    recent_dsars = dsars_qs.select_related('assigned_to', 'client').order_by('-received_date')[:6]
-
-    context = {
-        'is_privacy_admin': is_privacy_admin,
-        'dsar_open_count': dsar_open_count,
-        'dsar_overdue_count': dsar_overdue_count,
-        'active_retention_count': active_retention_count,
-        'sensitive_cases_count': sensitive_cases_count,
-        'audit_events_count': audit_events_count,
-        'recent_dsars': recent_dsars,
-        'recent_audit_events': recent_audit_events,
-    }
-    return render(request, 'contracts/privacy_dashboard.html', context)
 
 
 @login_required

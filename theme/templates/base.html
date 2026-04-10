@@ -518,7 +518,7 @@
             border: 3px solid var(--border); position: relative;
         }
 
-        /* ── Repository page ────────────────────────────────────────────────── */
+        /* ── Utility drawer styles ──────────────────────────────────────────── */
         .repo-drawer {
             position: fixed; top: 56px; right: -420px; width: 420px;
             height: calc(100vh - 56px); background: var(--card-bg);
@@ -777,7 +777,7 @@
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     Matching
                 </a>
-                <a href="{% url 'contracts:intake_list' %}" class="nav-link {% if request.resolver_match.url_name == 'intake_list' or request.resolver_match.url_name == 'intake_create' or request.resolver_match.url_name == 'intake_detail' or request.resolver_match.url_name == 'intake_update' or request.resolver_match.url_name == 'due_diligence_list' or request.resolver_match.url_name == 'due_diligence_create' or request.resolver_match.url_name == 'due_diligence_detail' or request.resolver_match.url_name == 'due_diligence_update' %}active{% endif %}">
+                <a href="{% url 'contracts:intake_list' %}" class="nav-link {% if request.resolver_match.url_name == 'intake_list' or request.resolver_match.url_name == 'intake_create' or request.resolver_match.url_name == 'intake_detail' or request.resolver_match.url_name == 'intake_update' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h8m-8 5h8m-8 5h5M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"></path></svg>
                     Intake
                 </a>
@@ -822,14 +822,6 @@
                 <a href="{% url 'contracts:document_list' %}" class="nav-link {% if 'document' in request.resolver_match.url_name %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                     Documenten
-                </a>
-                <a href="{% url 'contracts:repository' %}" class="nav-link {% if request.resolver_match.url_name == 'repository' %}active{% endif %}">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
-                    Dossierarchief
-                </a>
-                <a href="{% url 'contracts:privacy_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'privacy_dashboard' %}active{% endif %}">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                    Privacy &amp; gegevensbeheer
                 </a>
                 <a href="{% url 'contracts:audit_log_list' %}" class="nav-link {% if 'audit' in request.resolver_match.url_name %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>

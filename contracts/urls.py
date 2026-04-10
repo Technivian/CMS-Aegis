@@ -5,63 +5,62 @@ from .api import views as api_views
 app_name = 'contracts'
 
 urlpatterns = [
-    path('api/contracts/', api_views.contracts_api, name='contracts_api'),
-    path('api/contracts/bulk-update/', api_views.contracts_bulk_update_api, name='contracts_bulk_update_api'),
-    path('api/contracts/<str:contract_id>/', api_views.contract_detail_api, name='contract_detail_api'),
+    # API
+    path('api/cases/', api_views.contracts_api, name='cases_api'),
+    path('api/cases/bulk-update/', api_views.cases_bulk_update_api, name='cases_bulk_update_api'),
+    path('api/cases/<str:case_id>/', api_views.case_detail_api, name='case_detail_api'),
 
-    # Clients
+    # Care core
     path('clients/', views.ClientListView.as_view(), name='client_list'),
     path('clients/new/', views.ClientCreateView.as_view(), name='client_create'),
     path('clients/<int:pk>/', views.ClientDetailView.as_view(), name='client_detail'),
     path('clients/<int:pk>/edit/', views.ClientUpdateView.as_view(), name='client_update'),
 
-    # Matters
-    path('matters/', views.MatterListView.as_view(), name='matter_list'),
-    path('matters/new/', views.MatterCreateView.as_view(), name='matter_create'),
-    path('matters/<int:pk>/', views.MatterDetailView.as_view(), name='matter_detail'),
-    path('matters/<int:pk>/edit/', views.MatterUpdateView.as_view(), name='matter_update'),
+    # Municipality & Regional Configurations
+    path('gemeenten/', views.MunicipalityConfigurationListView.as_view(), name='municipality_list'),
+    path('gemeenten/new/', views.MunicipalityConfigurationCreateView.as_view(), name='municipality_create'),
+    path('gemeenten/<int:pk>/', views.MunicipalityConfigurationDetailView.as_view(), name='municipality_detail'),
+    path('gemeenten/<int:pk>/edit/', views.MunicipalityConfigurationUpdateView.as_view(), name='municipality_update'),
 
-    # Documents
+    path("regio's/", views.RegionalConfigurationListView.as_view(), name='regional_list'),
+    path("regio's/new/", views.RegionalConfigurationCreateView.as_view(), name='regional_create'),
+    path("regio's/<int:pk>/", views.RegionalConfigurationDetailView.as_view(), name='regional_detail'),
+    path("regio's/<int:pk>/edit/", views.RegionalConfigurationUpdateView.as_view(), name='regional_update'),
+
+    path('configuraties/', views.legacy_configuration_list_redirect, name='configuration_list'),
+    path('configuraties/new/', views.legacy_configuration_create_redirect, name='configuration_create'),
+    path('configuraties/<int:pk>/', views.CareConfigurationDetailView.as_view(), name='configuration_detail'),
+    path('configuraties/<int:pk>/edit/', views.CareConfigurationUpdateView.as_view(), name='configuration_update'),
+
     path('documents/', views.DocumentListView.as_view(), name='document_list'),
     path('documents/new/', views.DocumentCreateView.as_view(), name='document_create'),
     path('documents/<int:pk>/', views.DocumentDetailView.as_view(), name='document_detail'),
     path('documents/<int:pk>/edit/', views.DocumentUpdateView.as_view(), name='document_update'),
 
-    # Time Entries
-    path('time/', views.TimeEntryListView.as_view(), name='time_entry_list'),
-    path('time/new/', views.TimeEntryCreateView.as_view(), name='time_entry_create'),
-    path('time/<int:pk>/edit/', views.TimeEntryUpdateView.as_view(), name='time_entry_update'),
-
-    # Invoices
-    path('invoices/', views.InvoiceListView.as_view(), name='invoice_list'),
-    path('invoices/new/', views.InvoiceCreateView.as_view(), name='invoice_create'),
-    path('invoices/<int:pk>/', views.InvoiceDetailView.as_view(), name='invoice_detail'),
-    path('invoices/<int:pk>/edit/', views.InvoiceUpdateView.as_view(), name='invoice_update'),
-
-    # Trust Accounts
-    path('trust-accounts/', views.TrustAccountListView.as_view(), name='trust_account_list'),
-    path('trust-accounts/new/', views.TrustAccountCreateView.as_view(), name='trust_account_create'),
-    path('trust-accounts/<int:pk>/', views.TrustAccountDetailView.as_view(), name='trust_account_detail'),
-    path('trust-accounts/<int:account_pk>/add-transaction/', views.AddTrustTransactionView.as_view(), name='add_trust_transaction'),
-
-    # Deadlines
     path('deadlines/', views.DeadlineListView.as_view(), name='deadline_list'),
     path('deadlines/new/', views.DeadlineCreateView.as_view(), name='deadline_create'),
     path('deadlines/<int:pk>/edit/', views.DeadlineUpdateView.as_view(), name='deadline_update'),
     path('deadlines/<int:pk>/complete/', views.deadline_complete, name='deadline_complete'),
 
-    # Conflict Checks
-    path('conflicts/', views.ConflictCheckListView.as_view(), name='conflict_check_list'),
-    path('conflicts/new/', views.ConflictCheckCreateView.as_view(), name='conflict_check_create'),
-    path('conflicts/<int:pk>/edit/', views.ConflictCheckUpdateView.as_view(), name='conflict_check_update'),
+    path('budgets/', views.BudgetListView.as_view(), name='budget_list'),
+    path('budgets/new/', views.BudgetCreateView.as_view(), name='budget_create'),
+    path('budgets/<int:pk>/', views.BudgetDetailView.as_view(), name='budget_detail'),
+    path('budgets/<int:pk>/edit/', views.BudgetUpdateView.as_view(), name='budget_update'),
+    path('budgets/<int:budget_pk>/add-expense/', views.AddExpenseView.as_view(), name='add_expense'),
 
-    # Audit Log
+    path('taken/', views.DeadlineListView.as_view(), name='task_list'),
+    path('taken/', views.DeadlineListView.as_view(), name='task_kanban'),
+    path('taken/new/', views.DeadlineCreateView.as_view(), name='task_create'),
+    path('taken/<int:pk>/edit/', views.DeadlineUpdateView.as_view(), name='task_update'),
+    path('tasks/', views.LegalTaskKanbanView.as_view(), name='legal_task_kanban'),
+    path('tasks/new/', views.LegalTaskCreateView.as_view(), name='legal_task_create'),
+    path('tasks/<int:pk>/edit/', views.LegalTaskUpdateView.as_view(), name='legal_task_update'),
+
     path('audit-log/', views.AuditLogListView.as_view(), name='audit_log_list'),
-
-    # Notifications
     path('notifications/', views.notification_list, name='notification_list'),
     path('notifications/<int:pk>/read/', views.mark_notification_read, name='mark_notification_read'),
     path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+
     path('organizations/switch/', views.switch_organization, name='switch_organization'),
     path('organizations/team/', views.organization_team, name='organization_team'),
     path('organizations/invitations/<uuid:token>/accept/', views.accept_organization_invite, name='accept_organization_invite'),
@@ -73,131 +72,51 @@ urlpatterns = [
     path('organizations/activity/', views.organization_activity, name='organization_activity'),
     path('organizations/activity/export/', views.organization_activity_export, name='organization_activity_export'),
 
-    # Reports
     path('reports/', views.reports_dashboard, name='reports_dashboard'),
-
-    # Due Diligence
-    path('due-diligence/', views.DueDiligenceListView.as_view(), name='due_diligence_list'),
-    path('due-diligence/new/', views.DueDiligenceCreateView.as_view(), name='due_diligence_create'),
-    path('due-diligence/<int:pk>/', views.DueDiligenceDetailView.as_view(), name='due_diligence_detail'),
-    path('due-diligence/<int:pk>/edit/', views.DueDiligenceUpdateView.as_view(), name='due_diligence_update'),
-    path('due-diligence/<int:process_pk>/add-item/', views.AddDueDiligenceItemView.as_view(), name='add_dd_item'),
-    path('due-diligence/<int:process_pk>/add-risk/', views.AddDueDiligenceRiskView.as_view(), name='add_dd_risk'),
-    path('dd-item/<int:pk>/toggle/', views.toggle_dd_item, name='toggle_dd_item'),
-
-    # Legal Tasks
-    path('legal-tasks/', views.LegalTaskKanbanView.as_view(), name='legal_task_kanban'),
-    path('legal-tasks/new/', views.LegalTaskCreateView.as_view(), name='legal_task_create'),
-    path('legal-tasks/<int:pk>/edit/', views.LegalTaskUpdateView.as_view(), name='legal_task_update'),
-
-    # Trademarks
-    path('trademarks/', views.TrademarkRequestListView.as_view(), name='trademark_request_list'),
-    path('trademarks/new/', views.TrademarkRequestCreateView.as_view(), name='trademark_request_create'),
-    path('trademarks/<int:pk>/', views.TrademarkRequestDetailView.as_view(), name='trademark_request_detail'),
-    path('trademarks/<int:pk>/edit/', views.TrademarkRequestUpdateView.as_view(), name='trademark_request_update'),
-
-    # Risks
-    path('risks/', views.RiskLogListView.as_view(), name='risk_log_list'),
-    path('risks/new/', views.RiskLogCreateView.as_view(), name='risk_log_create'),
-    path('risks/<int:pk>/edit/', views.RiskLogUpdateView.as_view(), name='risk_log_update'),
-
-    # Compliance
-    path('compliance/', views.ComplianceChecklistListView.as_view(), name='compliance_checklist_list'),
-    path('compliance/new/', views.ComplianceChecklistCreateView.as_view(), name='compliance_checklist_create'),
-    path('compliance/<int:pk>/', views.ComplianceChecklistDetailView.as_view(), name='compliance_checklist_detail'),
-    path('compliance/<int:pk>/edit/', views.ComplianceChecklistUpdateView.as_view(), name='compliance_checklist_update'),
-    path('compliance/<int:pk>/toggle-item/', views.ToggleChecklistItemView.as_view(), name='toggle_checklist_item'),
-    path('compliance/<int:pk>/add-item/', views.AddChecklistItemView.as_view(), name='add_checklist_item'),
-
-    # Budgets
-    path('budgets/', views.BudgetListView.as_view(), name='budget_list'),
-    path('budgets/new/', views.BudgetCreateView.as_view(), name='budget_create'),
-    path('budgets/<int:pk>/', views.BudgetDetailView.as_view(), name='budget_detail'),
-    path('budgets/<int:pk>/edit/', views.BudgetUpdateView.as_view(), name='budget_update'),
-    path('budgets/<int:budget_pk>/add-expense/', views.AddExpenseView.as_view(), name='add_expense'),
-
-    # Workflows
-    path('workflows/', views.workflow_dashboard, name='workflow_dashboard'),
-    path('workflows/create/', views.workflow_create, name='workflow_create'),
-    path('workflows/templates/', views.workflow_template_list, name='workflow_template_list'),
-    path('workflows/templates/create/', views.workflow_template_create, name='workflow_template_create'),
-    path('workflows/templates/<int:pk>/', views.workflow_template_detail, name='workflow_template_detail'),
-    path('workflows/<int:pk>/', views.workflow_detail, name='workflow_detail'),
-    path('workflows/step/<int:pk>/update/', views.update_workflow_step, name='update_workflow_step'),
-
-    # Templates
-    path('templates/', views.WorkflowTemplateListView.as_view(), name='templates_list'),
-
-    # Repository
-    path('repository/', views.RepositoryView.as_view(), name='repository'),
-
-    # Counterparties
-    path('counterparties/', views.CounterpartyListView.as_view(), name='counterparty_list'),
-    path('counterparties/new/', views.CounterpartyCreateView.as_view(), name='counterparty_create'),
-    path('counterparties/<int:pk>/', views.CounterpartyDetailView.as_view(), name='counterparty_detail'),
-    path('counterparties/<int:pk>/edit/', views.CounterpartyUpdateView.as_view(), name='counterparty_update'),
-
-    # Clause Library
-    path('clause-categories/', views.ClauseCategoryListView.as_view(), name='clause_category_list'),
-    path('clause-categories/new/', views.ClauseCategoryCreateView.as_view(), name='clause_category_create'),
-    path('clause-categories/<int:pk>/edit/', views.ClauseCategoryUpdateView.as_view(), name='clause_category_update'),
-    path('clause-library/', views.ClauseTemplateListView.as_view(), name='clause_template_list'),
-    path('clause-library/new/', views.ClauseTemplateCreateView.as_view(), name='clause_template_create'),
-    path('clause-library/<int:pk>/', views.ClauseTemplateDetailView.as_view(), name='clause_template_detail'),
-    path('clause-library/<int:pk>/edit/', views.ClauseTemplateUpdateView.as_view(), name='clause_template_update'),
-
-    # Ethical Walls
-    path('ethical-walls/', views.EthicalWallListView.as_view(), name='ethical_wall_list'),
-    path('ethical-walls/new/', views.EthicalWallCreateView.as_view(), name='ethical_wall_create'),
-    path('ethical-walls/<int:pk>/edit/', views.EthicalWallUpdateView.as_view(), name='ethical_wall_update'),
-
-    # E-Signatures
-    path('signatures/', views.SignatureRequestListView.as_view(), name='signature_request_list'),
-    path('signatures/new/', views.SignatureRequestCreateView.as_view(), name='signature_request_create'),
-    path('signatures/<int:pk>/', views.SignatureRequestDetailView.as_view(), name='signature_request_detail'),
-    path('signatures/<int:pk>/edit/', views.SignatureRequestUpdateView.as_view(), name='signature_request_update'),
-
-    # Privacy & GDPR
-    path('privacy/', views.privacy_dashboard, name='privacy_dashboard'),
-    path('privacy/data-inventory/', views.DataInventoryListView.as_view(), name='data_inventory_list'),
-    path('privacy/data-inventory/new/', views.DataInventoryCreateView.as_view(), name='data_inventory_create'),
-    path('privacy/data-inventory/<int:pk>/', views.DataInventoryDetailView.as_view(), name='data_inventory_detail'),
-    path('privacy/data-inventory/<int:pk>/edit/', views.DataInventoryUpdateView.as_view(), name='data_inventory_update'),
-    path('privacy/dsar/', views.DSARRequestListView.as_view(), name='dsar_list'),
-    path('privacy/dsar/new/', views.DSARRequestCreateView.as_view(), name='dsar_create'),
-    path('privacy/dsar/<int:pk>/', views.DSARRequestDetailView.as_view(), name='dsar_detail'),
-    path('privacy/dsar/<int:pk>/edit/', views.DSARRequestUpdateView.as_view(), name='dsar_update'),
-    path('privacy/subprocessors/', views.SubprocessorListView.as_view(), name='subprocessor_list'),
-    path('privacy/subprocessors/new/', views.SubprocessorCreateView.as_view(), name='subprocessor_create'),
-    path('privacy/subprocessors/<int:pk>/', views.SubprocessorDetailView.as_view(), name='subprocessor_detail'),
-    path('privacy/subprocessors/<int:pk>/edit/', views.SubprocessorUpdateView.as_view(), name='subprocessor_update'),
-    path('privacy/transfers/', views.TransferRecordListView.as_view(), name='transfer_record_list'),
-    path('privacy/transfers/new/', views.TransferRecordCreateView.as_view(), name='transfer_record_create'),
-    path('privacy/transfers/<int:pk>/edit/', views.TransferRecordUpdateView.as_view(), name='transfer_record_update'),
-    path('privacy/retention/', views.RetentionPolicyListView.as_view(), name='retention_policy_list'),
-    path('privacy/retention/new/', views.RetentionPolicyCreateView.as_view(), name='retention_policy_create'),
-    path('privacy/retention/<int:pk>/edit/', views.RetentionPolicyUpdateView.as_view(), name='retention_policy_update'),
-    path('privacy/legal-holds/', views.LegalHoldListView.as_view(), name='legal_hold_list'),
-    path('privacy/legal-holds/new/', views.LegalHoldCreateView.as_view(), name='legal_hold_create'),
-    path('privacy/legal-holds/<int:pk>/', views.LegalHoldDetailView.as_view(), name='legal_hold_detail'),
-    path('privacy/legal-holds/<int:pk>/edit/', views.LegalHoldUpdateView.as_view(), name='legal_hold_update'),
-
-    # Approval Workflow Engine
-    path('approval-rules/', views.ApprovalRuleListView.as_view(), name='approval_rule_list'),
-    path('approval-rules/new/', views.ApprovalRuleCreateView.as_view(), name='approval_rule_create'),
-    path('approval-rules/<int:pk>/edit/', views.ApprovalRuleUpdateView.as_view(), name='approval_rule_update'),
-    path('approvals/', views.ApprovalRequestListView.as_view(), name='approval_request_list'),
-    path('approvals/new/', views.ApprovalRequestCreateView.as_view(), name='approval_request_create'),
-    path('approvals/<int:pk>/edit/', views.ApprovalRequestUpdateView.as_view(), name='approval_request_update'),
-
-    # Search
     path('search/', views.global_search, name='global_search'),
 
-    # Contracts
-    path('', views.ContractListView.as_view(), name='contract_list'),
-    path('<int:pk>/', views.ContractDetailView.as_view(), name='contract_detail'),
-    path('new/', views.ContractCreateView.as_view(), name='contract_create'),
-    path('<int:pk>/edit/', views.ContractUpdateView.as_view(), name='contract_update'),
-    path('<int:pk>/add_note/', views.AddNegotiationNoteView.as_view(), name='add_negotiation_note'),
-    path('<int:pk>/ai-assistant/', views.contract_ai_assistant, name='contract_ai_assistant'),
+    path('wachttijden/', views.DeadlineListView.as_view(), name='waittime_list'),
+    path('wachttijden/new/', views.DeadlineCreateView.as_view(), name='waittime_create'),
+    path('wachttijden/<int:pk>/', views.DeadlineUpdateView.as_view(), name='waittime_detail'),
+    path('wachttijden/<int:pk>/edit/', views.DeadlineUpdateView.as_view(), name='waittime_update'),
+
+    path('trust-accounts/', views.DeadlineListView.as_view(), name='trust_account_list'),
+    path('trust-accounts/new/', views.DeadlineCreateView.as_view(), name='trust_account_create'),
+    path('trust-accounts/<int:pk>/', views.DeadlineUpdateView.as_view(), name='trust_account_detail'),
+
+    path('intakes/', views.case_flow_list_redirect, {'step': 'intake'}, name='intake_list'),
+    path('intakes/new/', views.case_flow_create_redirect, {'step': 'intake'}, name='intake_create'),
+    path('intakes/<int:pk>/', views.case_flow_detail_redirect, name='intake_detail'),
+    path('intakes/<int:pk>/edit/', views.case_flow_update_redirect, name='intake_update'),
+
+    path('matching/', views.matching_dashboard, name='matching_dashboard'),
+    path('workflows/', views.reports_dashboard, name='workflow_dashboard'),
+    path('workflows/<int:pk>/', views.MatterDetailView.as_view(), name='workflow_detail'),
+    path('workflows/step/<int:pk>/update/', views.MatterUpdateView.as_view(), name='update_workflow_step'),
+
+
+    path('plaatsingen/', views.case_flow_list_redirect, {'step': 'placement'}, name='placement_list'),
+    path('plaatsingen/new/', views.case_flow_create_redirect, {'step': 'placement'}, name='placement_create'),
+    path('plaatsingen/<int:pk>/', views.MatterDetailView.as_view(), name='placement_detail'),
+    path('plaatsingen/<int:pk>/edit/', views.MatterUpdateView.as_view(), name='placement_update'),
+
+    path('signalen/', views.MatterListView.as_view(), name='signal_list'),
+    path('signalen/new/', views.MatterCreateView.as_view(), name='signal_create'),
+    path('signalen/<int:pk>/edit/', views.MatterUpdateView.as_view(), name='signal_update'),
+    path('risks/', views.MatterListView.as_view(), name='risk_log_list'),
+    path('risks/new/', views.MatterCreateView.as_view(), name='risk_log_create'),
+    path('risks/<int:pk>/edit/', views.MatterUpdateView.as_view(), name='risk_log_update'),
+
+    path('casussen/', views.DueDiligenceProcessListView.as_view(), name='case_list'),
+    path('casussen/new/', views.DueDiligenceProcessCreateView.as_view(), name='case_create'),
+    path('casussen/<int:pk>/', views.DueDiligenceProcessDetailView.as_view(), name='case_detail'),
+    path('casussen/<int:pk>/edit/', views.DueDiligenceProcessUpdateView.as_view(), name='case_update'),
+
+    # Assessments (Beoordelingen)
+    path('beoordelingen/', views.CaseAssessmentListView.as_view(), name='assessment_list'),
+    path('beoordelingen/new/', views.CaseAssessmentCreateView.as_view(), name='assessment_create'),
+    path('beoordelingen/<int:pk>/', views.CaseAssessmentDetailView.as_view(), name='assessment_detail'),
+    path('beoordelingen/<int:pk>/edit/', views.CaseAssessmentUpdateView.as_view(), name='assessment_update'),
+
+    path('', views.CareConfigurationListView.as_view(), name='home'),
 ]

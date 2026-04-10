@@ -15,7 +15,7 @@ if not ALLOWED_HOSTS:
     raise ImproperlyConfigured('ALLOWED_HOSTS must be set in production.')
 if not CSRF_TRUSTED_ORIGINS:
     raise ImproperlyConfigured('CSRF_TRUSTED_ORIGINS must be set in production.')
-if DEFAULT_FROM_EMAIL == 'noreply@cms-aegis.local':
+if DEFAULT_FROM_EMAIL == 'noreply@careon.local':
     raise ImproperlyConfigured('DEFAULT_FROM_EMAIL must be set in production.')
 
 SESSION_COOKIE_SECURE = True
