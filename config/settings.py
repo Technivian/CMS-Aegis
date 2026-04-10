@@ -31,18 +31,34 @@ def _load_dotenv(dotenv_path: Path) -> None:
 
 
 _load_dotenv(BASE_DIR / '.env')
+_load_dotenv(BASE_DIR / '.env.production')
+
+
+def _bool_env(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {'1', 'true', 'yes', 'on'}
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-h4dao*+381s=dgr2v6+1!#%ui6bz4#f95*hfcq!m73vn!^#)u&'
+DJANGO_ENV = os.getenv('DJANGO_ENV', 'development').strip().lower()
+IS_PRODUCTION = DJANGO_ENV == 'production'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# SECURITY WARNING: keep the secret key used in production secret.
+_fallback_secret = 'aegis-local-dev-secret-key-change-me-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY') or os.getenv('SECRET_KEY') or _fallback_secret
 
-ALLOWED_HOSTS = ['*']
+# SECURITY WARNING: don't run with debug turned on in production.
+DEBUG = _bool_env('DEBUG', default=not IS_PRODUCTION)
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if host.strip()
+]
 
 # CSRF trusted origins for Replit
 CSRF_TRUSTED_ORIGINS = [
@@ -63,18 +79,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'django_browser_reload',
-    'debug_toolbar',
     'theme',
     'contracts',
 ]
 
-
-def _bool_env(name: str, default: bool = False) -> bool:
-    raw = os.getenv(name)
-    if raw is None:
-        return default
-    return raw.strip().lower() in {'1', 'true', 'yes', 'on'}
+if DEBUG:
+    INSTALLED_APPS.extend([
+        'django_browser_reload',
+        'debug_toolbar',
+    ])
 
 
 SSO_ENABLED = _bool_env('SSO_ENABLED', default=False)
@@ -96,7 +109,6 @@ if SSO_ENABLED and not OIDC_PACKAGE_AVAILABLE:
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -104,8 +116,11 @@ MIDDLEWARE = [
     'contracts.middleware.OrganizationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_browser_reload.middleware.BrowserReloadMiddleware',
 ]
+
+if DEBUG:
+    MIDDLEWARE.insert(1, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+    MIDDLEWARE.append('django_browser_reload.middleware.BrowserReloadMiddleware')
 
 ROOT_URLCONF = 'config.urls'
 
@@ -241,3 +256,13 @@ if SSO_ENABLED:
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Production security hardening.
+if IS_PRODUCTION:
+    SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '31536000'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = _bool_env('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True)
+    SECURE_HSTS_PRELOAD = _bool_env('SECURE_HSTS_PRELOAD', default=True)
+    SECURE_SSL_REDIRECT = _bool_env('SECURE_SSL_REDIRECT', default=True)
+    SESSION_COOKIE_SECURE = _bool_env('SESSION_COOKIE_SECURE', default=True)
+    CSRF_COOKIE_SECURE = _bool_env('CSRF_COOKIE_SECURE', default=True)
+    SECURE_CONTENT_TYPE_NOSNIFF = _bool_env('SECURE_CONTENT_TYPE_NOSNIFF', default=True)

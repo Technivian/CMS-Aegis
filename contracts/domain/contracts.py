@@ -66,3 +66,7 @@ class ListResult:
             'page_size': self.page_size,
             'total_pages': self.total_pages
         }
+
+
+# Legacy alias used by pre-refactor API modules.
+CareCaseData = ContractData

@@ -75,8 +75,7 @@ class MatterForm(forms.ModelForm):
         model = Matter
         fields = ['title', 'client', 'practice_area', 'status', 'responsible_attorney',
                   'originating_attorney', 'billing_type', 'budget_amount', 'open_date',
-                  'statute_of_limitations', 'court_name', 'case_number', 'opposing_party',
-                  'opposing_counsel', 'is_confidential', 'description', 'notes']
+                  'is_confidential', 'description', 'notes']
         widgets = {
             'title': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
             'client': forms.Select(attrs={'class': TAILWIND_SELECT}),
@@ -87,11 +86,6 @@ class MatterForm(forms.ModelForm):
             'billing_type': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'budget_amount': forms.NumberInput(attrs={'class': TAILWIND_INPUT, 'step': '0.01'}),
             'open_date': forms.DateInput(attrs={'class': TAILWIND_INPUT, 'type': 'date'}),
-            'statute_of_limitations': forms.DateInput(attrs={'class': TAILWIND_INPUT, 'type': 'date'}),
-            'court_name': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
-            'case_number': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
-            'opposing_party': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
-            'opposing_counsel': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
             'is_confidential': forms.CheckboxInput(attrs={'class': TAILWIND_CHECKBOX}),
             'description': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 3}),
             'notes': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 3}),
@@ -177,16 +171,16 @@ class TrustTransactionForm(forms.ModelForm):
 class DeadlineForm(forms.ModelForm):
     class Meta:
         model = Deadline
-        fields = ['title', 'description', 'deadline_type', 'priority', 'due_date',
-                  'due_time', 'reminder_days', 'matter', 'contract', 'assigned_to']
+        fields = ['title', 'description', 'task_type', 'priority', 'due_date',
+                  'due_time', 'due_diligence_process', 'matter', 'contract', 'assigned_to']
         widgets = {
             'title': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
             'description': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 3}),
-            'deadline_type': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'task_type': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'priority': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'due_date': forms.DateInput(attrs={'class': TAILWIND_INPUT, 'type': 'date'}),
             'due_time': forms.TimeInput(attrs={'class': TAILWIND_INPUT, 'type': 'time'}),
-            'reminder_days': forms.NumberInput(attrs={'class': TAILWIND_INPUT}),
+            'due_diligence_process': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'matter': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'contract': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'assigned_to': forms.Select(attrs={'class': TAILWIND_SELECT}),
