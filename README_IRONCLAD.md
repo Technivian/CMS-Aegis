@@ -116,6 +116,56 @@ The redesign and contract list/dashboard markers are covered by the test suite a
 .venv/bin/python manage.py runserver 127.0.0.1:8000
 ```
 
+Environment defaults now come from `DJANGO_ENV`:
+
+- `development`: uses [`config/settings_development.py`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/config/settings_development.py)
+- `production`: uses [`config/settings_production.py`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/config/settings_production.py)
+- shared base: [`config/settings_base.py`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/config/settings_base.py)
+
+Recommended local `.env` values are in [`.env.example`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/.env.example).
+
+## Production Environment Contract
+
+Required in production:
+
+- `DJANGO_ENV=production`
+- `DJANGO_SECRET_KEY`
+- `ALLOWED_HOSTS`
+- `CSRF_TRUSTED_ORIGINS`
+- `DEFAULT_FROM_EMAIL`
+
+Recommended in production:
+
+- `DJANGO_LOG_LEVEL=INFO`
+- `SERVER_EMAIL`
+- `SECURE_SSL_REDIRECT=true`
+- `SECURE_HSTS_PRELOAD=true`
+- `SSO_ENABLED` and the relevant OIDC variables if SSO is in use
+
+Optional local scratch-db override for migration drills:
+
+- `SQLITE_PATH=/tmp/cms-aegis-drill.sqlite3`
+
+Minimum production verification sequence:
+
+```bash
+.venv/bin/python manage.py check --deploy --fail-level WARNING
+.venv/bin/python manage.py migrate --noinput
+.venv/bin/python manage.py audit_null_organizations
+.venv/bin/python manage.py test tests.test_cross_tenant_isolation -v 1
+```
+
+## Logging
+
+Request logging now includes:
+
+- `request_id`
+- `user_id`
+- `org_id`
+- `path`
+
+Each response also includes an `X-Request-ID` header. Local development logs go to stdout using the structured formatter in [`config/settings_base.py`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/config/settings_base.py). Production should ship the same stdout stream to the platform log collector and keep `DJANGO_LOG_LEVEL=INFO` unless active debugging is required.
+
 Or run the dev server and reminder scheduler together:
 
 ```bash
@@ -131,6 +181,16 @@ Optional development seed data:
 ```bash
 .venv/bin/python manage.py seed_data
 ```
+
+Starter catalog content is now tenant-owned. For existing organizations, promote starter content and clean up legacy global rows with:
+
+```bash
+.venv/bin/python manage.py promote_starter_content --cleanup-global
+.venv/bin/python manage.py audit_null_organizations
+```
+
+For staging and pre-release validation, use the manual two-organization smoke checklist in
+[`docs/MANUAL_SMOKE_CHECKLIST.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/MANUAL_SMOKE_CHECKLIST.md).
 
 That command creates demo users, including:
 
@@ -173,12 +233,13 @@ Run the full validated suite:
 
 As of the latest validation pass:
 
-- `76` tests pass
+- `151` tests pass
 - `manage.py check` is clean
 
 ## Canonical Docs
 
 - `README_IRONCLAD.md`: current operational overview
 - `DECISIONS.md`: implemented architectural and product decisions
+- `docs/OBSERVABILITY_BOOTSTRAP.md`: SLO, dashboard, and alert bootstrap
 
 Old Replit-era handover notes and duplicate decision logs have been removed to keep the docs aligned with the codebase.
