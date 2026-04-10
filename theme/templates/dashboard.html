@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Dashboard - CMS Aegis{% endblock %}
+{% block title %}Dashboard - Zorgregie{% endblock %}
 
 {% block content %}
 
@@ -7,38 +7,38 @@
 
     <div class="page-header">
         <div>
-            <h1 class="page-title">Welcome back{% if user.first_name %}, {{ user.first_name }}{% endif %}</h1>
+            <h1 class="page-title">Welkom terug{% if user.first_name %}, {{ user.first_name }}{% endif %}</h1>
             <p class="page-subtitle">{{ today|date:"l, F j, Y" }}</p>
         </div>
         <div class="page-actions">
-            <a href="{% url 'contracts:contract_create' %}" class="action-chip">
+            <a href="{% url 'contracts:case_create' %}" class="action-chip">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                New Contract
+                Nieuwe casus
             </a>
             <a href="{% url 'contracts:client_create' %}" class="action-chip">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                New Client
+                Nieuwe aanbieder
             </a>
-            <a href="{% url 'contracts:time_entry_create' %}" class="action-chip">
+            <a href="{% url 'contracts:case_list' %}?flow=intake" class="action-chip">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Log Time
+                Start intake vanuit casus
             </a>
         </div>
     </div>
 
-    {% if overdue_deadlines > 0 or risk_count > 0 %}
+    {% if urgent_case_count > 0 or provider_capacity_critical_count > 0 %}
     <div class="flex gap-3 mb-6 flex-wrap">
-        {% if overdue_deadlines > 0 %}
+        {% if urgent_case_count > 0 %}
         <a href="{% url 'contracts:deadline_list' %}" class="alert-banner alert-banner-red alert-link-fill">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
-            <span><strong>{{ overdue_deadlines }}</strong> overdue deadline{{ overdue_deadlines|pluralize }}</span>
+            <span><strong>{{ urgent_case_count }}</strong> urgente casus{{ urgent_case_count|pluralize }} vragen nu directe opvolging</span>
             <svg class="ic-sm ml-auto opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </a>
         {% endif %}
-        {% if risk_count > 0 %}
-        <a href="{% url 'contracts:risk_log_list' %}" class="alert-banner alert-banner-yellow alert-link-fill">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-            <span><strong>{{ risk_count }}</strong> high/critical risk item{{ risk_count|pluralize }}</span>
+        {% if provider_capacity_critical_count > 0 %}
+        <a href="{% url 'contracts:client_list' %}" class="alert-banner alert-banner-yellow alert-link-fill">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span><strong>{{ provider_capacity_critical_count }}</strong> aanbieders vragen capaciteitssturing of opvolging</span>
             <svg class="ic-sm ml-auto opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </a>
         {% endif %}
@@ -51,15 +51,12 @@
             <div class="kpi-icon kpi-icon-blue">
                 <svg class="ic-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             </div>
-            <div class="kpi-value">{{ active_contracts }}</div>
-            <div class="kpi-label">Active Contracts</div>
-            {% if expiring_soon_count > 0 %}
-            <div class="kpi-sub kpi-sub-amber">
-                <svg class="ic-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                {{ expiring_soon_count }} expiring soon
-            </div>
+            <div class="kpi-value">{{ urgent_case_count }}</div>
+            <div class="kpi-label">Urgente casussen</div>
+            {% if urgent_case_count > 0 %}
+            <div class="kpi-sub kpi-sub-red">Directe prioriteit in intake, matching of plaatsing</div>
             {% else %}
-            <div class="kpi-sub kpi-sub-green">{{ total_contracts }} total</div>
+            <div class="kpi-sub kpi-sub-green">Geen urgente opvolging op dit moment</div>
             {% endif %}
         </div>
 
@@ -68,9 +65,9 @@
             <div class="kpi-icon kpi-icon-green">
                 <svg class="ic-green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             </div>
-            <div class="kpi-value">{{ total_clients }}</div>
-            <div class="kpi-label">Clients</div>
-            <div class="kpi-sub kpi-sub-blue">{{ active_matters }} active matter{{ active_matters|pluralize }}</div>
+            <div class="kpi-value">{{ cases_without_match_count }}</div>
+            <div class="kpi-label">Casussen zonder match</div>
+            <div class="kpi-sub kpi-sub-blue">{{ pending_approvals }} open indicaties in behandeling</div>
         </div>
 
         <div class="kpi-card">
@@ -78,15 +75,12 @@
             <div class="kpi-icon kpi-icon-amber">
                 <svg class="ic-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
-            <div class="kpi-value">${{ outstanding_invoices|floatformat:0 }}</div>
-            <div class="kpi-label">Outstanding</div>
-            {% if overdue_invoices > 0 %}
-            <div class="kpi-sub kpi-sub-red">
-                <svg class="ic-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01"/></svg>
-                ${{ overdue_invoices|floatformat:0 }} overdue
-            </div>
+            <div class="kpi-value">{{ intake_phase_count }}</div>
+            <div class="kpi-label">Casussen in intakefase</div>
+            {% if intake_phase_count > 0 %}
+            <div class="kpi-sub kpi-sub-amber">{{ risk_count }} signalen vragen extra opvolging</div>
             {% else %}
-            <div class="kpi-sub kpi-sub-green">${{ paid_this_month|floatformat:0 }} paid this month</div>
+            <div class="kpi-sub kpi-sub-green">Start je eerste regiedossier om de werkvoorraad op te bouwen</div>
             {% endif %}
         </div>
 
@@ -95,86 +89,46 @@
             <div class="kpi-icon kpi-icon-purple">
                 <svg class="ic-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
             </div>
-            <div class="kpi-value">{{ pending_tasks }}</div>
-            <div class="kpi-label">Pending Tasks</div>
-            <div class="kpi-sub kpi-sub-blue">{{ active_workflows }} workflow{{ active_workflows|pluralize }}</div>
+            <div class="kpi-value">{{ avg_intake_to_placement_days|floatformat:1 }}</div>
+            <div class="kpi-label">Gem. doorlooptijd intake → plaatsing</div>
+            {% if avg_intake_to_placement_days > 0 %}
+            <div class="kpi-sub kpi-sub-blue">Gebaseerd op {{ completed_cases|default:completed_contracts|default:0 }} afgeronde trajecten</div>
+            {% else %}
+            <div class="kpi-sub kpi-sub-green">Nog geen plaatsingen afgerond om een gemiddelde te tonen</div>
+            {% endif %}
         </div>
     </div>
-
-    {% if pending_approvals > 0 or pending_signatures > 0 or open_dsars > 0 %}
-    <div class="dash-grid dash-grid-3 mb-6">
-        {% if pending_approvals > 0 %}
-        <a href="{% url 'contracts:approval_request_list' %}" class="kpi-card kpi-card-link">
-            <div class="kpi-row">
-                <div class="kpi-icon kpi-icon-amber mb-0">
-                    <svg class="ic-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-                <div>
-                    <div class="metric-lg">{{ pending_approvals }}</div>
-                    <div class="kpi-row-label">Pending Approvals</div>
-                </div>
-            </div>
-        </a>
-        {% endif %}
-        {% if pending_signatures > 0 %}
-        <a href="{% url 'contracts:signature_request_list' %}" class="kpi-card kpi-card-link">
-            <div class="kpi-row">
-                <div class="kpi-icon kpi-icon-blue mb-0">
-                    <svg class="ic-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                </div>
-                <div>
-                    <div class="metric-lg">{{ pending_signatures }}</div>
-                    <div class="kpi-row-label">Awaiting Signatures</div>
-                </div>
-            </div>
-        </a>
-        {% endif %}
-        {% if open_dsars > 0 %}
-        <a href="{% url 'contracts:dsar_list' %}" class="kpi-card kpi-card-link">
-            <div class="kpi-row">
-                <div class="kpi-icon kpi-icon-red mb-0">
-                    <svg class="ic-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                </div>
-                <div>
-                    <div class="metric-lg">{{ open_dsars }}</div>
-                    <div class="kpi-row-label">Open DSARs</div>
-                </div>
-            </div>
-        </a>
-        {% endif %}
-    </div>
-    {% endif %}
 
     <div class="dash-grid dash-grid-2-1 mb-6">
         <div class="panel">
             <div class="panel-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-blue"></div>
-                    <span class="panel-title">Recent Contracts</span>
+                    <span class="panel-title">Actie vereist</span>
                 </div>
-                <a href="{% url 'contracts:contract_list' %}" class="panel-link">
-                    View all
+                <a href="{% url 'contracts:case_list' %}" class="panel-link">
+                    Alles bekijken
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
-            {% for contract in recent_contracts %}
-            <a href="{% url 'contracts:contract_detail' contract.pk %}" class="list-row">
+            {% for item in action_required %}
+            <a href="{{ item.href }}" class="list-row">
                 <div class="item-row">
-                    <div class="status-dot {% if contract.status == 'ACTIVE' %}green{% elif contract.status == 'DRAFT' %}gray{% elif contract.status == 'PENDING' %}yellow{% elif contract.status == 'EXPIRED' %}red{% else %}blue{% endif %}"></div>
+                    <div class="status-dot {% if item.badge_class == 'badge-red' %}red{% elif item.badge_class == 'badge-yellow' %}yellow{% elif item.badge_class == 'badge-purple' %}blue{% else %}gray{% endif %}"></div>
                     <div class="min-w-0">
-                        <div class="item-title">{{ contract.title|truncatechars:45 }}</div>
-                        <div class="item-meta">{{ contract.get_contract_type_display|default:"Contract" }} &middot; {{ contract.created_at|date:"M d" }}</div>
+                        <div class="item-title">{{ item.title|truncatechars:52 }}</div>
+                        <div class="item-meta">{{ item.meta }}</div>
                     </div>
                 </div>
-                <span class="badge-sm {% if contract.status == 'ACTIVE' %}badge-green{% elif contract.status == 'DRAFT' %}badge-gray{% elif contract.status == 'PENDING' %}badge-yellow{% elif contract.status == 'EXPIRED' %}badge-red{% else %}badge-blue{% endif %}">
-                    {{ contract.get_status_display }}
+                <span class="badge-sm {{ item.badge_class }}">
+                    {{ item.badge }}
                 </span>
             </a>
             {% empty %}
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                No contracts yet.
-                <a href="{% url 'contracts:contract_create' %}" class="c-link no-underline font-semibold"> Create your first contract</a>
+                Geen acties die directe opvolging vragen.
+                <a href="{% url 'contracts:case_create' %}" class="c-link no-underline font-semibold"> Start je eerste casus</a>
             </div>
             {% endfor %}
         </div>
@@ -183,35 +137,35 @@
             <div class="panel-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-purple"></div>
-                    <span class="panel-title">Portfolio</span>
+                    <span class="panel-title">Casusflow: Start aanvraag -> Casus (persoonsbeeld, diagnoses, indicatie) -> Beoordeling -> Matching -> Intake -> Plaatsing</span>
                 </div>
             </div>
             <div class="panel-inner">
-                {% if contract_status_data %}
-                {% for item in contract_status_data %}
+                {% if case_status_data|default:contract_status_data %}
+                {% for item in case_status_data|default:contract_status_data %}
                 <div class="portfolio-item {% if forloop.last %}mb-0{% endif %}">
                     <div class="portfolio-row-head">
                         <span class="port-label">{{ item.label }}</span>
                         <span class="port-count">{{ item.count }}</span>
                     </div>
                     <div class="progress-bar-bg">
-                        <div class="progress-bar-fill {% if item.label == 'Active' %}pf-active{% elif item.label == 'Draft' %}pf-draft{% elif item.label == 'In Review' %}pf-review{% elif item.label == 'Expired' %}pf-expired{% else %}pf-other{% endif %}" style="width: {% widthratio item.count total_contracts 100 %}%;"></div>
+                        <div class="progress-bar-fill {{ item.tone }}" style="width: {% widthratio item.count flow_total 100 %}%;"></div>
                     </div>
                 </div>
                 {% endfor %}
                 {% else %}
-                <div class="no-data-msg">No contract data yet</div>
+                <div class="no-data-msg">Nog geen casusdata beschikbaar</div>
                 {% endif %}
 
                 <div class="panel-divider">
                     <div class="panel-2col">
                         <div>
                             <div class="metric-md">{{ total_documents }}</div>
-                            <div class="item-meta">Documents</div>
+                            <div class="item-meta">Documenten</div>
                         </div>
                         <div>
-                            <div class="metric-md">{{ total_matters }}</div>
-                            <div class="item-meta">Total Matters</div>
+                            <div class="metric-md">{{ total_configurations|default:total_matters }}</div>
+                            <div class="item-meta">Regiedossiers</div>
                         </div>
                     </div>
                 </div>
@@ -223,37 +177,61 @@
         <div class="panel">
             <div class="panel-head">
                 <div class="panel-head-inner">
-                    <div class="dot dot-red"></div>
-                    <span class="panel-title">Upcoming Deadlines</span>
-                    {% if upcoming_deadline_count > 0 %}
-                    <span class="badge-sm badge-red ml-1">{{ upcoming_deadline_count }}</span>
+                    <div class="dot dot-purple"></div>
+                    <span class="panel-title">Match aanbevelingen open</span>
+                    {% if match_recommendations %}
+                    <span class="badge-sm badge-blue ml-1">{{ match_recommendations|length }}</span>
                     {% endif %}
                 </div>
-                <a href="{% url 'contracts:deadline_list' %}" class="panel-link">
-                    View all
+                <a href="{% url 'contracts:case_list' %}?flow=matching" class="panel-link">
+                    Start vanuit casus
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
-            {% for deadline in upcoming_deadlines %}
-            <div class="list-row">
-                <div class="item-row">
-                    <div class="date-cell">
-                        <div class="date-day">{{ deadline.due_date|date:"d" }}</div>
-                        <div class="date-month">{{ deadline.due_date|date:"M" }}</div>
-                    </div>
-                    <div class="min-w-0">
-                        <div class="item-title">{{ deadline.title|truncatechars:38 }}</div>
-                        <div class="item-meta">{{ deadline.get_deadline_type_display }}</div>
+            {% if matching_focus_case %}
+            <div class="list-row block">
+                <div class="item-row items-start">
+                    <div class="status-dot blue mt-1"></div>
+                    <div class="min-w-0 flex-1">
+                        <div class="item-title">Casusfocus: {{ matching_focus_case.title|truncatechars:48 }}</div>
+                        <div class="item-meta">Aanbevelingen zijn berekend voor deze casus.</div>
                     </div>
                 </div>
-                <span class="badge-sm {% if deadline.priority == 'CRITICAL' %}badge-red{% elif deadline.priority == 'HIGH' %}badge-yellow{% else %}badge-blue{% endif %}">
-                    {{ deadline.get_priority_display }}
-                </span>
+            </div>
+            {% endif %}
+            {% for item in match_recommendations %}
+            <div class="list-row block">
+                <div class="item-row items-start">
+                    <div class="status-dot blue mt-1"></div>
+                    <div class="min-w-0 flex-1">
+                        <div class="item-title">{{ item.case_record.title|default:item.contract.title|truncatechars:42 }}</div>
+                        <div class="item-meta">Top-3 suggesties klaar • {{ item.days_open }} dagen open</div>
+                        <div class="mt-2 space-y-2">
+                            {% for suggestion in item.suggestions %}
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <div class="item-title text-[13px]">{{ suggestion.name }}</div>
+                                    <div class="item-meta">Matchscore {{ suggestion.match_score }} · Wachttijd {% if suggestion.wait_days is not None %}{{ suggestion.wait_days }} dagen{% else %}onbekend{% endif %} · Capaciteit {{ suggestion.capacity }}</div>
+                                    <div class="item-meta">Reden: {{ suggestion.match_reason }}</div>
+                                </div>
+                                <a href="{{ item.action_href }}&provider={{ suggestion.id }}" class="c-link no-underline text-[12px] font-semibold">Kies vanuit casus</a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-2">
+                            <a href="{{ item.action_href }}" class="c-link no-underline text-[12px] font-semibold">Open casus voor matching</a>
+                        </div>
+                    </div>
+                </div>
             </div>
             {% empty %}
             <div class="empty-state">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                No upcoming deadlines. You're all clear.
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                Geen open matchaanbevelingen.
+                <a href="{% url 'contracts:case_list' %}?flow=matching" class="c-link no-underline font-semibold"> Start matching vanuit casus</a>
+                {% if not has_providers %}
+                <a href="{% url 'contracts:client_create' %}" class="c-link no-underline font-semibold"> Voeg een zorgaanbieder toe</a>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -262,33 +240,100 @@
             <div class="panel-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-amber"></div>
-                    <span class="panel-title">Pending Tasks</span>
+                    <span class="panel-title">Capaciteit signalen</span>
                 </div>
-                <a href="{% url 'contracts:legal_task_kanban' %}" class="panel-link">
-                    View all
+                <a href="{% url 'contracts:client_list' %}" class="panel-link">
+                    Alles bekijken
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
-            {% for task in upcoming_tasks %}
+            {% for provider in provider_capacity_signals %}
             <div class="list-row">
                 <div class="item-row">
                     <div class="task-check"></div>
                     <div class="min-w-0">
-                        <div class="item-title">{{ task.title|truncatechars:40 }}</div>
-                        <div class="item-meta">Due {{ task.due_date|date:"M d" }}</div>
+                        <div class="item-title">{{ provider.name|truncatechars:40 }}</div>
+                        <div class="item-meta">{{ provider.detail }}</div>
                     </div>
                 </div>
-                <span class="badge-sm {% if task.priority == 'URGENT' %}badge-red{% elif task.priority == 'HIGH' %}badge-yellow{% else %}badge-blue{% endif %}">
-                    {{ task.get_priority_display }}
+                <span class="badge-sm {{ provider.badge_class }}">
+                    {{ provider.signal }}
                 </span>
             </div>
             {% empty %}
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                No pending tasks. Nice work.
+                Geen capaciteitsdruk gedetecteerd.
+                {% if not has_providers %}
+                <a href="{% url 'contracts:client_create' %}" class="c-link no-underline font-semibold"> Voeg een zorgaanbieder toe</a>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
+    </div>
+
+    <div class="panel mb-6">
+        <div class="panel-head">
+            <div class="panel-head-inner">
+                <div class="dot dot-blue"></div>
+                <span class="panel-title">Opvolging / Taken</span>
+            </div>
+                <a href="{% url 'contracts:task_list' %}" class="panel-link">
+                Alles bekijken
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </a>
+        </div>
+        {% for task in followup_tasks %}
+        <a href="{% url 'contracts:task_update' task.pk %}" class="list-row">
+            <div class="item-row">
+                <div class="status-dot {% if task.priority == 'URGENT' %}red{% elif task.priority == 'HIGH' %}yellow{% else %}blue{% endif %}"></div>
+                <div class="min-w-0">
+                    <div class="item-title">{{ task.title|truncatechars:46 }}</div>
+                    <div class="item-meta">{{ task.due_diligence_process.title|default:'Niet gekoppeld' }} &middot; {{ task.get_task_type_display }} &middot; {{ task.due_date|date:"M d" }}</div>
+                </div>
+            </div>
+            <span class="badge-sm {% if task.is_overdue %}badge-red{% elif task.priority == 'URGENT' %}badge-red{% elif task.priority == 'HIGH' %}badge-yellow{% else %}badge-blue{% endif %}">
+                {% if task.is_overdue %}Te laat{% elif task.priority == 'URGENT' %}Urgent{% else %}{{ task.get_priority_display }}{% endif %}
+            </span>
+        </a>
+        {% empty %}
+        <div class="empty-state">
+            Geen open opvolgtaken.
+            <a href="{% url 'contracts:task_create' %}" class="c-link no-underline font-semibold"> Voeg een taak toe</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="panel mb-6">
+        <div class="panel-head">
+            <div class="panel-head-inner">
+                <div class="dot dot-red"></div>
+                <span class="panel-title">Recente signalen</span>
+            </div>
+            <a href="{% url 'contracts:signal_list' %}" class="panel-link">
+                Alles bekijken
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </a>
+        </div>
+        {% for signal in recent_signals %}
+        <a href="{% url 'contracts:signal_update' signal.pk %}" class="list-row">
+            <div class="item-row">
+                <div class="status-dot {% if signal.risk_level == 'CRITICAL' %}red{% elif signal.risk_level == 'HIGH' %}yellow{% else %}blue{% endif %}"></div>
+                <div class="min-w-0">
+                    <div class="item-title">{{ signal.get_signal_type_display }}{% if signal.due_diligence_process %} · {{ signal.due_diligence_process.title|truncatechars:35 }}{% endif %}</div>
+                    <div class="item-meta">{{ signal.description|truncatechars:80 }}</div>
+                </div>
+            </div>
+            <span class="badge-sm {% if signal.status == 'OPEN' %}badge-red{% elif signal.status == 'IN_PROGRESS' %}badge-yellow{% else %}badge-green{% endif %}">
+                {{ signal.get_status_display }}
+            </span>
+        </a>
+        {% empty %}
+        <div class="empty-state">
+            Geen recente signalen.
+            <a href="{% url 'contracts:signal_create' %}" class="c-link no-underline font-semibold"> Voeg een signaal toe</a>
+        </div>
+        {% endfor %}
     </div>
 
     <div class="dash-grid dash-grid-2-1 mb-6">
@@ -296,21 +341,25 @@
             <div class="panel-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-green"></div>
-                    <span class="panel-title">Activity Feed</span>
+                    <span class="panel-title">Regie-activiteit</span>
                 </div>
                 <a href="{% url 'contracts:audit_log_list' %}" class="panel-link">
-                    Full log
+                    Volledig logboek
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
             {% for log in recent_audit %}
             <div class="list-row kpi-row">
                 <div class="avatar-xs avatar-gradient-bg">
-                    {{ log.user.first_name.0|default:log.user.username.0|upper }}
+                    {% if log.user %}
+                    {{ log.user.first_name|default:log.user.username|slice:":1"|upper }}
+                    {% else %}
+                    S
+                    {% endif %}
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="text-[13px] c-primary">
-                        <span class="font-bold">{{ log.user.get_full_name|default:log.user.username }}</span>
+                        <span class="font-bold">{% if log.user %}{{ log.user.get_full_name|default:log.user.username }}{% else %}System{% endif %}</span>
                         <span class="c-secondary font-normal">{{ log.get_action_display|lower }}</span>
                         <span class="font-medium">{{ log.model_name }}</span>
                     </div>
@@ -323,7 +372,7 @@
             {% empty %}
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                No recent activity.
+                Geen recente regie-activiteit.
             </div>
             {% endfor %}
         </div>
@@ -331,49 +380,49 @@
         <div class="stk-col">
             <div class="panel">
                 <div class="panel-head">
-                    <span class="panel-title">Billing Snapshot</span>
+                    <span class="panel-title">Regie snapshot</span>
                 </div>
                 <div class="panel-inner">
                     <div class="mb-5">
-                        <div class="metric-label">Hours This Month</div>
-                        <div class="metric-xl">{{ billable_this_month|floatformat:1 }}<span class="metric-unit">hrs</span></div>
+                        <div class="metric-label">Gem. intake → plaatsing</div>
+                        <div class="metric-xl">{{ avg_intake_to_placement_days|floatformat:1 }}<span class="metric-unit">dagen</span></div>
                     </div>
                     <div class="panel-divider">
-                        <div class="metric-label">Trust Balance (IOLTA)</div>
-                        <div class="metric-lg metric-trust">${{ trust_balance|floatformat:0 }}</div>
+                        <div class="metric-label">Aanbieders met ruimte</div>
+                        <div class="metric-lg metric-trust">{{ providers_with_capacity }}</div>
                     </div>
                 </div>
             </div>
 
             <div class="panel">
                 <div class="panel-head">
-                    <span class="panel-title">Quick Links</span>
+                    <span class="panel-title">Snelle navigatie</span>
                 </div>
                 <a href="{% url 'contracts:reports_dashboard' %}" class="list-row nav-row">
                     <div class="nav-row-body">
                         <svg class="ic-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                        <span class="nav-row-label">Reports</span>
+                        <span class="nav-row-label">Regierapportages</span>
                     </div>
                     <svg class="ic-muted ic-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
                 <a href="{% url 'contracts:privacy_dashboard' %}" class="list-row nav-row">
                     <div class="nav-row-body">
                         <svg class="ic-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                        <span class="nav-row-label">Privacy Center</span>
+                        <span class="nav-row-label">AVG en privacy</span>
                     </div>
                     <svg class="ic-muted ic-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
-                <a href="{% url 'contracts:clause_template_list' %}" class="list-row nav-row">
+                <a href="{% url 'contracts:matching_dashboard' %}" class="list-row nav-row">
                     <div class="nav-row-body">
-                        <svg class="ic-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                        <span class="nav-row-label">Clause Library</span>
+                        <svg class="ic-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <span class="nav-row-label">Matchingoverzicht</span>
                     </div>
                     <svg class="ic-muted ic-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
-                <a href="{% url 'contracts:conflict_check_list' %}" class="list-row nav-row">
+                <a href="{% url 'contracts:case_create' %}" class="list-row nav-row">
                     <div class="nav-row-body">
                         <svg class="ic-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                        <span class="nav-row-label">Conflict Checks</span>
+                        <span class="nav-row-label">Nieuwe casus starten</span>
                     </div>
                     <svg class="ic-muted ic-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
