@@ -11,7 +11,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
+from django.contrib.auth import login, get_user_model
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
@@ -48,7 +48,7 @@ from .models import (
     Deadline, AuditLog, Notification, UserProfile, ConflictCheck,
     Counterparty, ClauseCategory, ClauseTemplate, EthicalWall, SignatureRequest,
     DataInventoryRecord, DSARRequest, Subprocessor, TransferRecord, RetentionPolicy,
-    LegalHold, ApprovalRule, ApprovalRequest,
+    LegalHold, ApprovalRule, ApprovalRequest, Case, CaseMatter, CaseSignal,
 )
 from .middleware import log_action
 from .permissions import (
@@ -59,9 +59,27 @@ from .permissions import (
     is_organization_owner,
 )
 from .tenancy import get_user_organization, scope_queryset_for_organization, set_organization_on_instance
+from .services.starter_content import ensure_org_starter_content
+from .view_support import (
+    OrganizationContextMixin,
+    TenantAssignCreateMixin,
+    TenantScopedFormMixin,
+    TenantScopedQuerysetMixin,
+    apply_form_queryset_scopes as _apply_form_queryset_scopes,
+    configure_workflow_form as _configure_workflow_form,
+    organization_user_queryset as _organization_user_queryset,
+    scope_budgets_for_organization as _scope_budgets_for_organization,
+    scope_checklist_items_for_organization as _scope_checklist_items_for_organization,
+    scope_checklists_for_organization as _scope_checklists_for_organization,
+    scope_due_diligence_processes_for_organization as _scope_due_diligence_processes_for_organization,
+    scope_due_diligence_tasks_for_organization as _scope_due_diligence_tasks_for_organization,
+    scope_workflow_steps_for_organization as _scope_workflow_steps_for_organization,
+    scope_workflows_for_organization as _scope_workflows_for_organization,
+)
 from config.feature_flags import get_feature_flag, is_feature_redesign_enabled
 
 logger = logging.getLogger(__name__)
+User = get_user_model()
 
 
 def get_or_create_profile(user):
@@ -79,28 +97,6 @@ def health_check(request):
     return HttpResponse("OK", content_type="text/plain")
 
 
-class TenantScopedQuerysetMixin:
-    """Mixin to automatically scope querysets to the user's organization.
-    
-    Caches organization in request to avoid repeated lookups.
-    Use self.get_organization() to access cached org in any view method.
-    """
-    def get_organization(self):
-        """Get organization for current user, cached on request."""
-        if not hasattr(self.request, '_cached_organization'):
-            self.request._cached_organization = get_user_organization(self.request.user)
-        return self.request._cached_organization
-    
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        org = self.get_organization()
-        return scope_queryset_for_organization(queryset, org)
-
-
-class TenantAssignCreateMixin:
-    def form_valid(self, form):
-        set_organization_on_instance(form.instance, get_user_organization(self.request.user))
-        return super().form_valid(form)
 
 
 # ==================== CLIENT VIEWS ====================
@@ -1280,9 +1276,9 @@ def reports_dashboard(request):
     year_start = today.replace(month=1, day=1)
 
     org = get_user_organization(request.user)
-    contracts_qs = scope_queryset_for_organization(Contract.objects.all(), org)
+    case_qs = scope_queryset_for_organization(Case.objects.all(), org)
     clients_qs = scope_queryset_for_organization(Client.objects.all(), org)
-    matters_qs = scope_queryset_for_organization(Matter.objects.all(), org)
+    case_matter_qs = scope_queryset_for_organization(CaseMatter.objects.all(), org)
     time_entries_qs = scope_queryset_for_organization(TimeEntry.objects.all(), org)
     invoices_qs = scope_queryset_for_organization(Invoice.objects.all(), org)
     if org:
@@ -1296,14 +1292,14 @@ def reports_dashboard(request):
         deadlines_qs = Deadline.objects.none()
         risks_qs = RiskLog.objects.none()
 
-    contract_stats = contracts_qs.aggregate(
+    case_stats = case_qs.aggregate(
         total=Count('id'),
         active=Count('id', filter=Q(status='ACTIVE')),
         total_value=Coalesce(Sum('value', filter=Q(value__isnull=False)), Decimal('0')),
     )
-    total_contracts = contract_stats['total']
-    active_contracts = contract_stats['active']
-    total_contract_value = contract_stats['total_value']
+    total_cases = case_stats['total']
+    active_cases = case_stats['active']
+    total_case_value = case_stats['total_value']
 
     client_stats = clients_qs.aggregate(
         total=Count('id'),
@@ -1312,12 +1308,12 @@ def reports_dashboard(request):
     total_clients = client_stats['total']
     active_clients = client_stats['active']
 
-    matter_stats = matters_qs.aggregate(
+    case_matter_stats = case_matter_qs.aggregate(
         total=Count('id'),
         active=Count('id', filter=Q(status='ACTIVE')),
     )
-    total_matters = matter_stats['total']
-    active_matters = matter_stats['active']
+    total_case_matters = case_matter_stats['total']
+    active_case_matters = case_matter_stats['active']
 
     monthly_hours = time_entries_qs.filter(
         date__gte=month_start
@@ -1355,18 +1351,18 @@ def reports_dashboard(request):
         m = today.replace(day=1) - timedelta(days=30 * i)
         monthly_billing.append({'month': m.strftime('%b %Y'), 'total': monthly_map.get(m.strftime('%b %Y'), 0.0)})
 
-    practice_areas = matters_qs.filter(status='ACTIVE').values('practice_area').annotate(
+    practice_areas = case_matter_qs.filter(status='ACTIVE').values('practice_area').annotate(
         count=Count('id')).order_by('-count')
 
     context = {
-        'total_contracts': total_contracts,
-        'active_contracts': active_contracts,
-        'total_contract_value': total_contract_value,
+        'total_cases': total_cases,
+        'active_cases': active_cases,
+        'total_case_value': total_case_value,
         'total_clients': total_clients,
         'active_clients': active_clients,
-        'total_matters': total_matters,
-        'active_matters': active_matters,
-        'monthly_hours': monthly_hours,
+        'total_case_matters': total_case_matters,
+        'active_case_matters': active_case_matters,
+        'case_workload_hours': monthly_hours,
         'yearly_revenue': yearly_revenue,
         'outstanding': outstanding,
         'overdue_deadlines': overdue_deadlines,
@@ -1374,6 +1370,17 @@ def reports_dashboard(request):
         'high_risks': high_risks,
         'monthly_billing': json.dumps(monthly_billing),
         'practice_areas': list(practice_areas),
+        'case_signals': {
+            'overdue_deadlines': overdue_deadlines,
+            'upcoming_deadlines': upcoming_deadlines,
+            'high_risks': high_risks,
+        },
+        'total_contracts': total_cases,
+        'active_contracts': active_cases,
+        'total_contract_value': total_case_value,
+        'total_matters': total_case_matters,
+        'active_matters': active_case_matters,
+        'monthly_hours': monthly_hours,
     }
     return render(request, 'contracts/reports_dashboard.html', context)
 
@@ -1388,7 +1395,7 @@ class ContractListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         org = get_user_organization(self.request.user)
-        qs = scope_queryset_for_organization(Contract.objects.select_related('client', 'matter', 'created_by'), org)
+        qs = scope_queryset_for_organization(Case.objects.select_related('client', 'matter', 'created_by'), org)
         q = self.request.GET.get('q')
         status = self.request.GET.get('status')
         contract_type = self.request.GET.get('type')
@@ -1422,8 +1429,8 @@ class ContractListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
         thirty_days_from_today = today + timedelta(days=30)
         
         # Single aggregation query to get all counts at once
-        tenant_contracts = scope_queryset_for_organization(Contract.objects.all(), org)
-        contract_stats = tenant_contracts.aggregate(
+        tenant_cases = scope_queryset_for_organization(Case.objects.all(), org)
+        case_stats = tenant_cases.aggregate(
             total=Count('id'),
             active=Count('id', filter=Q(status='ACTIVE')),
             expiring_soon=Count('id', filter=Q(
@@ -1434,7 +1441,7 @@ class ContractListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
         )
         
         # Get expiring contract IDs for highlighting
-        expiring_ids_qs = tenant_contracts.filter(
+        expiring_ids_qs = tenant_cases.filter(
             status='ACTIVE',
             end_date__lte=thirty_days_from_today,
             end_date__gte=today,
@@ -1450,31 +1457,36 @@ class ContractListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
             ('Pending', 'PENDING'),
             ('Expired', 'EXPIRED'),
         ]
-        context['total_contracts'] = contract_stats['total'] or 0
-        context['active_contracts'] = contract_stats['active'] or 0
-        context['expiring_soon'] = contract_stats['expiring_soon'] or 0
+        context['total_cases'] = case_stats['total'] or 0
+        context['active_cases'] = case_stats['active'] or 0
+        context['expiring_case_count'] = case_stats['expiring_soon'] or 0
         context['expiring_contract_ids'] = set(expiring_ids_qs)
+        context['cases'] = context['object_list']
+        context['total_contracts'] = context['total_cases']
+        context['active_contracts'] = context['active_cases']
+        context['expiring_soon'] = context['expiring_case_count']
 
         if context['FEATURE_REDESIGN']:
             # Optimize: build JSON from paginated object_list, not by re-querying
             # The parent ListView already handles pagination via self.object_list
-            contracts_data = []
-            for contract in context['object_list']:
-                contracts_data.append({
-                    'id': contract.id,
-                    'title': contract.title,
-                    'status': contract.status,
-                    'status_display': contract.get_status_display(),
-                    'contract_type': contract.get_contract_type_display(),
-                    'start_date': contract.start_date.strftime('%b %d, %Y') if contract.start_date else None,
-                    'end_date': contract.end_date.strftime('%b %d, %Y') if contract.end_date else None,
-                    'value': float(contract.value) if contract.value else None,
-                    'counterparty': contract.counterparty or '',
-                    'client': contract.client.name if contract.client else '',
-                    'owner': contract.created_by.get_full_name() if contract.created_by else 'System',
-                    'updated_at': contract.updated_at.strftime('%b %d, %Y'),
+            case_payload = []
+            for case_record in context['object_list']:
+                case_payload.append({
+                    'id': case_record.id,
+                    'title': case_record.title,
+                    'status': case_record.status,
+                    'status_display': case_record.get_status_display(),
+                    'contract_type': case_record.get_contract_type_display(),
+                    'start_date': case_record.start_date.strftime('%b %d, %Y') if case_record.start_date else None,
+                    'end_date': case_record.end_date.strftime('%b %d, %Y') if case_record.end_date else None,
+                    'value': float(case_record.value) if case_record.value else None,
+                    'counterparty': case_record.counterparty or '',
+                    'client': case_record.client.name if case_record.client else '',
+                    'owner': case_record.created_by.get_full_name() if case_record.created_by else 'System',
+                    'updated_at': case_record.updated_at.strftime('%b %d, %Y'),
                 })
-            context['contracts_json'] = json.dumps(contracts_data)
+            context['cases_json'] = json.dumps(case_payload)
+            context['contracts_json'] = context['cases_json']
         return context
 
 
@@ -1489,9 +1501,16 @@ class ContractDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, DetailVi
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['documents'] = self.object.documents.all()[:10]
-        ctx['deadlines'] = self.object.deadlines.filter(is_completed=False)[:5]
-        ctx['negotiation_threads'] = self.object.negotiation_threads.all()[:10]
+        case_record = self.object
+        ctx['case'] = case_record
+        ctx['case_record'] = case_record
+        ctx['documents'] = case_record.documents.all()[:10]
+        ctx['case_documents'] = ctx['documents']
+        ctx['deadlines'] = case_record.deadlines.filter(is_completed=False)[:5]
+        ctx['case_deadlines'] = ctx['deadlines']
+        ctx['negotiation_threads'] = case_record.negotiation_threads.all()[:10]
+        ctx['case_negotiation_threads'] = ctx['negotiation_threads']
+        ctx['related_case_matter'] = case_record.matter
         return ctx
 
 
@@ -1571,7 +1590,8 @@ class WorkflowListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
     context_object_name = 'workflows'
 
     def get_queryset(self):
-        queryset = Workflow.objects.all()
+        org = self.get_organization()
+        queryset = scope_queryset_for_organization(Workflow.objects.all(), org)
         contract_pk = self.request.GET.get('contract_pk')
         if contract_pk:
             queryset = queryset.filter(contract=contract_pk)
@@ -1599,14 +1619,16 @@ class WorkflowCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView
         return reverse_lazy('contracts:workflow_detail', kwargs={'pk': self.object.pk})
 
     def form_valid(self, form):
+        set_organization_on_instance(form.instance, get_user_organization(self.request.user))
         form.instance.created_by = self.request.user
         return super().form_valid(form)
 
 
-class WorkflowUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+class WorkflowUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
     model = Workflow
     form_class = WorkflowForm
     template_name = 'contracts/workflow_form.html'
+    scoped_form_fields = {'contract': Contract}
 
     def get_success_url(self):
         return reverse_lazy('contracts:workflow_detail', kwargs={'pk': self.object.pk})
@@ -1622,28 +1644,24 @@ class LegalTaskKanbanView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListVie
     def get_queryset(self):
         org = get_user_organization(self.request.user)
         if not org:
-            return LegalTask.objects.none()
-        return LegalTask.objects.select_related('contract', 'matter', 'assigned_to').filter(
+            return CaseSignal.objects.none()
+        return CaseSignal.objects.select_related('contract', 'matter', 'assigned_to').filter(
             Q(contract__organization=org) | Q(matter__organization=org)
         ).order_by('-updated_at', '-created_at')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['task_signals'] = context['legal_tasks']
+        context['open_task_signal_count'] = context['legal_tasks'].filter(status='PENDING').count()
+        return context
 
-class LegalTaskCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
+
+class LegalTaskCreateView(TenantScopedFormMixin, TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
     model = LegalTask
     form_class = LegalTaskForm
     template_name = 'contracts/legal_task_form.html'
     success_url = reverse_lazy('contracts:legal_task_kanban')
-
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        org = get_user_organization(self.request.user)
-        if org:
-            form.fields['contract'].queryset = scope_queryset_for_organization(Contract.objects.all(), org)
-            form.fields['matter'].queryset = scope_queryset_for_organization(Matter.objects.all(), org)
-        else:
-            form.fields['contract'].queryset = Contract.objects.none()
-            form.fields['matter'].queryset = Matter.objects.none()
-        return form
+    scoped_form_fields = {'contract': Contract, 'matter': Matter}
 
     def form_valid(self, form):
         org = get_user_organization(self.request.user)
@@ -1654,11 +1672,12 @@ class LegalTaskCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateVie
         return super().form_valid(form)
 
 
-class LegalTaskUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+class LegalTaskUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
     model = LegalTask
     form_class = LegalTaskForm
     template_name = 'contracts/legal_task_form.html'
     success_url = reverse_lazy('contracts:legal_task_kanban')
+    scoped_form_fields = {'contract': Contract, 'matter': Matter}
 
     def get_queryset(self):
         org = get_user_organization(self.request.user)
@@ -1667,17 +1686,6 @@ class LegalTaskUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateV
         return LegalTask.objects.filter(
             Q(contract__organization=org) | Q(matter__organization=org)
         )
-
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        org = get_user_organization(self.request.user)
-        if org:
-            form.fields['contract'].queryset = scope_queryset_for_organization(Contract.objects.all(), org)
-            form.fields['matter'].queryset = scope_queryset_for_organization(Matter.objects.all(), org)
-        else:
-            form.fields['contract'].queryset = Contract.objects.none()
-            form.fields['matter'].queryset = Matter.objects.none()
-        return form
 
     def dispatch(self, request, *args, **kwargs):
         task = self.get_object()
@@ -2083,6 +2091,7 @@ class SignUpView(CreateView):
             role=OrganizationMembership.Role.OWNER,
             is_active=True,
         )
+        ensure_org_starter_content(organization)
 
         login(self.request, self.object)
         return response
@@ -2147,7 +2156,8 @@ class AddNegotiationNoteView(TenantAssignCreateMixin, LoginRequiredMixin, Create
 
 class ToggleChecklistItemView(LoginRequiredMixin, View):
     def post(self, request, pk):
-        item = get_object_or_404(ChecklistItem, pk=pk)
+        organization = get_user_organization(request.user)
+        item = get_object_or_404(_scope_checklist_items_for_organization(organization), pk=pk)
         linked_contract = item.checklist.contract
         if linked_contract and not can_access_contract_action(request.user, linked_contract, ContractAction.EDIT):
             return HttpResponseForbidden('You do not have permission to update this contract checklist item.')
@@ -2165,7 +2175,8 @@ class AddChecklistItemView(TenantAssignCreateMixin, LoginRequiredMixin, CreateVi
 
     def form_valid(self, form):
         checklist_pk = self.kwargs.get('checklist_pk') or self.kwargs.get('pk')
-        checklist = get_object_or_404(ComplianceChecklist, pk=checklist_pk)
+        organization = get_user_organization(self.request.user)
+        checklist = get_object_or_404(_scope_checklists_for_organization(organization), pk=checklist_pk)
         if checklist.contract and not can_access_contract_action(self.request.user, checklist.contract, ContractAction.EDIT):
             return HttpResponseForbidden('You do not have permission to add items to this contract checklist.')
         form.instance.checklist = checklist
@@ -2182,7 +2193,9 @@ class AddDueDiligenceItemView(TenantAssignCreateMixin, LoginRequiredMixin, Creat
     template_name = 'contracts/dd_task_form.html'
 
     def form_valid(self, form):
-        form.instance.process_id = self.kwargs['process_pk']
+        organization = get_user_organization(self.request.user)
+        process = get_object_or_404(_scope_due_diligence_processes_for_organization(organization), pk=self.kwargs['process_pk'])
+        form.instance.process = process
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -2195,7 +2208,9 @@ class AddDueDiligenceRiskView(TenantAssignCreateMixin, LoginRequiredMixin, Creat
     template_name = 'contracts/dd_risk_form.html'
 
     def form_valid(self, form):
-        form.instance.process_id = self.kwargs['process_pk']
+        organization = get_user_organization(self.request.user)
+        process = get_object_or_404(_scope_due_diligence_processes_for_organization(organization), pk=self.kwargs['process_pk'])
+        form.instance.process = process
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -2208,7 +2223,9 @@ class AddExpenseView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
     template_name = 'contracts/expense_form.html'
 
     def form_valid(self, form):
-        form.instance.budget_id = self.kwargs['budget_pk']
+        organization = get_user_organization(self.request.user)
+        budget = get_object_or_404(_scope_budgets_for_organization(organization), pk=self.kwargs['budget_pk'])
+        form.instance.budget = budget
         form.instance.created_by = self.request.user
         return super().form_valid(form)
 
@@ -2267,7 +2284,8 @@ class WorkflowStepUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, Upda
 
 class WorkflowStepCompleteView(LoginRequiredMixin, View):
     def post(self, request, pk):
-        step = get_object_or_404(WorkflowStep, pk=pk)
+        organization = get_user_organization(request.user)
+        step = get_object_or_404(_scope_workflow_steps_for_organization(organization), pk=pk)
         step.status = 'COMPLETED'
         step.save()
         return redirect('contracts:workflow_detail', pk=step.workflow.pk)
@@ -2305,14 +2323,18 @@ def toggle_redesign(request):
     return redirect('dashboard')
 
 
+@login_required
 def workflow_dashboard(request):
-    workflows = Workflow.objects.all()
+    organization = get_user_organization(request.user)
+    workflows = _scope_workflows_for_organization(organization).select_related('contract').order_by('-created_at')
     context = {'workflows': workflows}
     return render(request, 'contracts/workflow_dashboard.html', context)
 
 
+@login_required
 def toggle_dd_item(request, pk):
-    task = get_object_or_404(DueDiligenceTask, pk=pk)
+    organization = get_user_organization(request.user)
+    task = get_object_or_404(_scope_due_diligence_tasks_for_organization(organization), pk=pk)
     if task.status == 'COMPLETED':
         task.status = 'PENDING'
     else:
@@ -2334,23 +2356,26 @@ def settings_hub(request):
 
 @login_required
 def workflow_create(request):
+    organization = get_user_organization(request.user)
     if request.method == 'POST':
-        form = WorkflowForm(request.POST)
+        form = _configure_workflow_form(WorkflowForm(request.POST), organization)
         if form.is_valid():
             workflow = form.save(commit=False)
             if workflow.contract and not can_access_contract_action(request.user, workflow.contract, ContractAction.EDIT):
                 return HttpResponseForbidden('You do not have permission to create workflows for this contract.')
+            set_organization_on_instance(workflow, organization)
             workflow.created_by = request.user
             workflow.save()
             return redirect('contracts:workflow_detail', pk=workflow.pk)
     else:
-        form = WorkflowForm()
+        form = _configure_workflow_form(WorkflowForm(), organization)
     return render(request, 'contracts/workflow_form.html', {'form': form})
 
 
 @login_required
 def workflow_detail(request, pk):
-    workflow = get_object_or_404(Workflow, pk=pk)
+    organization = get_user_organization(request.user)
+    workflow = get_object_or_404(_scope_workflows_for_organization(organization), pk=pk)
     if workflow.contract and not can_access_contract_action(request.user, workflow.contract, ContractAction.COMMENT):
         return HttpResponseForbidden('You do not have access to this contract workflow.')
     steps = WorkflowStep.objects.filter(workflow=workflow).order_by('order')
@@ -2359,7 +2384,8 @@ def workflow_detail(request, pk):
 
 @login_required
 def update_workflow_step(request, pk):
-    step = get_object_or_404(WorkflowStep, pk=pk)
+    organization = get_user_organization(request.user)
+    step = get_object_or_404(_scope_workflow_steps_for_organization(organization), pk=pk)
     linked_contract = step.workflow.contract
     if linked_contract and not can_access_contract_action(request.user, linked_contract, ContractAction.EDIT):
         return HttpResponseForbidden('You do not have permission to update this contract workflow step.')
@@ -2373,6 +2399,7 @@ def update_workflow_step(request, pk):
     return redirect('contracts:workflow_detail', pk=step.workflow.pk)
 
 
+@login_required
 def workflow_template_create(request):
     if request.method == 'POST':
         form = WorkflowTemplateForm(request.POST)
@@ -2384,12 +2411,14 @@ def workflow_template_create(request):
     return render(request, 'contracts/workflow_template_form.html', {'form': form})
 
 
+@login_required
 def workflow_template_detail(request, pk):
     template = get_object_or_404(WorkflowTemplate, pk=pk)
     steps = WorkflowTemplateStep.objects.filter(template=template).order_by('order')
     return render(request, 'contracts/workflow_template_detail.html', {'workflow_template': template, 'steps': steps})
 
 
+@login_required
 def workflow_template_list(request):
     templates = WorkflowTemplate.objects.all()
     return render(request, 'contracts/workflow_template_list.html', {'workflow_templates': templates})
@@ -2397,6 +2426,7 @@ def workflow_template_list(request):
 
 # ==================== DASHBOARD VIEW ====================
 
+@login_required
 def dashboard(request):
     today = date.today()
     now = timezone.now()
@@ -2409,9 +2439,9 @@ def dashboard(request):
     # This replaces 20+ separate count() calls with 4-5 efficient aggregation queries.
     
     # === PRIMARY MODELS (direct org FK) ===
-    contracts_qs = scope_queryset_for_organization(Contract.objects.all(), org)
+    case_qs = scope_queryset_for_organization(Case.objects.all(), org)
     clients_qs = scope_queryset_for_organization(Client.objects.all(), org)
-    matters_qs = scope_queryset_for_organization(Matter.objects.all(), org)
+    case_matter_qs = scope_queryset_for_organization(CaseMatter.objects.all(), org)
     workflows_qs = scope_queryset_for_organization(Workflow.objects.all(), org)
     invoices_qs = scope_queryset_for_organization(Invoice.objects.all(), org)
     documents_qs = scope_queryset_for_organization(Document.objects.all(), org)
@@ -2422,13 +2452,13 @@ def dashboard(request):
     trust_accounts_qs = scope_queryset_for_organization(TrustAccount.objects.all(), org)
     
     # === INDIRECT MODELS (org FK via contract/matter) ===
-    legal_tasks_qs = LegalTask.objects.for_organization(org) if org else LegalTask.objects.none()
+    legal_tasks_qs = CaseSignal.objects.for_organization(org) if org else CaseSignal.objects.none()
     risks_qs = RiskLog.objects.for_organization(org) if org else RiskLog.objects.none()
     deadlines_qs = Deadline.objects.for_organization(org)
 
     # === AGGREGATED COUNTS for contracts ===
     # Single query instead of 5 separate count() calls
-    contract_stats = contracts_qs.aggregate(
+    case_stats = case_qs.aggregate(
         total=Count('id'),
         active=Count('id', filter=Q(status='ACTIVE')),
         draft=Count('id', filter=Q(status='DRAFT')),
@@ -2444,13 +2474,13 @@ def dashboard(request):
     client_stats = clients_qs.aggregate(
         total=Count('id'),
     )
-    matter_stats = matters_qs.aggregate(
+    case_matter_stats = case_matter_qs.aggregate(
         total=Count('id'),
         active=Count('id', filter=Q(status='ACTIVE')),
     )
     
     # === AGGREGATED COUNTS for tasks/workflows/risks ===
-    task_stats = legal_tasks_qs.aggregate(
+    task_signal_stats = legal_tasks_qs.aggregate(
         pending=Count('id', filter=Q(status='PENDING')),
     )
     workflow_stats = workflows_qs.aggregate(
@@ -2506,8 +2536,8 @@ def dashboard(request):
     
     # === RECENT LISTS (with select_related for relationships) ===
     # These lists are fetched separately with optimized queries
-    recent_contracts = list(
-        contracts_qs.select_related('client', 'created_by').order_by('-created_at')[:6]
+    recent_cases = list(
+        case_qs.select_related('client', 'created_by').order_by('-created_at')[:6]
     )
     upcoming_deadlines = list(
         deadlines_qs.select_related('contract', 'matter', 'assigned_to')
@@ -2519,13 +2549,18 @@ def dashboard(request):
         .filter(status='PENDING', due_date__gte=today)
         .order_by('due_date')[:5]
     )
-    recent_audit = list(
-        AuditLog.objects.select_related('user').order_by('-timestamp')[:8]
-    )
+    if org:
+        recent_audit = list(
+            AuditLog.objects.select_related('user')
+            .filter(changes__organization_id=org.id)
+            .order_by('-timestamp')[:8]
+        )
+    else:
+        recent_audit = []
     
     # === CONTRACT STATUS BREAKDOWN ===
     # Query once and build the data from aggregated results
-    contract_status_data = []
+    case_status_data = []
     status_mapping = [
         ('ACTIVE', 'Active'),
         ('DRAFT', 'Draft'),
@@ -2533,12 +2568,12 @@ def dashboard(request):
         ('EXPIRED', 'Expired'),
         ('TERMINATED', 'Terminated'),
     ]
-    status_counts = contracts_qs.values('status').annotate(count=Count('id'))
+    status_counts = case_qs.values('status').annotate(count=Count('id'))
     status_counts_dict = {item['status']: item['count'] for item in status_counts}
     for status_code, status_label in status_mapping:
         cnt = status_counts_dict.get(status_code, 0)
         if cnt > 0:
-            contract_status_data.append({'label': status_label, 'count': cnt})
+            case_status_data.append({'label': status_label, 'count': cnt})
     
     # === OTHER AGGREGATES ===
     billable_hours = time_entries_qs.filter(
@@ -2552,17 +2587,17 @@ def dashboard(request):
     total_documents = documents_qs.count()
     
     # === EXTRACT VALUES FROM AGGREGATION DICTS ===
-    total_contracts = contract_stats['total'] or 0
-    active_contracts = contract_stats['active'] or 0
-    draft_contracts = contract_stats['draft'] or 0
-    pending_contracts = contract_stats['pending'] or 0
-    expiring_soon_count = contract_stats['expiring_soon'] or 0
+    total_cases = case_stats['total'] or 0
+    active_cases = case_stats['active'] or 0
+    draft_cases = case_stats['draft'] or 0
+    pending_cases = case_stats['pending'] or 0
+    expiring_case_count = case_stats['expiring_soon'] or 0
     
     total_clients = client_stats['total'] or 0
-    total_matters = matter_stats['total'] or 0
-    active_matters = matter_stats['active'] or 0
+    total_case_matters = case_matter_stats['total'] or 0
+    active_case_matters = case_matter_stats['active'] or 0
     
-    pending_tasks = task_stats['pending'] or 0
+    open_task_signals = task_signal_stats['pending'] or 0
     active_workflows = workflow_stats['active'] or 0
     risk_count = risk_stats['high_critical'] or 0
     
@@ -2578,17 +2613,30 @@ def dashboard(request):
     open_dsars = dsar_stats['open'] or 0
     
     billable_this_month = billable_hours
+    total_contracts = total_cases
+    active_contracts = active_cases
+    draft_contracts = draft_cases
+    pending_contracts = pending_cases
+    expiring_soon_count = expiring_case_count
 
     context = {
+        'total_cases': total_cases,
+        'active_cases': active_cases,
+        'draft_cases': draft_cases,
+        'pending_cases': pending_cases,
+        'expiring_case_count': expiring_case_count,
         'total_contracts': total_contracts,
         'active_contracts': active_contracts,
         'draft_contracts': draft_contracts,
         'pending_contracts': pending_contracts,
         'expiring_soon_count': expiring_soon_count,
         'total_clients': total_clients,
-        'active_matters': active_matters,
-        'total_matters': total_matters,
-        'pending_tasks': pending_tasks,
+        'active_case_matters': active_case_matters,
+        'total_case_matters': total_case_matters,
+        'active_matters': active_case_matters,
+        'total_matters': total_case_matters,
+        'open_task_signals': open_task_signals,
+        'pending_tasks': open_task_signals,
         'active_workflows': active_workflows,
         'risk_count': risk_count,
         'overdue_deadlines': overdue_deadlines,
@@ -2601,14 +2649,24 @@ def dashboard(request):
         'pending_signatures': pending_signatures,
         'open_dsars': open_dsars,
         'unread_notifications': unread_notifications,
-        'recent_contracts': recent_contracts,
+        'recent_cases': recent_cases,
+        'recent_contracts': recent_cases,
         'upcoming_deadlines': upcoming_deadlines,
         'upcoming_tasks': upcoming_tasks,
         'recent_audit': recent_audit,
-        'contract_status_data': contract_status_data,
+        'case_status_data': case_status_data,
+        'contract_status_data': case_status_data,
         'billable_this_month': billable_this_month,
         'trust_balance': trust_balance,
         'today': today,
+        'case_signals': {
+            'open_task_signals': open_task_signals,
+            'pending_approvals': pending_approvals,
+            'pending_signatures': pending_signatures,
+            'open_dsars': open_dsars,
+            'risk_count': risk_count,
+            'overdue_deadlines': overdue_deadlines,
+        },
         'FEATURE_REDESIGN': is_feature_redesign_enabled(),
     }
     return render(request, 'dashboard.html', context)
@@ -2620,7 +2678,8 @@ class CounterpartyListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListVi
     context_object_name = 'counterparties'
 
     def get_queryset(self):
-        qs = Counterparty.objects.all()
+        org = self.get_organization()
+        qs = scope_queryset_for_organization(Counterparty.objects.all(), org)
         q = self.request.GET.get('q', '')
         if q:
             qs = qs.filter(Q(name__icontains=q) | Q(jurisdiction__icontains=q))
@@ -2672,7 +2731,8 @@ class ClauseTemplateListView(TenantScopedQuerysetMixin, LoginRequiredMixin, List
     context_object_name = 'clauses'
 
     def get_queryset(self):
-        qs = ClauseTemplate.objects.select_related('category').all()
+        org = self.get_organization()
+        qs = scope_queryset_for_organization(ClauseTemplate.objects.select_related('category').all(), org)
         cat = self.request.GET.get('category')
         scope = self.request.GET.get('scope')
         q = self.request.GET.get('q', '')
@@ -2686,15 +2746,17 @@ class ClauseTemplateListView(TenantScopedQuerysetMixin, LoginRequiredMixin, List
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['categories'] = ClauseCategory.objects.all()
+        org = self.get_organization()
+        ctx['categories'] = scope_queryset_for_organization(ClauseCategory.objects.all(), org)
         return ctx
 
 
-class ClauseTemplateCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
+class ClauseTemplateCreateView(TenantScopedFormMixin, TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
     model = ClauseTemplate
     form_class = ClauseTemplateForm
     template_name = 'contracts/clause_template_form.html'
     success_url = reverse_lazy('contracts:clause_template_list')
+    scoped_form_fields = {'category': ClauseCategory}
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
@@ -2706,11 +2768,12 @@ class ClauseTemplateDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, De
     template_name = 'contracts/clause_template_detail.html'
 
 
-class ClauseTemplateUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+class ClauseTemplateUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
     model = ClauseTemplate
     form_class = ClauseTemplateForm
     template_name = 'contracts/clause_template_form.html'
     success_url = reverse_lazy('contracts:clause_template_list')
+    scoped_form_fields = {'category': ClauseCategory}
 
 
 class EthicalWallListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
@@ -2719,22 +2782,32 @@ class EthicalWallListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListVie
     context_object_name = 'walls'
 
 
-class EthicalWallCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
+class EthicalWallCreateView(TenantScopedFormMixin, TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
     model = EthicalWall
     form_class = EthicalWallForm
     template_name = 'contracts/ethical_wall_form.html'
     success_url = reverse_lazy('contracts:ethical_wall_list')
+    scoped_form_fields = {
+        'matter': Matter,
+        'client': Client,
+        'restricted_users': _organization_user_queryset,
+    }
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         return super().form_valid(form)
 
 
-class EthicalWallUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+class EthicalWallUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
     model = EthicalWall
     form_class = EthicalWallForm
     template_name = 'contracts/ethical_wall_form.html'
     success_url = reverse_lazy('contracts:ethical_wall_list')
+    scoped_form_fields = {
+        'matter': Matter,
+        'client': Client,
+        'restricted_users': _organization_user_queryset,
+    }
 
 
 class SignatureRequestListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
@@ -2743,18 +2816,20 @@ class SignatureRequestListView(TenantScopedQuerysetMixin, LoginRequiredMixin, Li
     context_object_name = 'signatures'
 
     def get_queryset(self):
-        qs = SignatureRequest.objects.select_related('contract').all()
+        org = self.get_organization()
+        qs = scope_queryset_for_organization(SignatureRequest.objects.select_related('contract').all(), org)
         status = self.request.GET.get('status')
         if status:
             qs = qs.filter(status=status)
         return qs
 
 
-class SignatureRequestCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
+class SignatureRequestCreateView(TenantScopedFormMixin, TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
     model = SignatureRequest
     form_class = SignatureRequestForm
     template_name = 'contracts/signature_request_form.html'
     success_url = reverse_lazy('contracts:signature_request_list')
+    scoped_form_fields = {'contract': Contract, 'document': Document}
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
@@ -2766,11 +2841,12 @@ class SignatureRequestDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, 
     template_name = 'contracts/signature_request_detail.html'
 
 
-class SignatureRequestUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+class SignatureRequestUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
     model = SignatureRequest
     form_class = SignatureRequestForm
     template_name = 'contracts/signature_request_form.html'
     success_url = reverse_lazy('contracts:signature_request_list')
+    scoped_form_fields = {'contract': Contract, 'document': Document}
 
 
 class DataInventoryListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
@@ -2779,11 +2855,12 @@ class DataInventoryListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListV
     context_object_name = 'records'
 
 
-class DataInventoryCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
+class DataInventoryCreateView(TenantScopedFormMixin, TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
     model = DataInventoryRecord
     form_class = DataInventoryForm
     template_name = 'contracts/data_inventory_form.html'
     success_url = reverse_lazy('contracts:data_inventory_list')
+    scoped_form_fields = {'client': Client}
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
@@ -2795,11 +2872,12 @@ class DataInventoryDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, Det
     template_name = 'contracts/data_inventory_detail.html'
 
 
-class DataInventoryUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+class DataInventoryUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
     model = DataInventoryRecord
     form_class = DataInventoryForm
     template_name = 'contracts/data_inventory_form.html'
     success_url = reverse_lazy('contracts:data_inventory_list')
+    scoped_form_fields = {'client': Client}
 
 
 class DSARRequestListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
@@ -2808,7 +2886,8 @@ class DSARRequestListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListVie
     context_object_name = 'requests'
 
     def get_queryset(self):
-        qs = DSARRequest.objects.all().order_by('-received_date')
+        org = self.get_organization()
+        qs = scope_queryset_for_organization(DSARRequest.objects.all(), org).order_by('-received_date')
         status = self.request.GET.get('status')
         rtype = self.request.GET.get('type')
         if status:
@@ -2818,11 +2897,12 @@ class DSARRequestListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListVie
         return qs
 
 
-class DSARRequestCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
+class DSARRequestCreateView(TenantScopedFormMixin, TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
     model = DSARRequest
     form_class = DSARRequestForm
     template_name = 'contracts/dsar_form.html'
     success_url = reverse_lazy('contracts:dsar_list')
+    scoped_form_fields = {'client': Client, 'assigned_to': _organization_user_queryset}
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
@@ -2834,11 +2914,12 @@ class DSARRequestDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, Detai
     template_name = 'contracts/dsar_detail.html'
 
 
-class DSARRequestUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+class DSARRequestUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
     model = DSARRequest
     form_class = DSARRequestForm
     template_name = 'contracts/dsar_form.html'
     success_url = reverse_lazy('contracts:dsar_list')
+    scoped_form_fields = {'client': Client, 'assigned_to': _organization_user_queryset}
 
 
 class SubprocessorListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
@@ -2876,22 +2957,24 @@ class TransferRecordListView(TenantScopedQuerysetMixin, LoginRequiredMixin, List
     context_object_name = 'transfers'
 
 
-class TransferRecordCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
+class TransferRecordCreateView(TenantScopedFormMixin, TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
     model = TransferRecord
     form_class = TransferRecordForm
     template_name = 'contracts/transfer_record_form.html'
     success_url = reverse_lazy('contracts:transfer_record_list')
+    scoped_form_fields = {'subprocessor': Subprocessor, 'contract': Contract}
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         return super().form_valid(form)
 
 
-class TransferRecordUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+class TransferRecordUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
     model = TransferRecord
     form_class = TransferRecordForm
     template_name = 'contracts/transfer_record_form.html'
     success_url = reverse_lazy('contracts:transfer_record_list')
+    scoped_form_fields = {'subprocessor': Subprocessor, 'contract': Contract}
 
 
 class RetentionPolicyListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
@@ -2924,11 +3007,16 @@ class LegalHoldListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView)
     context_object_name = 'holds'
 
 
-class LegalHoldCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
+class LegalHoldCreateView(TenantScopedFormMixin, TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
     model = LegalHold
     form_class = LegalHoldForm
     template_name = 'contracts/legal_hold_form.html'
     success_url = reverse_lazy('contracts:legal_hold_list')
+    scoped_form_fields = {
+        'matter': Matter,
+        'client': Client,
+        'custodians': _organization_user_queryset,
+    }
 
     def form_valid(self, form):
         form.instance.issued_by = self.request.user
@@ -2940,11 +3028,16 @@ class LegalHoldDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, DetailV
     template_name = 'contracts/legal_hold_detail.html'
 
 
-class LegalHoldUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+class LegalHoldUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
     model = LegalHold
     form_class = LegalHoldForm
     template_name = 'contracts/legal_hold_form.html'
     success_url = reverse_lazy('contracts:legal_hold_list')
+    scoped_form_fields = {
+        'matter': Matter,
+        'client': Client,
+        'custodians': _organization_user_queryset,
+    }
 
 
 class ApprovalRuleListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
@@ -2953,18 +3046,20 @@ class ApprovalRuleListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListVi
     context_object_name = 'rules'
 
 
-class ApprovalRuleCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
+class ApprovalRuleCreateView(TenantScopedFormMixin, TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
     model = ApprovalRule
     form_class = ApprovalRuleForm
     template_name = 'contracts/approval_rule_form.html'
     success_url = reverse_lazy('contracts:approval_rule_list')
+    scoped_form_fields = {'specific_approver': _organization_user_queryset}
 
 
-class ApprovalRuleUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+class ApprovalRuleUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
     model = ApprovalRule
     form_class = ApprovalRuleForm
     template_name = 'contracts/approval_rule_form.html'
     success_url = reverse_lazy('contracts:approval_rule_list')
+    scoped_form_fields = {'specific_approver': _organization_user_queryset}
 
 
 class ApprovalRequestListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
@@ -2973,40 +3068,54 @@ class ApprovalRequestListView(TenantScopedQuerysetMixin, LoginRequiredMixin, Lis
     context_object_name = 'approvals'
 
     def get_queryset(self):
-        qs = ApprovalRequest.objects.select_related('contract', 'assigned_to').all().order_by('-created_at')
+        org = self.get_organization()
+        qs = scope_queryset_for_organization(
+            ApprovalRequest.objects.select_related('contract', 'assigned_to').all(),
+            org,
+        ).order_by('-created_at')
         status = self.request.GET.get('status')
         if status:
             qs = qs.filter(status=status)
         return qs
 
 
-class ApprovalRequestCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
+class ApprovalRequestCreateView(TenantScopedFormMixin, TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
     model = ApprovalRequest
     form_class = ApprovalRequestForm
     template_name = 'contracts/approval_request_form.html'
     success_url = reverse_lazy('contracts:approval_request_list')
+    scoped_form_fields = {'contract': Contract, 'assigned_to': _organization_user_queryset}
 
 
-class ApprovalRequestUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+class ApprovalRequestUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
     model = ApprovalRequest
     form_class = ApprovalRequestForm
     template_name = 'contracts/approval_request_form.html'
     success_url = reverse_lazy('contracts:approval_request_list')
+    scoped_form_fields = {'contract': Contract, 'assigned_to': _organization_user_queryset}
 
 
 @login_required
 def privacy_dashboard(request):
-    data_inventory_count = DataInventoryRecord.objects.count()
-    dsar_pending = DSARRequest.objects.filter(status__in=['RECEIVED', 'VERIFIED', 'IN_PROGRESS']).count()
-    dsar_overdue = DSARRequest.objects.filter(
+    org = get_user_organization(request.user)
+    data_inventory_qs = scope_queryset_for_organization(DataInventoryRecord.objects.all(), org)
+    dsar_qs = scope_queryset_for_organization(DSARRequest.objects.all(), org)
+    transfer_qs = scope_queryset_for_organization(TransferRecord.objects.all(), org)
+    subprocessor_qs = scope_queryset_for_organization(Subprocessor.objects.all(), org)
+    retention_qs = scope_queryset_for_organization(RetentionPolicy.objects.all(), org)
+    legal_hold_qs = scope_queryset_for_organization(LegalHold.objects.all(), org)
+
+    data_inventory_count = data_inventory_qs.count()
+    dsar_pending = dsar_qs.filter(status__in=['RECEIVED', 'VERIFIED', 'IN_PROGRESS']).count()
+    dsar_overdue = dsar_qs.filter(
         status__in=['RECEIVED', 'VERIFIED', 'IN_PROGRESS'],
         due_date__lt=date.today()
     ).count()
-    subprocessor_count = Subprocessor.objects.filter(is_active=True).count()
-    transfer_count = TransferRecord.objects.filter(is_active=True).count()
-    retention_count = RetentionPolicy.objects.filter(is_active=True).count()
-    legal_hold_count = LegalHold.objects.filter(status='ACTIVE').count()
-    recent_dsars = DSARRequest.objects.order_by('-received_date')[:5]
+    subprocessor_count = subprocessor_qs.filter(is_active=True).count()
+    transfer_count = transfer_qs.filter(is_active=True).count()
+    retention_count = retention_qs.filter(is_active=True).count()
+    legal_hold_count = legal_hold_qs.filter(status='ACTIVE').count()
+    recent_dsars = dsar_qs.order_by('-received_date')[:5]
     context = {
         'data_inventory_count': data_inventory_count,
         'dsar_pending': dsar_pending,
@@ -3023,24 +3132,34 @@ def privacy_dashboard(request):
 @login_required
 def global_search(request):
     q = request.GET.get('q', '').strip()
+    org = get_user_organization(request.user)
     results = {}
     if q:
-        results['contracts'] = Contract.objects.filter(
+        case_results = scope_queryset_for_organization(Case.objects.all(), org).filter(
             Q(title__icontains=q) | Q(counterparty__icontains=q) | Q(content__icontains=q)
         )[:10]
-        results['clients'] = Client.objects.filter(
+        results['cases'] = case_results
+        results['contracts'] = case_results
+        results['clients'] = scope_queryset_for_organization(Client.objects.all(), org).filter(
             Q(name__icontains=q) | Q(email__icontains=q) | Q(industry__icontains=q)
         )[:10]
-        results['matters'] = Matter.objects.filter(
+        case_matter_results = scope_queryset_for_organization(CaseMatter.objects.all(), org).filter(
             Q(title__icontains=q) | Q(matter_number__icontains=q) | Q(description__icontains=q)
         )[:10]
-        results['documents'] = Document.objects.filter(
+        results['case_matters'] = case_matter_results
+        results['matters'] = case_matter_results
+        results['documents'] = scope_queryset_for_organization(Document.objects.all(), org).filter(
             Q(title__icontains=q) | Q(description__icontains=q) | Q(tags__icontains=q)
         )[:10]
-        results['clauses'] = ClauseTemplate.objects.filter(
+        results['clauses'] = scope_queryset_for_organization(ClauseTemplate.objects.all(), org).filter(
             Q(title__icontains=q) | Q(content__icontains=q) | Q(tags__icontains=q)
         )[:10]
-        results['counterparties'] = Counterparty.objects.filter(
+        results['counterparties'] = scope_queryset_for_organization(Counterparty.objects.all(), org).filter(
             Q(name__icontains=q) | Q(jurisdiction__icontains=q)
         )[:10]
+        task_signal_results = CaseSignal.objects.for_organization(org).filter(
+            Q(title__icontains=q) | Q(description__icontains=q)
+        )[:10]
+        results['task_signals'] = task_signal_results
+        results['tasks'] = task_signal_results
     return render(request, 'contracts/search_results.html', {'q': q, 'results': results})

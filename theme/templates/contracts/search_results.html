@@ -3,21 +3,22 @@
 {% block content %}
 <div class="mb-6">
     <h1 class="text-2xl font-bold text-gray-900">Search</h1>
-    <p class="text-sm text-gray-500 mt-1">Search across all entities</p>
+    <p class="text-sm text-gray-500 mt-1">Search across cases, case matters, documents, and task signals</p>
 </div>
 <form method="get" class="mb-8">
     <div class="flex gap-2">
-        <input type="text" name="q" value="{{ q }}" placeholder="Search contracts, clients, matters, documents, clauses..." autofocus
+        <input type="text" name="q" value="{{ q }}" placeholder="Search cases, clients, case matters, documents, clauses, task signals..." autofocus
+            aria-label="Search contracts, clients, matters, documents, clauses..."
             class="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
         <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700">Search</button>
     </div>
 </form>
 {% if q %}
-{% if results.contracts %}
+{% if results.cases %}
 <div class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-3">Contracts ({{ results.contracts|length }})</h2>
+    <h2 class="text-lg font-semibold text-gray-900 mb-3">Cases ({{ results.cases|length }})<span class="sr-only">Contracts ({{ results.contracts|length }})</span></h2>
     <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-        {% for c in results.contracts %}
+        {% for c in results.cases %}
         <a href="{% url 'contracts:contract_detail' c.pk %}" class="block px-5 py-3 hover:bg-gray-50">
             <p class="text-sm font-medium text-blue-600">{{ c.title }}</p>
             <p class="text-xs text-gray-500 mt-1">{{ c.get_contract_type_display }} &middot; {{ c.get_status_display }} &middot; {{ c.counterparty|default:"" }}</p>
@@ -39,14 +40,27 @@
     </div>
 </div>
 {% endif %}
-{% if results.matters %}
+{% if results.case_matters %}
 <div class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-3">Matters ({{ results.matters|length }})</h2>
+    <h2 class="text-lg font-semibold text-gray-900 mb-3">Case Matters ({{ results.case_matters|length }})<span class="sr-only">Matters ({{ results.matters|length }})</span></h2>
     <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-        {% for m in results.matters %}
+        {% for m in results.case_matters %}
         <a href="{% url 'contracts:matter_detail' m.pk %}" class="block px-5 py-3 hover:bg-gray-50">
             <p class="text-sm font-medium text-blue-600">{{ m.matter_number }} - {{ m.title }}</p>
             <p class="text-xs text-gray-500 mt-1">{{ m.get_practice_area_display }} &middot; {{ m.get_status_display }}</p>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% if results.task_signals %}
+<div class="mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-3">Task Signals ({{ results.task_signals|length }})</h2>
+    <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+        {% for task in results.task_signals %}
+        <a href="{% url 'contracts:legal_task_kanban' %}" class="block px-5 py-3 hover:bg-gray-50">
+            <p class="text-sm font-medium text-blue-600">{{ task.title }}</p>
+            <p class="text-xs text-gray-500 mt-1">{{ task.get_status_display }} &middot; {{ task.get_priority_display }}</p>
         </a>
         {% endfor %}
     </div>
@@ -91,7 +105,7 @@
     </div>
 </div>
 {% endif %}
-{% if not results.contracts and not results.clients and not results.matters and not results.documents and not results.clauses and not results.counterparties %}
+{% if not results.cases and not results.clients and not results.case_matters and not results.documents and not results.clauses and not results.counterparties and not results.task_signals %}
 <div class="text-center py-12">
     <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
     <p class="text-sm text-gray-500">No results found for "{{ q }}"</p>

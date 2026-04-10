@@ -41,6 +41,11 @@ class MentionsAiAndReminderTests(TestCase):
             email='admin@example.com',
             password='testpass123',
         )
+        self.member_creator = User.objects.create_user(
+            username='membercreator',
+            email='membercreator@example.com',
+            password='testpass123',
+        )
         self.outsider = User.objects.create_user(
             username='outsider',
             email='outsider@example.com',
@@ -69,6 +74,12 @@ class MentionsAiAndReminderTests(TestCase):
             is_active=True,
         )
         OrganizationMembership.objects.create(
+            organization=self.organization,
+            user=self.member_creator,
+            role=OrganizationMembership.Role.MEMBER,
+            is_active=True,
+        )
+        OrganizationMembership.objects.create(
             organization=self.other_organization,
             user=self.outsider,
             role=OrganizationMembership.Role.OWNER,
@@ -86,6 +97,13 @@ class MentionsAiAndReminderTests(TestCase):
             end_date=timezone.localdate() + timedelta(days=7),
             renewal_date=timezone.localdate() + timedelta(days=14),
             auto_renew=True,
+        )
+        self.member_created_contract = Contract.objects.create(
+            organization=self.organization,
+            title='Member Owned NDA',
+            contract_type=Contract.ContractType.NDA,
+            status=Contract.Status.DRAFT,
+            created_by=self.member_creator,
         )
         self.deadline = Deadline.objects.create(
             title='Contract review checkpoint',
@@ -108,6 +126,7 @@ class MentionsAiAndReminderTests(TestCase):
             order=1,
         )
         self.workflow = Workflow.objects.create(
+            organization=self.organization,
             title='Contract approval workflow',
             description='Workflow linked to contract',
             contract=self.contract,
@@ -199,6 +218,57 @@ class MentionsAiAndReminderTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
+
+    def test_contract_update_allows_owner(self):
+        self.client.login(username='owner', password='testpass123')
+
+        response = self.client.get(
+            reverse('contracts:contract_update', kwargs={'pk': self.contract.id}),
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_contract_update_allows_member_creator(self):
+        self.client.login(username='membercreator', password='testpass123')
+
+        response = self.client.get(
+            reverse('contracts:contract_update', kwargs={'pk': self.member_created_contract.id}),
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_contract_comment_allows_member(self):
+        self.client.login(username='member', password='testpass123')
+
+        response = self.client.post(
+            reverse('contracts:add_negotiation_note', kwargs={'pk': self.contract.id}),
+            {
+                'title': 'Member comment',
+                'content': 'Member can comment on in-org contracts.',
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            NegotiationThread.objects.filter(contract=self.contract, title='Member comment').exists()
+        )
+
+    def test_contract_comment_blocks_outsider(self):
+        self.client.login(username='outsider', password='testpass123')
+
+        response = self.client.post(
+            reverse('contracts:add_negotiation_note', kwargs={'pk': self.contract.id}),
+            {
+                'title': 'Cross-org comment',
+                'content': 'This should never land.',
+            },
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(
+            NegotiationThread.objects.filter(contract=self.contract, title='Cross-org comment').exists()
+        )
 
     def test_document_create_requires_contract_edit_permission(self):
         self.client.login(username='member', password='testpass123')

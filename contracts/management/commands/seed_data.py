@@ -2,8 +2,10 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from contracts.models import (
     Client, Matter, Contract, Document, TimeEntry, Invoice, TrustAccount,
-    TrustTransaction, Deadline, LegalTask, RiskLog, UserProfile, ConflictCheck
+    TrustTransaction, Deadline, LegalTask, RiskLog, UserProfile, ConflictCheck,
+    Organization, OrganizationMembership,
 )
+from contracts.services.starter_content import ensure_org_starter_content
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -30,7 +32,23 @@ class Command(BaseCommand):
         paralegal = User.objects.create_user('mwilson', 'mwilson@boltonclm.com', 'password123', first_name='Mike', last_name='Wilson')
         UserProfile.objects.get_or_create(user=paralegal, defaults={'role': 'PARALEGAL', 'hourly_rate': Decimal('150')})
 
+        organization = Organization.objects.create(name='Demo Firm', slug='demo-firm')
+        for user, role in [
+            (admin, OrganizationMembership.Role.OWNER),
+            (attorney1, OrganizationMembership.Role.ADMIN),
+            (attorney2, OrganizationMembership.Role.ADMIN),
+            (paralegal, OrganizationMembership.Role.MEMBER),
+        ]:
+            OrganizationMembership.objects.create(
+                organization=organization,
+                user=user,
+                role=role,
+                is_active=True,
+            )
+        ensure_org_starter_content(organization)
+
         client1 = Client.objects.create(
+            organization=organization,
             name='Acme Corporation', client_type='CORPORATE', status='ACTIVE',
             email='legal@acme.com', phone='555-0100', industry='Technology',
             address='123 Tech Blvd', city='San Francisco', state='CA', zip_code='94105',
@@ -39,6 +57,7 @@ class Command(BaseCommand):
             created_by=admin
         )
         client2 = Client.objects.create(
+            organization=organization,
             name='Global Industries LLC', client_type='CORPORATE', status='ACTIVE',
             email='legal@globalind.com', phone='555-0200', industry='Manufacturing',
             address='456 Industrial Way', city='Chicago', state='IL', zip_code='60601',
@@ -47,6 +66,7 @@ class Command(BaseCommand):
             created_by=admin
         )
         client3 = Client.objects.create(
+            organization=organization,
             name='Sarah Williams', client_type='INDIVIDUAL', status='ACTIVE',
             email='swilliams@email.com', phone='555-0300',
             responsible_attorney=attorney2, created_by=admin
@@ -55,6 +75,7 @@ class Command(BaseCommand):
         today = date.today()
 
         matter1 = Matter.objects.create(
+            organization=organization,
             title='Merger Agreement - Acme/TechStart', client=client1,
             practice_area='CORPORATE', status='ACTIVE',
             responsible_attorney=attorney1, originating_attorney=attorney1,
@@ -62,6 +83,7 @@ class Command(BaseCommand):
             open_date=today - timedelta(days=30), created_by=admin
         )
         matter2 = Matter.objects.create(
+            organization=organization,
             title='Employment Dispute - Williams', client=client3,
             practice_area='LABOR', status='ACTIVE',
             responsible_attorney=attorney2,
@@ -72,6 +94,7 @@ class Command(BaseCommand):
             statute_of_limitations=today + timedelta(days=180), created_by=admin
         )
         matter3 = Matter.objects.create(
+            organization=organization,
             title='IP Licensing - Global Industries', client=client2,
             practice_area='IP', status='ACTIVE',
             responsible_attorney=attorney1, originating_attorney=attorney2,
@@ -80,6 +103,7 @@ class Command(BaseCommand):
         )
 
         contract1 = Contract.objects.create(
+            organization=organization,
             title='Master Services Agreement - Acme', contract_type='MSA',
             content='This Master Services Agreement...', status='ACTIVE',
             counterparty='TechStart Inc', value=Decimal('500000'),
@@ -87,6 +111,7 @@ class Command(BaseCommand):
             client=client1, matter=matter1, created_by=attorney1
         )
         contract2 = Contract.objects.create(
+            organization=organization,
             title='NDA - Global Industries', contract_type='NDA',
             content='This Non-Disclosure Agreement...', status='ACTIVE',
             counterparty='Global Industries LLC', value=Decimal('0'),
@@ -94,6 +119,7 @@ class Command(BaseCommand):
             client=client2, matter=matter3, created_by=attorney2
         )
         contract3 = Contract.objects.create(
+            organization=organization,
             title='Employment Settlement Draft', contract_type='SETTLEMENT',
             content='Settlement terms...', status='DRAFT',
             counterparty='Former Employer Inc', value=Decimal('75000'),
@@ -102,6 +128,7 @@ class Command(BaseCommand):
 
         for i in range(5):
             TimeEntry.objects.create(
+                organization=organization,
                 matter=matter1, user=attorney1,
                 date=today - timedelta(days=i * 3),
                 hours=Decimal(str(round(1.5 + i * 0.5, 2))),
@@ -110,6 +137,7 @@ class Command(BaseCommand):
             )
         for i in range(3):
             TimeEntry.objects.create(
+                organization=organization,
                 matter=matter2, user=attorney2,
                 date=today - timedelta(days=i * 2),
                 hours=Decimal(str(round(2.0 + i * 0.25, 2))),
@@ -118,12 +146,14 @@ class Command(BaseCommand):
             )
 
         Invoice.objects.create(
+            organization=organization,
             client=client1, matter=matter1,
             issue_date=today - timedelta(days=15), due_date=today + timedelta(days=15),
             subtotal=Decimal('5625'), tax_rate=Decimal('0'),
             status='SENT', payment_terms='Net 30', created_by=admin
         )
         Invoice.objects.create(
+            organization=organization,
             client=client3, matter=matter2,
             issue_date=today - timedelta(days=45), due_date=today - timedelta(days=15),
             subtotal=Decimal('2100'), tax_rate=Decimal('0'),
@@ -187,6 +217,7 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('Seed data created successfully!'))
         self.stdout.write(f'  Admin user: admin / admin123')
+        self.stdout.write(f'  Demo organization: {organization.name}')
         self.stdout.write(f'  3 clients, 3 matters, 3 contracts')
         self.stdout.write(f'  8 time entries, 2 invoices, 1 trust account')
         self.stdout.write(f'  3 deadlines, 2 tasks, 1 risk, 2 conflict checks')

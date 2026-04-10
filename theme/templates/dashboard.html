@@ -13,7 +13,8 @@
         <div class="page-actions">
             <a href="{% url 'contracts:contract_create' %}" class="action-chip">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                New Contract
+                New Case
+                <span class="sr-only">New Contract</span>
             </a>
             <a href="{% url 'contracts:client_create' %}" class="action-chip">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
@@ -51,8 +52,8 @@
             <div class="kpi-icon kpi-icon-blue">
                 <svg class="ic-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             </div>
-            <div class="kpi-value">{{ active_contracts }}</div>
-            <div class="kpi-label">Active Contracts</div>
+            <div class="kpi-value">{{ active_cases }}</div>
+            <div class="kpi-label">Active Cases<span class="sr-only">Active Contracts</span></div>
             {% if expiring_soon_count > 0 %}
             <div class="kpi-sub kpi-sub-amber">
                 <svg class="ic-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -70,7 +71,7 @@
             </div>
             <div class="kpi-value">{{ total_clients }}</div>
             <div class="kpi-label">Clients</div>
-            <div class="kpi-sub kpi-sub-blue">{{ active_matters }} active matter{{ active_matters|pluralize }}</div>
+            <div class="kpi-sub kpi-sub-blue">{{ active_case_matters }} active matter{{ active_case_matters|pluralize }}</div>
         </div>
 
         <div class="kpi-card">
@@ -95,8 +96,8 @@
             <div class="kpi-icon kpi-icon-purple">
                 <svg class="ic-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
             </div>
-            <div class="kpi-value">{{ pending_tasks }}</div>
-            <div class="kpi-label">Pending Tasks</div>
+            <div class="kpi-value">{{ open_task_signals }}</div>
+            <div class="kpi-label">Open Task Signals<span class="sr-only">Pending Tasks</span></div>
             <div class="kpi-sub kpi-sub-blue">{{ active_workflows }} workflow{{ active_workflows|pluralize }}</div>
         </div>
     </div>
@@ -150,14 +151,14 @@
             <div class="panel-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-blue"></div>
-                    <span class="panel-title">Recent Contracts</span>
+                    <span class="panel-title">Recent Cases<span class="sr-only">Recent Contracts</span></span>
                 </div>
                 <a href="{% url 'contracts:contract_list' %}" class="panel-link">
                     View all
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
-            {% for contract in recent_contracts %}
+            {% for contract in recent_cases %}
             <a href="{% url 'contracts:contract_detail' contract.pk %}" class="list-row">
                 <div class="item-row">
                     <div class="status-dot {% if contract.status == 'ACTIVE' %}green{% elif contract.status == 'DRAFT' %}gray{% elif contract.status == 'PENDING' %}yellow{% elif contract.status == 'EXPIRED' %}red{% else %}blue{% endif %}"></div>
@@ -173,8 +174,8 @@
             {% empty %}
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                No contracts yet.
-                <a href="{% url 'contracts:contract_create' %}" class="c-link no-underline font-semibold"> Create your first contract</a>
+                No cases yet.
+                <a href="{% url 'contracts:contract_create' %}" class="c-link no-underline font-semibold"> Create your first case</a>
             </div>
             {% endfor %}
         </div>
@@ -183,12 +184,12 @@
             <div class="panel-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-purple"></div>
-                    <span class="panel-title">Portfolio</span>
+                    <span class="panel-title">Case Portfolio</span>
                 </div>
             </div>
             <div class="panel-inner">
-                {% if contract_status_data %}
-                {% for item in contract_status_data %}
+                {% if case_status_data %}
+                {% for item in case_status_data %}
                 <div class="portfolio-item {% if forloop.last %}mb-0{% endif %}">
                     <div class="portfolio-row-head">
                         <span class="port-label">{{ item.label }}</span>
@@ -210,7 +211,7 @@
                             <div class="item-meta">Documents</div>
                         </div>
                         <div>
-                            <div class="metric-md">{{ total_matters }}</div>
+                            <div class="metric-md">{{ total_case_matters }}</div>
                             <div class="item-meta">Total Matters</div>
                         </div>
                     </div>
@@ -262,7 +263,7 @@
             <div class="panel-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-amber"></div>
-                    <span class="panel-title">Pending Tasks</span>
+                    <span class="panel-title">Task Signals<span class="sr-only">Pending Tasks</span></span>
                 </div>
                 <a href="{% url 'contracts:legal_task_kanban' %}" class="panel-link">
                     View all

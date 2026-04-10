@@ -1,15 +1,9 @@
 
+"""Service accessors for contract operations.
+
+Keep imports lazy so package consumers can import individual service modules
+without triggering unrelated service initialization and circular imports.
 """
-Services package for contract operations
-"""
-"""
-Service factory for switching between mock and real services based on feature flags
-"""
-from config.feature_flags import is_test_mode
-from .repository import DjangoRepositoryService, MockRepositoryService
-from .templates import template_service
-from .clauses import clause_service
-from .obligations import obligation_service
 
 def get_repository_service(user=None):
     """Get repository service - uses DjangoRepositoryService (real implementation).
@@ -25,6 +19,8 @@ def get_repository_service(user=None):
         DjangoRepositoryService instance when real service is available
         MockRepositoryService in test mode (if user is None)
     """
+    from .repository import DjangoRepositoryService, MockRepositoryService
+
     if user is None:
         # Fallback to mock for backwards compatibility when user not provided
         return MockRepositoryService()
@@ -34,14 +30,20 @@ def get_repository_service(user=None):
 
 def get_template_service():
     """Get template service"""
+    from .templates import template_service
+
     return template_service
 
 def get_clause_service():
     """Get clause service"""
+    from .clauses import clause_service
+
     return clause_service
 
 def get_obligation_service():
     """Get obligation service"""
+    from .obligations import obligation_service
+
     return obligation_service
 
 # Export services for easy import

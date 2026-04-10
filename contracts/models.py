@@ -914,6 +914,7 @@ class Workflow(models.Model):
 
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='workflows')
     template = models.ForeignKey(WorkflowTemplate, on_delete=models.SET_NULL, null=True, blank=True)
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
@@ -1130,6 +1131,7 @@ class Counterparty(models.Model):
         NON_PROFIT = 'NON_PROFIT', 'Non-Profit'
         OTHER = 'OTHER', 'Other'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='counterparties')
     name = models.CharField(max_length=300)
     entity_type = models.CharField(max_length=20, choices=EntityType.choices, default=EntityType.CORPORATION)
     jurisdiction = models.CharField(max_length=200, blank=True)
@@ -1152,7 +1154,8 @@ class Counterparty(models.Model):
 
 
 class ClauseCategory(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='clause_categories')
+    name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1160,6 +1163,7 @@ class ClauseCategory(models.Model):
     class Meta:
         verbose_name_plural = 'Clause categories'
         ordering = ['order', 'name']
+        unique_together = [('organization', 'name')]
 
     def __str__(self):
         return self.name
@@ -1173,6 +1177,7 @@ class ClauseTemplate(models.Model):
         GLOBAL = 'GLOBAL', 'Global/Universal'
         CUSTOM = 'CUSTOM', 'Custom'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='clause_templates')
     title = models.CharField(max_length=200)
     category = models.ForeignKey(ClauseCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='clauses')
     content = models.TextField(help_text='Standard clause text')
@@ -1195,6 +1200,7 @@ class ClauseTemplate(models.Model):
 
 
 class EthicalWall(models.Model):
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='ethical_walls')
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     matter = models.ForeignKey(Matter, on_delete=models.CASCADE, null=True, blank=True, related_name='ethical_walls')
@@ -1220,6 +1226,7 @@ class SignatureRequest(models.Model):
         EXPIRED = 'EXPIRED', 'Expired'
         CANCELLED = 'CANCELLED', 'Cancelled'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='signature_requests')
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='signature_requests')
     document = models.ForeignKey(Document, on_delete=models.SET_NULL, null=True, blank=True, related_name='signature_requests')
     signer_name = models.CharField(max_length=200)
@@ -1254,6 +1261,7 @@ class DataInventoryRecord(models.Model):
         PUBLIC_INTEREST = 'PUBLIC_INTEREST', 'Public Interest'
         LEGITIMATE_INTEREST = 'LEGITIMATE_INTEREST', 'Legitimate Interest'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='data_inventory_records')
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     data_categories = models.TextField(help_text='Categories of personal data processed')
@@ -1297,6 +1305,7 @@ class DSARRequest(models.Model):
         DENIED = 'DENIED', 'Denied'
         EXTENDED = 'EXTENDED', 'Extended'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='dsar_requests')
     reference_number = models.CharField(max_length=50, unique=True)
     request_type = models.CharField(max_length=15, choices=RequestType.choices)
     status = models.CharField(max_length=15, choices=Status.choices, default=Status.RECEIVED)
@@ -1337,6 +1346,7 @@ class DSARRequest(models.Model):
 
 
 class Subprocessor(models.Model):
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='subprocessors')
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     service_type = models.CharField(max_length=200, help_text='e.g. Cloud hosting, Payment processing')
@@ -1372,6 +1382,7 @@ class TransferRecord(models.Model):
         CONSENT = 'CONSENT', 'Explicit Consent'
         DEROGATION = 'DEROGATION', 'Derogation'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='transfer_records')
     title = models.CharField(max_length=200)
     source_country = models.CharField(max_length=100)
     destination_country = models.CharField(max_length=100)
@@ -1403,6 +1414,7 @@ class RetentionPolicy(models.Model):
         COMPLIANCE = 'COMPLIANCE', 'Compliance Records'
         OTHER = 'OTHER', 'Other'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='retention_policies')
     title = models.CharField(max_length=200)
     category = models.CharField(max_length=20, choices=Category.choices)
     description = models.TextField(blank=True)
@@ -1430,6 +1442,7 @@ class LegalHold(models.Model):
         RELEASED = 'RELEASED', 'Released'
         EXPIRED = 'EXPIRED', 'Expired'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='legal_holds')
     title = models.CharField(max_length=200)
     description = models.TextField()
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.ACTIVE)
@@ -1456,6 +1469,7 @@ class ApprovalRule(models.Model):
         RISK_LEVEL = 'RISK_LEVEL', 'Risk Level'
         DATA_TRANSFER = 'DATA_TRANSFER', 'Cross-border Data Transfer'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_rules')
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     trigger_type = models.CharField(max_length=20, choices=TriggerType.choices)
@@ -1489,6 +1503,7 @@ class ApprovalRequest(models.Model):
         REJECTED = 'REJECTED', 'Rejected'
         ESCALATED = 'ESCALATED', 'Escalated'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_requests')
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='approval_requests')
     rule = models.ForeignKey(ApprovalRule, on_delete=models.SET_NULL, null=True, blank=True)
     approval_step = models.CharField(max_length=50)
@@ -1502,3 +1517,13 @@ class ApprovalRequest(models.Model):
 
     def __str__(self):
         return f'{self.contract.title} - {self.approval_step} ({self.get_status_display()})'
+
+
+# Alias-first structural migration layer.
+# These symbols let care-native code paths move toward case-oriented names
+# without changing database tables, migration history, or legacy imports yet.
+Case = Contract
+CaseMatter = Matter
+CaseSignal = LegalTask
+CaseRiskSignal = RiskLog
+CaseApproval = ApprovalRequest
