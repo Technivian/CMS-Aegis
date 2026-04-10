@@ -1502,3 +1502,32 @@ class ApprovalRequest(models.Model):
 
     def __str__(self):
         return f'{self.contract.title} - {self.approval_step} ({self.get_status_display()})'
+
+
+# Temporary compatibility aliases for legacy care-oriented views/forms.
+# These keep imports and URL checks operational while the care refactor is stabilized.
+class _CareScope(models.TextChoices):
+    GEMEENTE = 'GEMEENTE', 'Gemeente'
+    REGIO = 'REGIO', 'Regio'
+
+
+class _CareStatus(models.TextChoices):
+    ACTIVE = 'ACTIVE', 'Active'
+    ON_HOLD = 'ON_HOLD', 'On hold'
+
+
+class _CaseAssessmentStatus(models.TextChoices):
+    DRAFT = 'DRAFT', 'Draft'
+    UNDER_REVIEW = 'UNDER_REVIEW', 'Under review'
+    NEEDS_INFO = 'NEEDS_INFO', 'Needs info'
+    APPROVED_FOR_MATCHING = 'APPROVED_FOR_MATCHING', 'Approved for matching'
+
+
+Matter.Scope = _CareScope
+Matter.Status = _CareStatus
+CareConfiguration = Matter
+MunicipalityConfiguration = Matter
+RegionalConfiguration = Matter
+
+DueDiligenceProcess.AssessmentStatus = _CaseAssessmentStatus
+CaseAssessment = DueDiligenceProcess
