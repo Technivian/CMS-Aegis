@@ -39,6 +39,9 @@ urlpatterns = [
     path('__reload__/', include('django_browser_reload.urls')),
 ]
 
+if 'debug_toolbar' in settings.INSTALLED_APPS:
+    urlpatterns.append(path('__debug__/', include('debug_toolbar.urls')))
+
 if settings.SSO_ENABLED:
     urlpatterns.append(path('oidc/', include('mozilla_django_oidc.urls')))
 

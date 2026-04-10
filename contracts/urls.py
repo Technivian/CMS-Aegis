@@ -78,6 +78,7 @@ urlpatterns = [
 
     # Due Diligence
     path('due-diligence/', views.DueDiligenceListView.as_view(), name='due_diligence_list'),
+    path('due-diligence-processes/', views.DueDiligenceListView.as_view(), name='due_diligence_list_legacy'),
     path('due-diligence/new/', views.DueDiligenceCreateView.as_view(), name='due_diligence_create'),
     path('due-diligence/<int:pk>/', views.DueDiligenceDetailView.as_view(), name='due_diligence_detail'),
     path('due-diligence/<int:pk>/edit/', views.DueDiligenceUpdateView.as_view(), name='due_diligence_update'),
@@ -92,12 +93,14 @@ urlpatterns = [
 
     # Trademarks
     path('trademarks/', views.TrademarkRequestListView.as_view(), name='trademark_request_list'),
+    path('trademark-requests/', views.TrademarkRequestListView.as_view(), name='trademark_request_list_legacy'),
     path('trademarks/new/', views.TrademarkRequestCreateView.as_view(), name='trademark_request_create'),
     path('trademarks/<int:pk>/', views.TrademarkRequestDetailView.as_view(), name='trademark_request_detail'),
     path('trademarks/<int:pk>/edit/', views.TrademarkRequestUpdateView.as_view(), name='trademark_request_update'),
 
     # Risks
     path('risks/', views.RiskLogListView.as_view(), name='risk_log_list'),
+    path('risk-log/', views.RiskLogListView.as_view(), name='risk_log_list_legacy'),
     path('risks/new/', views.RiskLogCreateView.as_view(), name='risk_log_create'),
     path('risks/<int:pk>/edit/', views.RiskLogUpdateView.as_view(), name='risk_log_update'),
 
@@ -118,6 +121,7 @@ urlpatterns = [
 
     # Workflows
     path('workflows/', views.workflow_dashboard, name='workflow_dashboard'),
+    path('workflow-dashboard/', views.workflow_dashboard, name='workflow_dashboard_legacy'),
     path('workflows/create/', views.workflow_create, name='workflow_create'),
     path('workflows/templates/', views.workflow_template_list, name='workflow_template_list'),
     path('workflows/templates/create/', views.workflow_template_create, name='workflow_template_create'),
