@@ -1,0 +1,8 @@
+Django==5.2.5
+django-crispy-forms==2.4
+django-tailwind==4.2.0
+psycopg2-binary==2.9.10
+mozilla-django-oidc==5.0.2
+python-dateutil==2.8.2
+sqlparse==0.5.3
+tzdata==2025.2

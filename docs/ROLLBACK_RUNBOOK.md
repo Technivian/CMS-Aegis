@@ -73,7 +73,7 @@ git revert <bad-commit-sha> --no-edit
 # git reset --hard <good-sha>
 
 # 3. Install any dependency changes
-pip install -r requirements.txt
+pip install -r requirements/runtime.txt
 
 # 4. Collect static assets
 python manage.py collectstatic --noinput
@@ -89,11 +89,11 @@ curl -s -o /dev/null -w "%{http_code}" https://<host>/dashboard/
 
 ## 4. L3 — Migration Rollback
 
-### 4.1 Current migration state (as of 2026-04-04)
+### 4.1 Current migration state (as of 2026-04-10)
 
 | App | Latest applied migration |
 |---|---|
-| `contracts` | `0004_organizationinvitation` |
+| `contracts` | `0006_approvalrequest_organization_and_more` |
 | `auth` | `0012_alter_user_first_name_max_length` |
 | `admin` | `0003_logentry_add_action_flag_choices` |
 | `sessions` | `0001_initial` |
@@ -119,7 +119,7 @@ python manage.py showmigrations contracts
 
 # 5. Roll back the code
 git revert <migration-commit-sha> --no-edit
-pip install -r requirements.txt
+pip install -r requirements/runtime.txt
 
 # 6. Restart
 sudo systemctl restart gunicorn-cms-aegis
@@ -128,6 +128,43 @@ sudo systemctl restart gunicorn-cms-aegis
 > **Data warning**: reversing a migration that adds columns is usually safe.
 > Reversing one that removes columns or tables may silently discard data.
 > Always verify the migration's `reverse_sql` / `operations` before running.
+
+### 4.4 Drill Evidence (2026-04-10)
+
+Successful scratch-db rehearsal on a clean SQLite file:
+
+```bash
+SQLITE_PATH=/tmp/cms-aegis-drill-clean.sqlite3 python manage.py migrate --noinput
+SQLITE_PATH=/tmp/cms-aegis-drill-clean.sqlite3 python manage.py migrate contracts 0005_add_org_fk_to_budget_and_due_diligence --noinput
+SQLITE_PATH=/tmp/cms-aegis-drill-clean.sqlite3 python manage.py migrate contracts 0006_approvalrequest_organization_and_more --noinput
+SQLITE_PATH=/tmp/cms-aegis-drill-clean.sqlite3 python manage.py audit_null_organizations
+```
+
+Observed result:
+
+- clean scratch DB migrated forward successfully
+- reverse from `0006` to `0005` succeeded
+- re-apply to `0006` succeeded
+- `audit_null_organizations` reported no `NULL organization` rows
+
+Production-like caveat discovered on a populated copy:
+
+```bash
+cp db.sqlite3 /tmp/cms-aegis-drill.sqlite3
+SQLITE_PATH=/tmp/cms-aegis-drill.sqlite3 python manage.py migrate contracts 0005_add_org_fk_to_budget_and_due_diligence --noinput
+```
+
+Observed failure:
+
+- reverse migration failed with `UNIQUE constraint failed: new__contracts_clausecategory.name`
+- root cause: after starter content was duplicated per organization, reversing `0006` attempts to collapse org-owned `ClauseCategory` rows back into a globally unique `name`
+
+Operational conclusion:
+
+- forward migration to `0006` is validated
+- reverse migration on clean scratch data is validated
+- reverse migration on populated tenant-owned starter-content data is **not** currently safe without a bespoke downgrade/data-collapse step
+- do not run a live rollback from `0006` to `0005` on populated environments without additional migration work
 
 ### 4.3 Reverting all contracts migrations to zero (emergency only)
 
@@ -183,11 +220,12 @@ python manage.py test tests.test_cross_tenant_isolation -v 2
 # 4. Playwright smoke suite (requires Node + Playwright installed)
 cd client && E2E_BASE_URL=https://<host> npx playwright test tests/e2e/
 
-# 5. Manual spot-checks
-#   - Log in as a non-admin user → dashboard loads
-#   - Create a contract → save succeeds
-#   - Log in as a second org user → first org data NOT visible
+# 5. Manual smoke pass
+#   Follow docs/MANUAL_SMOKE_CHECKLIST.md
 ```
+
+For release and rollback verification, use the full two-org checklist in
+[`docs/MANUAL_SMOKE_CHECKLIST.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/MANUAL_SMOKE_CHECKLIST.md).
 
 ---
 
@@ -217,4 +255,4 @@ Drill results should be recorded in `docs/DRILL_LOG.md`.
 
 ---
 
-*Last updated: 2026-04-04*
+*Last updated: 2026-04-10*
