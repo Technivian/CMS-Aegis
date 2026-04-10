@@ -196,18 +196,26 @@ class Matter(models.Model):
     title = models.CharField(max_length=300)
     description = models.TextField(blank=True)
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='matters')
+    scope = models.CharField(
+        max_length=20,
+        choices=[
+            ('GEMEENTE', 'Gemeente'),
+            ('REGIO', 'Regio'),
+        ],
+        default='GEMEENTE',
+        help_text='Municipality or Regional scope',
+    )
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
+    is_active = models.BooleanField(default=True)
+    responsible_team = models.CharField(max_length=200, blank=True)
+    priority_rules = models.TextField(blank=True)
+    max_wait_days = models.PositiveIntegerField(null=True, blank=True)
     practice_area = models.CharField(max_length=20, choices=PracticeArea.choices, default=PracticeArea.CORPORATE)
     responsible_attorney = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='responsible_matters')
     originating_attorney = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='originated_matters')
     team_members = models.ManyToManyField(User, blank=True, related_name='matter_team')
     open_date = models.DateField(default=date.today)
     close_date = models.DateField(null=True, blank=True)
-    statute_of_limitations = models.DateField(null=True, blank=True)
-    court_name = models.CharField(max_length=200, blank=True)
-    case_number = models.CharField(max_length=100, blank=True)
-    opposing_party = models.CharField(max_length=200, blank=True)
-    opposing_counsel = models.CharField(max_length=200, blank=True)
     billing_type = models.CharField(max_length=20, choices=[
         ('HOURLY', 'Hourly'),
         ('FLAT_FEE', 'Flat Fee'),
@@ -317,6 +325,23 @@ class Contract(models.Model):
         ('RENEWAL', 'Renewal/Termination'),
         ('ARCHIVED', 'Archived'),
     ], default='DRAFTING')
+    case_phase = models.CharField(
+        max_length=20,
+        choices=[
+            ('intake', 'Intake'),
+            ('beoordeling', 'Beoordeling'),
+            ('matching', 'Matching'),
+            ('plaatsing', 'Plaatsing'),
+            ('actief', 'Actief'),
+            ('afgerond', 'Afgerond'),
+        ],
+        default='intake',
+    )
+    phase_entered_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='Timestamp when the case entered the current phase',
+    )
     client = models.ForeignKey('Client', on_delete=models.SET_NULL, null=True, blank=True, related_name='contracts')
     matter = models.ForeignKey('Matter', on_delete=models.SET_NULL, null=True, blank=True, related_name='contracts')
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
@@ -580,28 +605,35 @@ class Deadline(models.Model):
         LOW = 'LOW', 'Low'
         MEDIUM = 'MEDIUM', 'Medium'
         HIGH = 'HIGH', 'High'
-        CRITICAL = 'CRITICAL', 'Critical'
+        URGENT = 'URGENT', 'Urgent'
 
-    class DeadlineType(models.TextChoices):
-        COURT = 'COURT', 'Court Deadline'
-        FILING = 'FILING', 'Filing Deadline'
-        SOL = 'SOL', 'Statute of Limitations'
-        CONTRACT = 'CONTRACT', 'Contract Deadline'
-        REGULATORY = 'REGULATORY', 'Regulatory Deadline'
-        INTERNAL = 'INTERNAL', 'Internal Deadline'
-        CLIENT = 'CLIENT', 'Client Deadline'
-        OTHER = 'OTHER', 'Other'
+    class TaskType(models.TextChoices):
+        INTAKE_COMPLETE = 'INTAKE_COMPLETE', 'Intake afronden'
+        ASSESSMENT_PERFORM = 'ASSESSMENT_PERFORM', 'Beoordeling uitvoeren'
+        SELECT_MATCH = 'SELECT_MATCH', 'Match selecteren'
+        CONTACT_PROVIDER = 'CONTACT_PROVIDER', 'Aanbieder contacteren'
+        CONFIRM_PLACEMENT = 'CONFIRM_PLACEMENT', 'Plaatsing bevestigen'
+        EVALUATE = 'EVALUATE', 'Evaluatie uitvoeren'
+
+    class GenerationSource(models.TextChoices):
+        MANUAL = 'MANUAL', 'Handmatig'
+        INTAKE = 'INTAKE', 'Intake'
+        ASSESSMENT = 'ASSESSMENT', 'Beoordeling'
+        MATCHING = 'MATCHING', 'Matching'
+        PLACEMENT = 'PLACEMENT', 'Plaatsing'
 
     title = models.CharField(max_length=300)
     description = models.TextField(blank=True)
-    deadline_type = models.CharField(max_length=20, choices=DeadlineType.choices, default=DeadlineType.OTHER)
+    task_type = models.CharField(max_length=30, choices=TaskType.choices, default=TaskType.INTAKE_COMPLETE)
     priority = models.CharField(max_length=10, choices=Priority.choices, default=Priority.MEDIUM)
     due_date = models.DateField()
     due_time = models.TimeField(null=True, blank=True)
-    reminder_days = models.PositiveIntegerField(default=7)
+    due_diligence_process = models.ForeignKey('DueDiligenceProcess', on_delete=models.CASCADE, null=True, blank=True, related_name='followup_tasks')
     matter = models.ForeignKey(Matter, on_delete=models.CASCADE, null=True, blank=True, related_name='deadlines')
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True, related_name='deadlines')
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='deadlines')
+    auto_generated = models.BooleanField(default=False)
+    generation_source = models.CharField(max_length=20, choices=GenerationSource.choices, default=GenerationSource.MANUAL)
     is_completed = models.BooleanField(default=False)
     completed_at = models.DateTimeField(null=True, blank=True)
     completed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='completed_deadlines')
@@ -628,10 +660,7 @@ class Deadline(models.Model):
 
     @property
     def needs_reminder(self):
-        if self.is_completed:
-            return False
-        days = (self.due_date - date.today()).days
-        return 0 < days <= self.reminder_days
+        return False
 
 
 class AuditLog(models.Model):
@@ -715,17 +744,30 @@ class ConflictCheck(models.Model):
 
 class TrademarkRequest(models.Model):
     class Status(models.TextChoices):
-        PENDING = 'PENDING', 'Pending'
-        FILED = 'FILED', 'Filed'
-        IN_REVIEW = 'IN_REVIEW', 'In Review'
-        APPROVED = 'APPROVED', 'Approved'
-        REJECTED = 'REJECTED', 'Rejected'
+        DRAFT = 'DRAFT', 'Concept'
+        IN_REVIEW = 'IN_REVIEW', 'In beoordeling'
+        APPROVED = 'APPROVED', 'Goedgekeurd'
+        REJECTED = 'REJECTED', 'Afgewezen'
+        NEEDS_INFO = 'NEEDS_INFO', 'Aanvullende info nodig'
 
-    mark_text = models.CharField(max_length=200)
-    description = models.TextField()
-    goods_services = models.TextField()
-    filing_basis = models.CharField(max_length=100)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    class CareForm(models.TextChoices):
+        OUTPATIENT = 'OUTPATIENT', 'Ambulant'
+        DAY_TREATMENT = 'DAY_TREATMENT', 'Dagbehandeling'
+        RESIDENTIAL = 'RESIDENTIAL', 'Residentieel'
+        CRISIS = 'CRISIS', 'Crisisopvang'
+
+    mark_text = models.CharField(max_length=200, blank=True)
+    description = models.TextField(blank=True)
+    goods_services = models.TextField(blank=True)
+    filing_basis = models.CharField(max_length=100, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    care_form = models.CharField(max_length=20, choices=CareForm.choices, blank=True)
+    due_diligence_process = models.ForeignKey('DueDiligenceProcess', on_delete=models.SET_NULL, null=True, blank=True, related_name='indications')
+    proposed_provider = models.ForeignKey(Client, on_delete=models.SET_NULL, null=True, blank=True, related_name='proposed_indications')
+    selected_provider = models.ForeignKey(Client, on_delete=models.SET_NULL, null=True, blank=True, related_name='selected_indications')
+    duration_weeks = models.PositiveIntegerField(null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    decision_notes = models.TextField(blank=True)
     client = models.ForeignKey(Client, on_delete=models.SET_NULL, null=True, blank=True, related_name='trademark_requests')
     matter = models.ForeignKey(Matter, on_delete=models.SET_NULL, null=True, blank=True, related_name='trademark_requests')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -817,20 +859,40 @@ class RiskLogManager(models.Manager):
 
 
 class RiskLog(models.Model):
+    class SignalType(models.TextChoices):
+        SAFETY = 'SAFETY', 'Veiligheid'
+        ESCALATION = 'ESCALATION', 'Escalatie'
+        NO_MATCH = 'NO_MATCH', 'Geen match'
+        WAIT_EXCEEDED = 'WAIT_EXCEEDED', 'Wachttijd overschreden'
+        CAPACITY_ISSUE = 'CAPACITY_ISSUE', 'Capaciteit probleem'
+        INTAKE_INCOMPLETE = 'INTAKE_INCOMPLETE', 'Intake incompleet'
+        DROPOUT_RISK = 'DROPOUT_RISK', 'Uitval risico'
+
+    class Status(models.TextChoices):
+        OPEN = 'OPEN', 'Open'
+        IN_PROGRESS = 'IN_PROGRESS', 'In opvolging'
+        RESOLVED = 'RESOLVED', 'Afgerond'
+
     class RiskLevel(models.TextChoices):
         LOW = 'LOW', 'Low'
         MEDIUM = 'MEDIUM', 'Medium'
         HIGH = 'HIGH', 'High'
         CRITICAL = 'CRITICAL', 'Critical'
 
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, blank=True)
     description = models.TextField()
+    signal_type = models.CharField(max_length=30, choices=SignalType.choices, default=SignalType.SAFETY)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN)
     risk_level = models.CharField(max_length=10, choices=RiskLevel.choices, default=RiskLevel.MEDIUM)
+    due_diligence_process = models.ForeignKey('DueDiligenceProcess', on_delete=models.SET_NULL, null=True, blank=True, related_name='signals')
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True)
     matter = models.ForeignKey(Matter, on_delete=models.CASCADE, null=True, blank=True, related_name='risks')
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_signals')
+    follow_up = models.TextField(blank=True)
     mitigation_plan = models.TextField(blank=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     objects = RiskLogManager()
 
@@ -961,6 +1023,23 @@ class DueDiligenceProcess(models.Model):
         JOINT_VENTURE = 'JOINT_VENTURE', 'Joint Venture'
         ASSET_PURCHASE = 'ASSET_PURCHASE', 'Asset Purchase'
 
+    class Complexity(models.TextChoices):
+        SIMPLE = 'SIMPLE', 'Simple'
+        MULTIPLE = 'MULTIPLE', 'Multiple'
+        SEVERE = 'SEVERE', 'Severe'
+
+    class Urgency(models.TextChoices):
+        LOW = 'LOW', 'Low'
+        MEDIUM = 'MEDIUM', 'Medium'
+        HIGH = 'HIGH', 'High'
+        CRISIS = 'CRISIS', 'Crisis'
+
+    class CareForm(models.TextChoices):
+        OUTPATIENT = 'OUTPATIENT', 'Outpatient'
+        DAY_TREATMENT = 'DAY_TREATMENT', 'Day treatment'
+        RESIDENTIAL = 'RESIDENTIAL', 'Residential'
+        CRISIS = 'CRISIS', 'Crisis'
+
     organization = models.ForeignKey(
         'Organization', on_delete=models.CASCADE, null=True, blank=True,
         related_name='due_diligence_processes',
@@ -974,6 +1053,13 @@ class DueDiligenceProcess(models.Model):
     start_date = models.DateField()
     target_completion_date = models.DateField()
     description = models.TextField(blank=True)
+    assessment_summary = models.TextField(blank=True, default='')
+    complexity = models.CharField(max_length=20, choices=Complexity.choices, default=Complexity.SIMPLE)
+    urgency = models.CharField(max_length=10, choices=Urgency.choices, default=Urgency.MEDIUM)
+    preferred_care_form = models.CharField(max_length=20, choices=CareForm.choices, default=CareForm.OUTPATIENT)
+    has_other_support = models.BooleanField(default=False)
+    other_support_description = models.TextField(blank=True, default='')
+    school_work_status = models.CharField(max_length=200, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1053,20 +1139,34 @@ class Budget(models.Model):
         Q3 = 'Q3', 'Q3'
         Q4 = 'Q4', 'Q4'
 
+    class CareType(models.TextChoices):
+        OUTPATIENT = 'OUTPATIENT', 'Ambulant'
+        DAY_TREATMENT = 'DAY_TREATMENT', 'Dagbehandeling'
+        RESIDENTIAL = 'RESIDENTIAL', 'Residentieel'
+        CRISIS = 'CRISIS', 'Crisisopvang'
+
     organization = models.ForeignKey(
         'Organization', on_delete=models.CASCADE, null=True, blank=True,
         related_name='budgets',
     )
     year = models.PositiveIntegerField()
-    quarter = models.CharField(max_length=2, choices=Quarter.choices)
-    department = models.CharField(max_length=100)
+    quarter = models.CharField(max_length=2, choices=Quarter.choices, blank=True, default='')
+    department = models.CharField(max_length=100, blank=True, default='')
+    care_type = models.CharField(max_length=20, choices=CareType.choices, default=CareType.OUTPATIENT)
+    scope_type = models.CharField(max_length=20, choices=[('GEMEENTE', 'Gemeente'), ('REGIO', 'Regio')], default='GEMEENTE')
+    scope_name = models.CharField(max_length=150, blank=True, default='')
+    target_group = models.CharField(max_length=150, blank=True, default='')
+    linked_cases = models.ManyToManyField('DueDiligenceProcess', blank=True, related_name='capacity_budgets')
+    linked_placements = models.ManyToManyField('TrademarkRequest', blank=True, related_name='capacity_budgets')
+    linked_providers = models.ManyToManyField('Client', blank=True, related_name='capacity_budgets')
     allocated_amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0'))])
     description = models.TextField(blank=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ['organization', 'year', 'quarter', 'department']
+        unique_together = ['organization', 'year', 'scope_type', 'scope_name', 'target_group', 'care_type']
 
     def __str__(self):
         return f'{self.department} - {self.year} {self.quarter}'
@@ -1082,6 +1182,12 @@ class Budget(models.Model):
     @property
     def is_over_budget(self):
         return self.spent_amount > self.allocated_amount
+
+    @property
+    def utilization_percentage(self):
+        if not self.allocated_amount:
+            return Decimal('0')
+        return (self.spent_amount / self.allocated_amount) * Decimal('100')
 
 
 class BudgetExpense(models.Model):
@@ -1523,11 +1629,68 @@ class _CaseAssessmentStatus(models.TextChoices):
     APPROVED_FOR_MATCHING = 'APPROVED_FOR_MATCHING', 'Approved for matching'
 
 
+class _LegacyCasePhase(models.TextChoices):
+    INTAKE = 'intake', 'Intake'
+    BEOORDELING = 'beoordeling', 'Beoordeling'
+    MATCHING = 'matching', 'Matching'
+    PLAATSING = 'plaatsing', 'Plaatsing'
+    ACTIEF = 'actief', 'Actief'
+    AFGEROND = 'afgerond', 'Afgerond'
+
+
+class _LegacyIntakeStatus(models.TextChoices):
+    INTAKE = 'INTAKE', 'Intake'
+    ASSESSMENT = 'ASSESSMENT', 'Assessment'
+    MATCHING = 'MATCHING', 'Matching'
+    DECISION = 'DECISION', 'Decision'
+    COMPLETED = 'COMPLETED', 'Completed'
+    ON_HOLD = 'ON_HOLD', 'On hold'
+
+
+class _LegacyPlacementStatus(models.TextChoices):
+    IN_REVIEW = 'IN_REVIEW', 'In review'
+    APPROVED = 'APPROVED', 'Approved'
+    REJECTED = 'REJECTED', 'Rejected'
+    NEEDS_INFO = 'NEEDS_INFO', 'Needs info'
+
+
+class _LegacyDeadlineTaskType(models.TextChoices):
+    INTAKE_COMPLETE = 'INTAKE_COMPLETE', 'Intake complete'
+    ASSESSMENT_PERFORM = 'ASSESSMENT_PERFORM', 'Assessment perform'
+    SELECT_MATCH = 'SELECT_MATCH', 'Select match'
+    CONFIRM_PLACEMENT = 'CONFIRM_PLACEMENT', 'Confirm placement'
+    MANUAL = 'MANUAL', 'Manual'
+
+
+class _LegacyDeadlineGenerationSource(models.TextChoices):
+    MANUAL = 'MANUAL', 'Manual'
+    INTAKE = 'INTAKE', 'Intake'
+    ASSESSMENT = 'ASSESSMENT', 'Assessment'
+    MATCHING = 'MATCHING', 'Matching'
+    PLACEMENT = 'PLACEMENT', 'Placement'
+
+
 Matter.Scope = _CareScope
 Matter.Status = _CareStatus
+
+# Reuse modern models for legacy care naming.
 CareConfiguration = Matter
 MunicipalityConfiguration = Matter
 RegionalConfiguration = Matter
 
+CareCase = Contract
+CaseIntakeProcess = DueDiligenceProcess
+PlacementRequest = DueDiligenceTask
+ProviderResponseRequest = NegotiationThread
+ProviderProfile = Client
+
+# Attach legacy enums expected by legacy views.
+Contract.CasePhase = _LegacyCasePhase
+DueDiligenceProcess.ProcessStatus = _LegacyIntakeStatus
 DueDiligenceProcess.AssessmentStatus = _CaseAssessmentStatus
+DueDiligenceTask.Status = _LegacyPlacementStatus
+Deadline.TaskType = _LegacyDeadlineTaskType
+Deadline.GenerationSource = _LegacyDeadlineGenerationSource
+
+# Legacy aliases for historical imports.
 CaseAssessment = DueDiligenceProcess

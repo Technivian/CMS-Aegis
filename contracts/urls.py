@@ -75,20 +75,33 @@ urlpatterns = [
 
     # Reports
     path('reports/', views.reports_dashboard, name='reports_dashboard'),
+    path('matching/', views.matching_dashboard, name='matching_dashboard'),
 
     # Due Diligence
     path('due-diligence/', views.DueDiligenceListView.as_view(), name='due_diligence_list'),
     path('due-diligence/new/', views.DueDiligenceCreateView.as_view(), name='due_diligence_create'),
     path('due-diligence/<int:pk>/', views.DueDiligenceDetailView.as_view(), name='due_diligence_detail'),
     path('due-diligence/<int:pk>/edit/', views.DueDiligenceUpdateView.as_view(), name='due_diligence_update'),
+    path('intakes/', views.DueDiligenceProcessListView.as_view(), name='intake_list'),
+    path('intakes/new/', views.DueDiligenceProcessCreateView.as_view(), name='intake_create'),
+    path('intakes/<int:pk>/', views.DueDiligenceProcessDetailView.as_view(), name='intake_detail'),
+    path('intakes/<int:pk>/edit/', views.DueDiligenceProcessUpdateView.as_view(), name='intake_update'),
     path('due-diligence/<int:process_pk>/add-item/', views.AddDueDiligenceItemView.as_view(), name='add_dd_item'),
     path('due-diligence/<int:process_pk>/add-risk/', views.AddDueDiligenceRiskView.as_view(), name='add_dd_risk'),
     path('dd-item/<int:pk>/toggle/', views.toggle_dd_item, name='toggle_dd_item'),
+    path('assessments/', views.CaseAssessmentListView.as_view(), name='assessment_list'),
+    path('assessments/new/', views.CaseAssessmentCreateView.as_view(), name='assessment_create'),
+    path('assessments/<int:pk>/', views.CaseAssessmentDetailView.as_view(), name='assessment_detail'),
+    path('assessments/<int:pk>/edit/', views.CaseAssessmentUpdateView.as_view(), name='assessment_update'),
 
     # Legal Tasks
     path('legal-tasks/', views.LegalTaskKanbanView.as_view(), name='legal_task_kanban'),
     path('legal-tasks/new/', views.LegalTaskCreateView.as_view(), name='legal_task_create'),
     path('legal-tasks/<int:pk>/edit/', views.LegalTaskUpdateView.as_view(), name='legal_task_update'),
+    path('legal-tasks/', views.LegalTaskKanbanView.as_view(), name='task_list'),
+    path('legal-tasks/', views.LegalTaskKanbanView.as_view(), name='task_kanban'),
+    path('legal-tasks/new/', views.LegalTaskCreateView.as_view(), name='task_create'),
+    path('legal-tasks/<int:pk>/edit/', views.LegalTaskUpdateView.as_view(), name='task_update'),
 
     # Trademarks
     path('trademarks/', views.TrademarkRequestListView.as_view(), name='trademark_request_list'),
@@ -100,6 +113,9 @@ urlpatterns = [
     path('risks/', views.RiskLogListView.as_view(), name='risk_log_list'),
     path('risks/new/', views.RiskLogCreateView.as_view(), name='risk_log_create'),
     path('risks/<int:pk>/edit/', views.RiskLogUpdateView.as_view(), name='risk_log_update'),
+    path('signals/', views.RiskLogListView.as_view(), name='signal_list'),
+    path('signals/new/', views.RiskLogCreateView.as_view(), name='signal_create'),
+    path('signals/<int:pk>/edit/', views.RiskLogUpdateView.as_view(), name='signal_update'),
 
     # Compliance
     path('compliance/', views.ComplianceChecklistListView.as_view(), name='compliance_checklist_list'),
@@ -130,6 +146,19 @@ urlpatterns = [
 
     # Repository
     path('repository/', views.RepositoryView.as_view(), name='repository'),
+    path('configurations/', views.CareConfigurationListView.as_view(), name='configuration_list'),
+    path('configurations/<int:pk>/', views.CareConfigurationDetailView.as_view(), name='configuration_detail'),
+    path('municipalities/', views.MunicipalityConfigurationListView.as_view(), name='municipality_list'),
+    path('municipalities/new/', views.MunicipalityConfigurationCreateView.as_view(), name='municipality_create'),
+    path('municipalities/<int:pk>/', views.MunicipalityConfigurationDetailView.as_view(), name='municipality_detail'),
+    path('municipalities/<int:pk>/edit/', views.MunicipalityConfigurationUpdateView.as_view(), name='municipality_update'),
+    path('regions/', views.RegionalConfigurationListView.as_view(), name='regional_list'),
+    path('regions/new/', views.RegionalConfigurationCreateView.as_view(), name='regional_create'),
+    path('regions/<int:pk>/', views.RegionalConfigurationDetailView.as_view(), name='regional_detail'),
+    path('regions/<int:pk>/edit/', views.RegionalConfigurationUpdateView.as_view(), name='regional_update'),
+    path('placements/', views.case_flow_list_redirect, {'step': 'placement'}, name='placement_list'),
+    path('waittimes/', views.TrustAccountListView.as_view(), name='waittime_list'),
+    path('waittimes/<int:pk>/', views.TrustAccountDetailView.as_view(), name='waittime_detail'),
 
     # Counterparties
     path('counterparties/', views.CounterpartyListView.as_view(), name='counterparty_list'),
@@ -195,9 +224,13 @@ urlpatterns = [
 
     # Contracts
     path('', views.ContractListView.as_view(), name='contract_list'),
+    path('cases/', views.ContractListView.as_view(), name='case_list'),
     path('<int:pk>/', views.ContractDetailView.as_view(), name='contract_detail'),
+    path('cases/<int:pk>/', views.ContractDetailView.as_view(), name='case_detail'),
     path('new/', views.ContractCreateView.as_view(), name='contract_create'),
+    path('cases/new/', views.ContractCreateView.as_view(), name='case_create'),
     path('<int:pk>/edit/', views.ContractUpdateView.as_view(), name='contract_update'),
+    path('cases/<int:pk>/edit/', views.ContractUpdateView.as_view(), name='case_update'),
     path('<int:pk>/add_note/', views.AddNegotiationNoteView.as_view(), name='add_negotiation_note'),
     path('<int:pk>/ai-assistant/', views.contract_ai_assistant, name='contract_ai_assistant'),
 ]

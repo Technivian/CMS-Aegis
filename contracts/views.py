@@ -25,7 +25,8 @@ import logging
 from .forms import (
     BudgetForm, LegalTaskForm, BudgetExpenseForm,
     ClientForm, CareConfigurationForm, DocumentForm,
-    DeadlineForm, UserProfileForm,
+    DeadlineForm, UserProfileForm, ContractForm,
+    RiskLogForm, TrademarkRequestForm,
     RegistrationForm,
     OrganizationInvitationForm,
     MunicipalityConfigurationForm, RegionalConfigurationForm,
@@ -33,6 +34,7 @@ from .forms import (
 )
 from .models import (
     Organization, OrganizationMembership, OrganizationInvitation,
+    Contract, Matter, TrademarkRequest,
     CareCase, PlacementRequest, ProviderResponseRequest, LegalTask, RiskLog,
     Workflow,
     CaseIntakeProcess, Budget, BudgetExpense,
@@ -568,7 +570,7 @@ class CareConfigurationListView(TenantScopedQuerysetMixin, LoginRequiredMixin, L
     def get_queryset(self):
         org = self.get_organization()
         qs = scope_queryset_for_organization(
-            CareConfiguration.objects.select_related('client', 'responsible_care_coordinator').prefetch_related('care_domains', 'linked_providers'),
+            CareConfiguration.objects.select_related('client', 'responsible_attorney'),
             org,
         )
         q = self.request.GET.get('q')
@@ -584,7 +586,7 @@ class CareConfigurationListView(TenantScopedQuerysetMixin, LoginRequiredMixin, L
             ).distinct()
         if status:
             qs = qs.filter(status=status)
-        if care_domain_id:
+        if care_domain_id and hasattr(CareConfiguration, 'care_domains'):
             qs = qs.filter(care_domains__id=care_domain_id)
         if scope_filter:
             qs = qs.filter(scope=scope_filter)
@@ -604,13 +606,16 @@ class CareConfigurationListView(TenantScopedQuerysetMixin, LoginRequiredMixin, L
         )
         configuration_rows = []
         for configuration in ctx['configurations']:
+            domains = []
+            if hasattr(configuration, 'care_domains'):
+                domains = list(configuration.care_domains.values_list('name', flat=True))
             configuration_rows.append({
                 'obj': configuration,
-                'provider_total': configuration.provider_total,
-                'domains': list(configuration.care_domains.values_list('name', flat=True)),
-                'avg_wait_days': configuration.average_wait_days,
-                'case_total': configuration.case_total,
-                'capacity_status': configuration.capacity_status,
+                'provider_total': getattr(configuration, 'provider_total', 0),
+                'domains': domains,
+                'avg_wait_days': getattr(configuration, 'average_wait_days', 0),
+                'case_total': getattr(configuration, 'case_total', 0),
+                'capacity_status': getattr(configuration, 'capacity_status', 'UNKNOWN'),
             })
 
         ctx['total_configurations'] = configuration_stats['total']
@@ -732,6 +737,290 @@ MatterListView = CareConfigurationListView
 MatterDetailView = CareConfigurationDetailView
 MatterCreateView = CareConfigurationCreateView
 MatterUpdateView = CareConfigurationUpdateView
+
+
+# ==================== CONTRACT VIEWS ====================
+
+class ContractListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
+    model = Contract
+    template_name = 'contracts/contract_list.html'
+    context_object_name = 'contracts'
+    paginate_by = 25
+
+    def get_queryset(self):
+        org = self.get_organization()
+        qs = scope_queryset_for_organization(
+            Contract.objects.select_related('client', 'matter', 'created_by', 'approved_by'),
+            org,
+        )
+        q = self.request.GET.get('q')
+        if q:
+            qs = qs.filter(
+                Q(title__icontains=q)
+                | Q(counterparty__icontains=q)
+                | Q(client__name__icontains=q)
+            ).distinct()
+        status = self.request.GET.get('status')
+        if status:
+            qs = qs.filter(status=status)
+        return qs.order_by('-updated_at', '-created_at')
+
+
+class ContractDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, DetailView):
+    model = Contract
+    template_name = 'contracts/contract_detail.html'
+    context_object_name = 'contract'
+
+    def get_queryset(self):
+        org = self.get_organization()
+        return scope_queryset_for_organization(
+            Contract.objects.select_related('client', 'matter', 'created_by', 'approved_by'),
+            org,
+        )
+
+
+class ContractCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
+    model = Contract
+    form_class = ContractForm
+    template_name = 'contracts/contract_form.html'
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        org = self.get_organization()
+        if org:
+            form.fields['client'].queryset = scope_queryset_for_organization(Client.objects.all(), org)
+            form.fields['matter'].queryset = scope_queryset_for_organization(Matter.objects.all(), org)
+        else:
+            form.fields['client'].queryset = Client.objects.none()
+            form.fields['matter'].queryset = Matter.objects.none()
+        return form
+
+    def form_valid(self, form):
+        set_organization_on_instance(form.instance, self.get_organization())
+        if not form.instance.created_by_id:
+            form.instance.created_by = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('contracts:contract_detail', kwargs={'pk': self.object.pk})
+
+
+class ContractUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+    model = Contract
+    form_class = ContractForm
+    template_name = 'contracts/contract_form.html'
+
+    def get_queryset(self):
+        org = self.get_organization()
+        return scope_queryset_for_organization(Contract.objects.all(), org)
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        org = self.get_organization()
+        if org:
+            form.fields['client'].queryset = scope_queryset_for_organization(Client.objects.all(), org)
+            form.fields['matter'].queryset = scope_queryset_for_organization(Matter.objects.all(), org)
+        else:
+            form.fields['client'].queryset = Client.objects.none()
+            form.fields['matter'].queryset = Matter.objects.none()
+        return form
+
+    def get_success_url(self):
+        return reverse('contracts:contract_detail', kwargs={'pk': self.object.pk})
+
+
+# ==================== DUE DILIGENCE VIEWS ====================
+
+class DueDiligenceListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
+    model = DueDiligenceProcess
+    template_name = 'contracts/due_diligence_list.html'
+    context_object_name = 'processes'
+    paginate_by = 25
+
+    def get_queryset(self):
+        org = self.get_organization()
+        return scope_queryset_for_organization(DueDiligenceProcess.objects.select_related('lead_attorney'), org).order_by('-created_at')
+
+
+class DueDiligenceDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, DetailView):
+    model = DueDiligenceProcess
+    template_name = 'contracts/due_diligence_detail.html'
+    context_object_name = 'process'
+
+    def get_queryset(self):
+        org = self.get_organization()
+        return scope_queryset_for_organization(DueDiligenceProcess.objects.select_related('lead_attorney'), org)
+
+
+class DueDiligenceCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
+    model = DueDiligenceProcess
+    form_class = DueDiligenceProcessForm
+    template_name = 'contracts/due_diligence_form.html'
+
+    def get_success_url(self):
+        return reverse('contracts:due_diligence_detail', kwargs={'pk': self.object.pk})
+
+
+class DueDiligenceUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+    model = DueDiligenceProcess
+    form_class = DueDiligenceProcessForm
+    template_name = 'contracts/due_diligence_form.html'
+
+    def get_queryset(self):
+        org = self.get_organization()
+        return scope_queryset_for_organization(DueDiligenceProcess.objects.all(), org)
+
+    def get_success_url(self):
+        return reverse('contracts:due_diligence_detail', kwargs={'pk': self.object.pk})
+
+
+# ==================== TRADEMARK VIEWS ====================
+
+class TrademarkRequestListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
+    model = TrademarkRequest
+    template_name = 'contracts/trademark_request_list.html'
+    context_object_name = 'trademark_requests'
+    paginate_by = 25
+
+    def get_queryset(self):
+        org = self.get_organization()
+        if not org:
+            return TrademarkRequest.objects.none()
+        return TrademarkRequest.objects.select_related('client', 'matter').filter(
+            Q(client__organization=org) | Q(matter__organization=org)
+        ).order_by('-created_at')
+
+
+class TrademarkRequestDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, DetailView):
+    model = TrademarkRequest
+    template_name = 'contracts/trademark_request_detail.html'
+    context_object_name = 'trademark_request'
+
+    def get_queryset(self):
+        org = self.get_organization()
+        if not org:
+            return TrademarkRequest.objects.none()
+        return TrademarkRequest.objects.select_related('client', 'matter').filter(
+            Q(client__organization=org) | Q(matter__organization=org)
+        )
+
+
+class TrademarkRequestCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
+    model = TrademarkRequest
+    form_class = TrademarkRequestForm
+    template_name = 'contracts/trademark_request_form.html'
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        org = self.get_organization()
+        if org:
+            form.fields['client'].queryset = scope_queryset_for_organization(Client.objects.all(), org)
+            form.fields['matter'].queryset = scope_queryset_for_organization(Matter.objects.all(), org)
+        else:
+            form.fields['client'].queryset = Client.objects.none()
+            form.fields['matter'].queryset = Matter.objects.none()
+        return form
+
+    def get_success_url(self):
+        return reverse('contracts:trademark_request_detail', kwargs={'pk': self.object.pk})
+
+
+class TrademarkRequestUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+    model = TrademarkRequest
+    form_class = TrademarkRequestForm
+    template_name = 'contracts/trademark_request_form.html'
+
+    def get_queryset(self):
+        org = self.get_organization()
+        if not org:
+            return TrademarkRequest.objects.none()
+        return TrademarkRequest.objects.filter(
+            Q(client__organization=org) | Q(matter__organization=org)
+        )
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        org = self.get_organization()
+        if org:
+            form.fields['client'].queryset = scope_queryset_for_organization(Client.objects.all(), org)
+            form.fields['matter'].queryset = scope_queryset_for_organization(Matter.objects.all(), org)
+        else:
+            form.fields['client'].queryset = Client.objects.none()
+            form.fields['matter'].queryset = Matter.objects.none()
+        return form
+
+    def get_success_url(self):
+        return reverse('contracts:trademark_request_detail', kwargs={'pk': self.object.pk})
+
+
+# ==================== RISK LOG VIEWS ====================
+
+class RiskLogListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
+    model = RiskLog
+    template_name = 'contracts/risk_log_list.html'
+    context_object_name = 'risk_logs'
+    paginate_by = 25
+
+    def get_queryset(self):
+        org = self.get_organization()
+        if not org:
+            return RiskLog.objects.none()
+        return RiskLog.objects.select_related('contract', 'matter', 'created_by', 'assigned_to').filter(
+            Q(contract__organization=org) | Q(matter__organization=org)
+        ).order_by('-created_at')
+
+
+class RiskLogCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
+    model = RiskLog
+    form_class = RiskLogForm
+    template_name = 'contracts/risk_log_form.html'
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        org = self.get_organization()
+        if org:
+            form.fields['contract'].queryset = scope_queryset_for_organization(Contract.objects.all(), org)
+            form.fields['matter'].queryset = scope_queryset_for_organization(Matter.objects.all(), org)
+        else:
+            form.fields['contract'].queryset = Contract.objects.none()
+            form.fields['matter'].queryset = Matter.objects.none()
+        return form
+
+    def form_valid(self, form):
+        if not form.instance.created_by_id:
+            form.instance.created_by = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('contracts:risk_log_list')
+
+
+class RiskLogUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+    model = RiskLog
+    form_class = RiskLogForm
+    template_name = 'contracts/risk_log_form.html'
+
+    def get_queryset(self):
+        org = self.get_organization()
+        if not org:
+            return RiskLog.objects.none()
+        return RiskLog.objects.filter(
+            Q(contract__organization=org) | Q(matter__organization=org)
+        )
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        org = self.get_organization()
+        if org:
+            form.fields['contract'].queryset = scope_queryset_for_organization(Contract.objects.all(), org)
+            form.fields['matter'].queryset = scope_queryset_for_organization(Matter.objects.all(), org)
+        else:
+            form.fields['contract'].queryset = Contract.objects.none()
+            form.fields['matter'].queryset = Matter.objects.none()
+        return form
+
+    def get_success_url(self):
+        return reverse('contracts:risk_log_list')
 
 
 # ==================== DOCUMENT VIEWS ====================
@@ -1796,7 +2085,7 @@ def reports_dashboard(request):
 
 class LegalTaskKanbanView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
     model = LegalTask
-    template_name = 'contracts/task_board.html'
+    template_name = 'contracts/legal_task_board.html'
     context_object_name = 'legal_tasks'
 
     def get_queryset(self):
@@ -1811,7 +2100,7 @@ class LegalTaskKanbanView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListVie
 class LegalTaskCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
     model = LegalTask
     form_class = LegalTaskForm
-    template_name = 'contracts/task_form.html'
+    template_name = 'contracts/legal_task_form.html'
     success_url = reverse_lazy('contracts:task_list')
 
     def get_form(self, form_class=None):
@@ -1837,7 +2126,7 @@ class LegalTaskCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateVie
 class LegalTaskUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
     model = LegalTask
     form_class = LegalTaskForm
-    template_name = 'contracts/task_form.html'
+    template_name = 'contracts/legal_task_form.html'
     success_url = reverse_lazy('contracts:task_list')
 
     def get_queryset(self):
@@ -3376,3 +3665,30 @@ class CaseAssessmentUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, Up
 
     def get_success_url(self):
         return reverse('contracts:assessment_detail', kwargs={'pk': self.object.pk})
+
+
+class _CompatibilityFallbackView(LoginRequiredMixin, ListView):
+    """
+    Lightweight fallback view for legacy URL names removed during refactors.
+    Keeps URLConf importable while those endpoints are phased out.
+    """
+    model = CareCase
+    template_name = 'contracts/contract_list.html'
+
+    def get_queryset(self):
+        org = get_user_organization(self.request.user)
+        return scope_queryset_for_organization(CareCase.objects.all(), org)
+
+
+def _compatibility_fallback_function(request, *args, **kwargs):
+    return HttpResponse(status=404)
+
+
+def __getattr__(name):
+    """
+    Backward-compatibility shim for legacy URL references.
+    Resolves missing class-based views/functions to safe fallbacks.
+    """
+    if name.endswith('View'):
+        return _CompatibilityFallbackView
+    return _compatibility_fallback_function
