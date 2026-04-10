@@ -693,3 +693,10 @@ class ApprovalRequestForm(forms.ModelForm):
             'comments': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 4}),
             'due_date': forms.DateTimeInput(attrs={'class': TAILWIND_INPUT, 'type': 'datetime-local'}),
         }
+
+
+# Temporary compatibility aliases for legacy care-oriented views.
+CareConfigurationForm = MatterForm
+MunicipalityConfigurationForm = MatterForm
+RegionalConfigurationForm = MatterForm
+CaseAssessmentForm = DueDiligenceProcessForm
