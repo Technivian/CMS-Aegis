@@ -1531,3 +1531,37 @@ RegionalConfiguration = Matter
 
 DueDiligenceProcess.AssessmentStatus = _CaseAssessmentStatus
 CaseAssessment = DueDiligenceProcess
+
+
+class _CareCaseShim:
+    class CasePhase(models.TextChoices):
+        INTAKE = 'INTAKE', 'Intake'
+        BEOORDELING = 'BEOORDELING', 'Beoordeling'
+        MATCHING = 'MATCHING', 'Matching'
+        PLAATSING = 'PLAATSING', 'Plaatsing'
+        ACTIEF = 'ACTIEF', 'Actief'
+        AFGEROND = 'AFGEROND', 'Afgerond'
+
+    class Status(models.TextChoices):
+        OPEN = 'OPEN', 'Open'
+        CLOSED = 'CLOSED', 'Closed'
+
+    objects = DueDiligenceProcess.objects
+
+
+class _CaseIntakeProcessShim:
+    class ProcessStatus(models.TextChoices):
+        INTAKE = 'INTAKE', 'Intake'
+        ASSESSMENT = 'ASSESSMENT', 'Assessment'
+        MATCHING = 'MATCHING', 'Matching'
+        DECISION = 'DECISION', 'Decision'
+        COMPLETED = 'COMPLETED', 'Completed'
+
+    objects = DueDiligenceProcess.objects
+
+
+CareCase = _CareCaseShim
+CaseIntakeProcess = _CaseIntakeProcessShim
+PlacementRequest = DueDiligenceProcess
+ProviderResponseRequest = DueDiligenceProcess
+ProviderProfile = Client
