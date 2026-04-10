@@ -1,7 +1,7 @@
 {% extends 'base_fullscreen.html' %}
 {% load static %}
 
-{% block title %}CMS Aegis - Legal Practice Management{% endblock %}
+{% block title %}CareOn - Zorgregieplatform{% endblock %}
 
 {% block body %}
 <style>
@@ -69,7 +69,7 @@
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: #2563EB; box-shadow: 0 2px 8px rgba(37,99,235,0.4);">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                     </div>
-                    <span class="brand-text text-lg font-extrabold tracking-tight">CMS Aegis</span>
+                    <span class="brand-text text-lg font-extrabold tracking-tight">CareOn</span>
                 </a>
                 <div class="hidden md:flex items-center gap-7">
                     <a href="#features" class="landing-link text-[13px] font-medium">Features</a>
@@ -94,22 +94,22 @@
         <div class="max-w-3xl mx-auto text-center">
             <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold tracking-widest uppercase mb-8" style="background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.15); color: #60A5FA;">
                 <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 6px rgba(34,197,94,0.6);"></span>
-                Enterprise-Grade Legal Platform
+                Zorgregieplatform
             </div>
             <h1 class="landing-title text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] mb-6">
-                The command center for
+                Het regiecentrum voor
                 <span class="block" style="background: linear-gradient(135deg, #2563EB, #60A5FA); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">modern law firms</span>
             </h1>
             <p class="landing-muted text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed">
-                Manage clients, matters, contracts, billing, trust accounts, and compliance from one unified platform.
+                Beheer casussen, beoordelingen, matching, plaatsingen en regie-inzichten vanuit een centraal CareOn-platform.
             </p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a href="{% url 'register' %}" class="glow-btn w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 text-white rounded-xl font-semibold text-[15px] transition-all duration-200" style="background: #2563EB; box-shadow: 0 8px 32px rgba(37,99,235,0.4), 0 2px 4px rgba(0,0,0,0.2);">
-                    Start Free Trial
+                    Start met CareOn
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                 </a>
                 <a href="{% url 'login' %}" class="landing-outline-btn w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 rounded-xl font-semibold text-[15px]">
-                    Sign in to your account
+                    Inloggen in je account
                 </a>
             </div>
         </div>
@@ -118,30 +118,30 @@
     <section class="section-fade py-20 px-5 sm:px-8" id="features">
         <div class="max-w-5xl mx-auto">
             <div class="text-center mb-12">
-                <p class="text-xs font-bold tracking-widest uppercase mb-3" style="color: #2563EB;">Core Capabilities</p>
-                <h2 class="landing-title text-2xl sm:text-3xl font-extrabold tracking-tight">Built for legal professionals</h2>
+                <p class="text-xs font-bold tracking-widest uppercase mb-3" style="color: #2563EB;">Kernfunctionaliteit</p>
+                <h2 class="landing-title text-2xl sm:text-3xl font-extrabold tracking-tight">Gebouwd voor zorgregie</h2>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div class="card-premium landing-surface rounded-2xl p-7">
                     <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-5" style="background: rgba(37,99,235,0.1); border: 1px solid rgba(37,99,235,0.15);">
                         <svg class="w-5 h-5" style="color: #2563EB;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
-                    <h3 class="landing-title text-[15px] font-bold mb-2">Client & Matter Management</h3>
-                    <p class="landing-muted-strong text-sm leading-relaxed">Track clients, manage matters across practice areas, and maintain complete relationship histories.</p>
+                    <h3 class="landing-title text-[15px] font-bold mb-2">Aanbieders en casussen</h3>
+                    <p class="landing-muted-strong text-sm leading-relaxed">Houd zorgaanbieders, gemeenten en casussen centraal beheersbaar met een volledig regieoverzicht.</p>
                 </div>
                 <div class="card-premium landing-surface rounded-2xl p-7">
                     <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-5" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.15);">
                         <svg class="w-5 h-5" style="color: #F59E0B;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <h3 class="landing-title text-[15px] font-bold mb-2">Time Tracking & Billing</h3>
-                    <p class="landing-muted-strong text-sm leading-relaxed">Capture billable hours, generate invoices, and manage IOLTA trust accounts with full audit trails.</p>
+                    <h3 class="landing-title text-[15px] font-bold mb-2">Matching en plaatsing</h3>
+                    <p class="landing-muted-strong text-sm leading-relaxed">Ondersteun intake, beoordeling, matching en plaatsing in een doorlopende zorgketenflow.</p>
                 </div>
                 <div class="card-premium landing-surface rounded-2xl p-7">
                     <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-5" style="background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.15);">
                         <svg class="w-5 h-5" style="color: #22C55E;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                     </div>
-                    <h3 class="landing-title text-[15px] font-bold mb-2">Risk & Compliance</h3>
-                    <p class="landing-muted-strong text-sm leading-relaxed">Conflict-of-interest checks, deadline tracking, compliance checklists, and due diligence workflows.</p>
+                    <h3 class="landing-title text-[15px] font-bold mb-2">Sturing en signalen</h3>
+                    <p class="landing-muted-strong text-sm leading-relaxed">Bewaak deadlines, capaciteit, signalen en audittrail voor tijdige bijsturing.</p>
                 </div>
             </div>
         </div>
@@ -151,65 +151,65 @@
         <div class="max-w-5xl mx-auto">
             <div class="text-center mb-12">
                 <p class="text-xs font-bold tracking-widest uppercase mb-3" style="color: #22C55E;">Complete Suite</p>
-                <h2 class="landing-title text-2xl sm:text-3xl font-extrabold tracking-tight mb-3">Everything your firm needs</h2>
-                <p class="landing-muted-strong text-sm max-w-md mx-auto">Eight integrated modules covering every aspect of legal practice management.</p>
+                <h2 class="landing-title text-2xl sm:text-3xl font-extrabold tracking-tight mb-3">Alles voor de CareOn-regieflow</h2>
+                <p class="landing-muted-strong text-sm max-w-md mx-auto">Geintegreerde modules voor intake, beoordeling, matching, plaatsing en regie.</p>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
                         <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     </div>
-                    <p class="landing-title text-[13px] font-bold">Contracts</p>
-                    <p class="landing-muted-soft text-[11px] mt-0.5">Full lifecycle</p>
+                    <p class="landing-title text-[13px] font-bold">Casussen</p>
+                    <p class="landing-muted-soft text-[11px] mt-0.5">Volledig overzicht</p>
                 </div>
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
                         <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                     </div>
-                    <p class="landing-title text-[13px] font-bold">Documents</p>
-                    <p class="landing-muted-soft text-[11px] mt-0.5">Version control</p>
+                    <p class="landing-title text-[13px] font-bold">Documenten</p>
+                    <p class="landing-muted-soft text-[11px] mt-0.5">Dossier en context</p>
                 </div>
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
                         <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                     </div>
-                    <p class="landing-title text-[13px] font-bold">Trust Accounts</p>
-                    <p class="landing-muted-soft text-[11px] mt-0.5">IOLTA ready</p>
+                    <p class="landing-title text-[13px] font-bold">Matching</p>
+                    <p class="landing-muted-soft text-[11px] mt-0.5">Passende aanbieder</p>
                 </div>
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
                         <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
-                    <p class="landing-title text-[13px] font-bold">Deadlines</p>
-                    <p class="landing-muted-soft text-[11px] mt-0.5">Never miss one</p>
+                    <p class="landing-title text-[13px] font-bold">Taken</p>
+                    <p class="landing-muted-soft text-[11px] mt-0.5">Tijdige opvolging</p>
                 </div>
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
                         <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
                     </div>
-                    <p class="landing-title text-[13px] font-bold">Invoicing</p>
-                    <p class="landing-muted-soft text-[11px] mt-0.5">Professional bills</p>
+                    <p class="landing-title text-[13px] font-bold">Beoordelingen</p>
+                    <p class="landing-muted-soft text-[11px] mt-0.5">Onderbouwde keuzes</p>
                 </div>
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
                         <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
-                    <p class="landing-title text-[13px] font-bold">Workflows</p>
-                    <p class="landing-muted-soft text-[11px] mt-0.5">Automated</p>
+                    <p class="landing-title text-[13px] font-bold">Plaatsingen</p>
+                    <p class="landing-muted-soft text-[11px] mt-0.5">Doorlopende flow</p>
                 </div>
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
                         <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     </div>
-                    <p class="landing-title text-[13px] font-bold">Analytics</p>
-                    <p class="landing-muted-soft text-[11px] mt-0.5">Real-time data</p>
+                    <p class="landing-title text-[13px] font-bold">Rapportages</p>
+                    <p class="landing-muted-soft text-[11px] mt-0.5">Realtime inzicht</p>
                 </div>
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
                         <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                     </div>
-                    <p class="landing-title text-[13px] font-bold">Audit Trail</p>
-                    <p class="landing-muted-soft text-[11px] mt-0.5">Full history</p>
+                    <p class="landing-title text-[13px] font-bold">Audittrail</p>
+                    <p class="landing-muted-soft text-[11px] mt-0.5">Volledige historie</p>
                 </div>
             </div>
         </div>
@@ -224,20 +224,20 @@
                     <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6" style="background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.2);">
                         <svg class="w-7 h-7" style="color: #2563EB;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                     </div>
-                    <h2 class="landing-title text-2xl sm:text-3xl font-extrabold mb-3">Built with security first</h2>
-                    <p class="landing-muted max-w-lg mx-auto mb-10 text-sm sm:text-base leading-relaxed">Role-based access controls, comprehensive audit logging, and conflict-of-interest screening protect your practice.</p>
+                    <h2 class="landing-title text-2xl sm:text-3xl font-extrabold mb-3">Veiligheid en regie ingebouwd</h2>
+                    <p class="landing-muted max-w-lg mx-auto mb-10 text-sm sm:text-base leading-relaxed">Rolgebaseerde toegang, auditlogging en organisatiegrenzen beschermen het CareOn-regieproces.</p>
                     <div class="grid grid-cols-3 gap-4 max-w-lg mx-auto">
                         <div class="stat-glow landing-panel rounded-xl p-5">
                             <p class="text-xl sm:text-2xl font-extrabold" style="color: #2563EB;">RBAC</p>
-                            <p class="landing-muted-strong text-[11px] mt-1.5 font-medium">Role-based access</p>
+                            <p class="landing-muted-strong text-[11px] mt-1.5 font-medium">Rolgebaseerde toegang</p>
                         </div>
                         <div class="stat-glow landing-panel rounded-xl p-5">
                             <p class="text-xl sm:text-2xl font-extrabold" style="color: #22C55E;">100%</p>
-                            <p class="landing-muted-strong text-[11px] mt-1.5 font-medium">Audit coverage</p>
+                            <p class="landing-muted-strong text-[11px] mt-1.5 font-medium">Auditdekking</p>
                         </div>
                         <div class="stat-glow landing-panel rounded-xl p-5">
-                            <p class="text-xl sm:text-2xl font-extrabold" style="color: #2563EB;">IOLTA</p>
-                            <p class="landing-muted-strong text-[11px] mt-1.5 font-medium">Trust compliant</p>
+                            <p class="text-xl sm:text-2xl font-extrabold" style="color: #2563EB;">24/7</p>
+                            <p class="landing-muted-strong text-[11px] mt-1.5 font-medium">Regie-inzicht</p>
                         </div>
                     </div>
                 </div>
@@ -248,14 +248,14 @@
     <section class="py-20 px-5 sm:px-8 relative" style="background: linear-gradient(180deg, var(--landing-section-end) 0%, var(--bg) 100%);">
         <div style="position: absolute; top: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, #1F2937, transparent);"></div>
         <div class="max-w-2xl mx-auto text-center">
-            <h2 class="landing-title text-2xl sm:text-3xl font-extrabold tracking-tight mb-3">Ready to modernize your practice?</h2>
-            <p class="landing-muted-strong text-base mb-10">Join forward-thinking firms that trust CMS Aegis.</p>
+            <h2 class="landing-title text-2xl sm:text-3xl font-extrabold tracking-tight mb-3">Klaar om je zorgregie te versterken?</h2>
+            <p class="landing-muted-strong text-base mb-10">Werk vanuit een centrale CareOn-omgeving voor intake, matching en plaatsing.</p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a href="{% url 'register' %}" class="glow-btn w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 text-white rounded-xl font-semibold text-[15px] transition-all duration-200" style="background: #2563EB; box-shadow: 0 8px 32px rgba(37,99,235,0.4), 0 2px 4px rgba(0,0,0,0.2);">
-                    Get Started Free
+                    Start direct
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                 </a>
-                <a href="{% url 'login' %}" class="landing-link text-sm font-medium px-4 py-3">Already have an account? <span style="color: #2563EB;">Sign in</span></a>
+                <a href="{% url 'login' %}" class="landing-link text-sm font-medium px-4 py-3">Heb je al een account? <span style="color: #2563EB;">Log in</span></a>
             </div>
         </div>
     </section>
@@ -267,9 +267,9 @@
                 <div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: #2563EB;">
                     <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 </div>
-                <span class="landing-muted-soft text-xs font-bold">CMS Aegis</span>
+                <span class="landing-muted-soft text-xs font-bold">CareOn</span>
             </div>
-            <p class="landing-muted-soft text-[11px]">&copy; 2026 CMS Aegis. All rights reserved.</p>
+            <p class="landing-muted-soft text-[11px]">&copy; 2026 CareOn. Alle rechten voorbehouden.</p>
         </div>
     </footer>
 </div>

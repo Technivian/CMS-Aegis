@@ -80,10 +80,6 @@ urlpatterns = [
     path('wachttijden/<int:pk>/', views.DeadlineUpdateView.as_view(), name='waittime_detail'),
     path('wachttijden/<int:pk>/edit/', views.DeadlineUpdateView.as_view(), name='waittime_update'),
 
-    path('trust-accounts/', views.DeadlineListView.as_view(), name='trust_account_list'),
-    path('trust-accounts/new/', views.DeadlineCreateView.as_view(), name='trust_account_create'),
-    path('trust-accounts/<int:pk>/', views.DeadlineUpdateView.as_view(), name='trust_account_detail'),
-
     path('intakes/', views.case_flow_list_redirect, {'step': 'intake'}, name='intake_list'),
     path('intakes/new/', views.case_flow_create_redirect, {'step': 'intake'}, name='intake_create'),
     path('intakes/<int:pk>/', views.case_flow_detail_redirect, name='intake_detail'),
