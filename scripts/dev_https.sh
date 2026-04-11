@@ -61,10 +61,28 @@ ensure_mkcert_certs() {
   # Install mkcert root CA into macOS keychain + Chrome NSS store (idempotent)
   mkcert -install
 
-  # Regenerate leaf cert if missing or older than 800 days
-  if [[ ! -f "$LEAF_CERT" || ! -f "$LEAF_KEY" ]] || \
-     ! openssl x509 -checkend $((800 * 86400)) -noout -in "$LEAF_CERT" >/dev/null 2>&1; then
-    CAROOT="$(mkcert -CAROOT)"
+  local mkcert_caroot
+  mkcert_caroot="$(mkcert -CAROOT)"
+
+  # Determine whether existing cert is valid: must exist, be issued by the
+  # local mkcert CA, and not expire within 800 days. Any other cert (e.g. from
+  # the old manual OpenSSL CA) is discarded and regenerated.
+  local need_regen=1
+  if [[ -f "$LEAF_CERT" && -f "$LEAF_KEY" ]]; then
+    local leaf_issuer ca_subject
+    leaf_issuer="$(openssl x509 -in "$LEAF_CERT" -noout -issuer 2>/dev/null || true)"
+    ca_subject="$(openssl x509 -in "$mkcert_caroot/rootCA.pem" -noout -subject 2>/dev/null || true)"
+    # Strip "issuer=" / "subject=" prefixes for comparison
+    leaf_issuer="${leaf_issuer#issuer= }"
+    ca_subject="${ca_subject#subject= }"
+    if [[ "$leaf_issuer" == "$ca_subject" ]] && \
+       openssl x509 -checkend $((800 * 86400)) -noout -in "$LEAF_CERT" >/dev/null 2>&1; then
+      need_regen=0
+    fi
+  fi
+
+  if [[ $need_regen -eq 1 ]]; then
+    rm -f "$LEAF_CERT" "$LEAF_KEY"
     mkcert \
       -key-file  "$LEAF_KEY" \
       -cert-file "$LEAF_CERT" \
