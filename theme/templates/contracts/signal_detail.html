@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}{{ signal }} - Signalen - Zorgregie{% endblock %}
+{% block content %}
+
+<div class="mb-6">
+    <nav style="font-size: 13px; color: var(--text-secondary);">
+        <a href="{% url 'dashboard' %}" style="color: var(--primary); text-decoration: none;">Dashboard</a>
+        <span> / </span>
+        <a href="{% url 'careon:signal_list' %}" style="color: var(--primary); text-decoration: none;">Signalen</a>
+        <span> / </span>
+        <span style="color: var(--text-muted);">{% if signal.title %}{{ signal.title }}{% else %}{{ signal.get_signal_type_display }}{% endif %}</span>
+    </nav>
+</div>
+
+<div class="flex items-start justify-between mb-6">
+    <div>
+        <h1 class="page-title">{% if signal.title %}{{ signal.title }}{% else %}{{ signal.get_signal_type_display }}{% endif %}</h1>
+        <p class="page-subtitle">
+            <span class="badge-sm
+                {% if signal.risk_level == 'CRITICAL' %}badge-red
+                {% elif signal.risk_level == 'HIGH' %}badge-amber
+                {% elif signal.risk_level == 'MEDIUM' %}badge-yellow
+                {% else %}badge-gray{% endif %} mr-2">
+                {{ signal.get_risk_level_display }}
+            </span>
+            <span class="badge-sm
+                {% if signal.status == 'OPEN' %}badge-red
+                {% elif signal.status == 'IN_PROGRESS' %}badge-blue
+                {% else %}badge-green{% endif %}">
+                {{ signal.get_status_display }}
+            </span>
+        </p>
+    </div>
+    <div class="flex gap-2">
+        <a href="{% url 'careon:signal_update' signal.pk %}" class="action-chip">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m7.5-2l-2.5 2.5"/></svg>
+            Bewerken
+        </a>
+        <a href="{% url 'careon:signal_list' %}" class="action-chip">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            Terug
+        </a>
+    </div>
+</div>
+
+<div class="dash-grid dash-grid-2 mb-6">
+    <div class="panel">
+        <div class="panel-head">
+            <div class="panel-head-inner"><div class="dot dot-red"></div><span class="panel-title">Signaalbeschrijving</span></div>
+        </div>
+        <div class="panel-inner space-y-4">
+            <div>
+                <div class="metric-label">Type signaal</div>
+                <div class="text-sm text-gray-900">{{ signal.get_signal_type_display }}</div>
+            </div>
+            <div>
+                <div class="metric-label">Beschrijving</div>
+                <div class="text-sm text-gray-700">{{ signal.description }}</div>
+            </div>
+            {% if signal.follow_up %}
+            <div>
+                <div class="metric-label">Vervolgactie</div>
+                <div class="text-sm text-gray-700">{{ signal.follow_up }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-head">
+            <div class="panel-head-inner"><div class="dot dot-blue"></div><span class="panel-title">Gekoppelde casus</span></div>
+        </div>
+        <div class="panel-inner space-y-4">
+            {% if signal.intake %}
+            <div>
+                <div class="metric-label">Casus</div>
+                <div>
+                    <a href="{% url 'careon:case_detail' signal.intake.pk %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        {{ signal.intake.title }}
+                    </a>
+                    <p class="text-xs text-gray-500 mt-1">{{ signal.intake.get_status_display }} &middot; {{ signal.intake.get_urgency_display }}</p>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500">Niet gekoppeld aan een casus.</p>
+            {% endif %}
+            <div>
+                <div class="metric-label">Verantwoordelijke</div>
+                <div class="text-sm text-gray-900">{{ signal.assigned_to.get_full_name|default:"—" }}</div>
+            </div>
+            <div>
+                <div class="metric-label">Aangemaakt door</div>
+                <div class="text-sm text-gray-900">{{ signal.created_by.get_full_name|default:"—" }}</div>
+            </div>
+            <div>
+                <div class="metric-label">Aangemaakt</div>
+                <div class="text-sm text-gray-900">{{ signal.created_at|date:"d-m-Y H:i" }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

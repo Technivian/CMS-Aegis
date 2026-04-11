@@ -30,6 +30,7 @@ from .forms import (
     OrganizationInvitationForm,
     MunicipalityConfigurationForm, RegionalConfigurationForm,
     CaseAssessmentForm, CaseIntakeProcessForm,
+    TrustAccountForm, CareSignalForm, PlacementRequestForm,
 )
 from .models import (
     Organization, OrganizationMembership, OrganizationInvitation,
@@ -2244,11 +2245,13 @@ def matching_dashboard(request):
             )
 
         suggestions.sort(key=lambda row: row['match_score'], reverse=True)
+        _assignment = assigned_by_intake.get(intake.id)
         rows.append(
             {
                 'assessment': assessment,
                 'intake': intake,
-                'assigned_provider': assigned_by_intake.get(intake.id).selected_provider if intake.id in assigned_by_intake else None,
+                'assigned_provider': _assignment.selected_provider if _assignment else None,
+                'placement_pk': _assignment.pk if _assignment else None,
                 'suggestions': suggestions[:5],
             }
         )
@@ -3205,3 +3208,303 @@ class CaseAssessmentUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, Up
 
     def get_success_url(self):
         return reverse('careon:assessment_detail', kwargs={'pk': self.object.pk})
+
+
+# ==================== WAIT TIME VIEWS (Wachttijden) ====================
+# TrustAccount is the underlying model — not surfaced in any user-facing label.
+
+class WaitTimeListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
+    """List wait time records per provider (Wachttijden)."""
+    model = TrustAccount
+    template_name = 'contracts/waittime_list.html'
+    context_object_name = 'waittimes'
+    paginate_by = 25
+
+    def get_queryset(self):
+        org = self.get_organization()
+        qs = TrustAccount.objects.filter(provider__organization=org).select_related('provider').order_by('provider__name', 'region')
+        q = self.request.GET.get('q')
+        if q:
+            qs = qs.filter(
+                Q(provider__name__icontains=q) | Q(region__icontains=q) | Q(care_type__icontains=q)
+            )
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        org = self.get_organization()
+        qs = TrustAccount.objects.filter(provider__organization=org)
+        ctx.update({
+            'total_count': qs.count(),
+            'no_capacity_count': qs.filter(open_slots__lte=0).count(),
+            'avg_wait_days': round(qs.aggregate(avg=Avg('wait_days'))['avg'] or 0),
+            'search_query': self.request.GET.get('q', ''),
+        })
+        return ctx
+
+
+class WaitTimeDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, DetailView):
+    """Detail view for a single wait time record."""
+    model = TrustAccount
+    template_name = 'contracts/waittime_detail.html'
+    context_object_name = 'waittime'
+
+    def get_queryset(self):
+        org = self.get_organization()
+        return TrustAccount.objects.filter(provider__organization=org).select_related('provider')
+
+
+class WaitTimeCreateView(TenantScopedQuerysetMixin, LoginRequiredMixin, CreateView):
+    """Create a new wait time record."""
+    model = TrustAccount
+    form_class = TrustAccountForm
+    template_name = 'contracts/waittime_form.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['is_edit'] = False
+        ctx['page_title'] = 'Wachttijd registreren'
+        return ctx
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Wachttijd geregistreerd.')
+        return response
+
+    def get_success_url(self):
+        return reverse('careon:waittime_detail', kwargs={'pk': self.object.pk})
+
+
+class WaitTimeUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+    """Update a wait time record."""
+    model = TrustAccount
+    form_class = TrustAccountForm
+    template_name = 'contracts/waittime_form.html'
+
+    def get_queryset(self):
+        org = self.get_organization()
+        return TrustAccount.objects.filter(provider__organization=org)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['is_edit'] = True
+        ctx['page_title'] = 'Wachttijd bijwerken'
+        return ctx
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Wachttijd bijgewerkt.')
+        return response
+
+    def get_success_url(self):
+        return reverse('careon:waittime_detail', kwargs={'pk': self.object.pk})
+
+
+# ==================== CARE SIGNAL VIEWS (Signalen) ====================
+
+class CareSignalListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
+    """List care signals (signalen) for the organisation."""
+    model = CareSignal
+    template_name = 'contracts/signal_list.html'
+    context_object_name = 'signals'
+    paginate_by = 25
+
+    def get_queryset(self):
+        org = self.get_organization()
+        qs = CareSignal.objects.for_organization(org).select_related(
+            'due_diligence_process', 'assigned_to', 'case_record'
+        ).order_by('-created_at')
+
+        q = self.request.GET.get('q')
+        if q:
+            qs = qs.filter(
+                Q(title__icontains=q)
+                | Q(due_diligence_process__title__icontains=q)
+                | Q(description__icontains=q)
+            ).distinct()
+
+        status = self.request.GET.get('status')
+        if status:
+            qs = qs.filter(status=status)
+
+        risk_level = self.request.GET.get('risk_level')
+        if risk_level:
+            qs = qs.filter(risk_level=risk_level)
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        org = self.get_organization()
+        all_qs = CareSignal.objects.for_organization(org)
+        ctx.update({
+            'total_count': all_qs.count(),
+            'open_count': all_qs.filter(status=CareSignal.SignalStatus.OPEN).count(),
+            'critical_count': all_qs.filter(
+                risk_level=CareSignal.RiskLevel.CRITICAL,
+                status__in=[CareSignal.SignalStatus.OPEN, CareSignal.SignalStatus.IN_PROGRESS],
+            ).count(),
+            'status_choices': CareSignal.SignalStatus.choices,
+            'risk_level_choices': CareSignal.RiskLevel.choices,
+            'search_query': self.request.GET.get('q', ''),
+        })
+        return ctx
+
+
+class CareSignalDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, DetailView):
+    """Detail view for a single care signal."""
+    model = CareSignal
+    template_name = 'contracts/signal_detail.html'
+    context_object_name = 'signal'
+
+    def get_queryset(self):
+        org = self.get_organization()
+        return CareSignal.objects.for_organization(org).select_related(
+            'due_diligence_process', 'assigned_to', 'case_record', 'created_by'
+        )
+
+
+class CareSignalCreateView(TenantScopedQuerysetMixin, LoginRequiredMixin, CreateView):
+    """Create a new care signal."""
+    model = CareSignal
+    form_class = CareSignalForm
+    template_name = 'contracts/signal_form.html'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        intake_id = self.request.GET.get('intake')
+        if intake_id:
+            try:
+                org = self.get_organization()
+                intake = scope_queryset_for_organization(CaseIntakeProcess.objects.all(), org).get(pk=intake_id)
+                initial['due_diligence_process'] = intake
+            except CaseIntakeProcess.DoesNotExist:
+                pass
+        return initial
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['is_edit'] = False
+        ctx['page_title'] = 'Nieuw signaal'
+        return ctx
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        response = super().form_valid(form)
+        log_action(self.request.user, 'CREATE', 'CareSignal', self.object.id, str(self.object), request=self.request)
+        messages.success(self.request, 'Signaal aangemaakt.')
+        return response
+
+    def get_success_url(self):
+        return reverse('careon:signal_detail', kwargs={'pk': self.object.pk})
+
+
+class CareSignalUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+    """Update a care signal."""
+    model = CareSignal
+    form_class = CareSignalForm
+    template_name = 'contracts/signal_form.html'
+
+    def get_queryset(self):
+        org = self.get_organization()
+        return CareSignal.objects.for_organization(org)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['is_edit'] = True
+        ctx['page_title'] = 'Signaal bewerken'
+        return ctx
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        log_action(self.request.user, 'UPDATE', 'CareSignal', self.object.id, str(self.object), request=self.request)
+        messages.success(self.request, 'Signaal bijgewerkt.')
+        return response
+
+    def get_success_url(self):
+        return reverse('careon:signal_detail', kwargs={'pk': self.object.pk})
+
+
+# ==================== PLACEMENT REQUEST VIEWS (Plaatsingen) ====================
+
+class PlacementRequestListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
+    """List placement requests (indicaties / plaatsingen)."""
+    model = PlacementRequest
+    template_name = 'contracts/placement_list.html'
+    context_object_name = 'placements'
+    paginate_by = 25
+
+    def get_queryset(self):
+        org = self.get_organization()
+        qs = PlacementRequest.objects.filter(
+            due_diligence_process__organization=org
+        ).select_related(
+            'due_diligence_process', 'proposed_provider', 'selected_provider'
+        ).order_by('-updated_at')
+
+        q = self.request.GET.get('q')
+        if q:
+            qs = qs.filter(
+                Q(due_diligence_process__title__icontains=q)
+                | Q(proposed_provider__name__icontains=q)
+                | Q(selected_provider__name__icontains=q)
+            ).distinct()
+
+        status = self.request.GET.get('status')
+        if status:
+            qs = qs.filter(status=status)
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        org = self.get_organization()
+        all_qs = PlacementRequest.objects.filter(due_diligence_process__organization=org)
+        ctx.update({
+            'total_count': all_qs.count(),
+            'approved_count': all_qs.filter(status=PlacementRequest.Status.APPROVED).count(),
+            'in_review_count': all_qs.filter(status=PlacementRequest.Status.IN_REVIEW).count(),
+            'status_choices': PlacementRequest.Status.choices,
+            'search_query': self.request.GET.get('q', ''),
+        })
+        return ctx
+
+
+class PlacementRequestDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, DetailView):
+    """Detail view for a placement request."""
+    model = PlacementRequest
+    template_name = 'contracts/placement_detail.html'
+    context_object_name = 'placement'
+
+    def get_queryset(self):
+        org = self.get_organization()
+        return PlacementRequest.objects.filter(
+            due_diligence_process__organization=org
+        ).select_related('due_diligence_process', 'proposed_provider', 'selected_provider')
+
+
+class PlacementRequestUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
+    """Update a placement request (confirm, reject, adjust)."""
+    model = PlacementRequest
+    form_class = PlacementRequestForm
+    template_name = 'contracts/placement_form.html'
+
+    def get_queryset(self):
+        org = self.get_organization()
+        return PlacementRequest.objects.filter(due_diligence_process__organization=org)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['is_edit'] = True
+        ctx['page_title'] = 'Plaatsing bewerken'
+        ctx['intake'] = self.object.intake
+        return ctx
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        log_action(self.request.user, 'UPDATE', 'PlacementRequest', self.object.id, str(self.object), request=self.request)
+        messages.success(self.request, 'Plaatsing bijgewerkt.')
+        return response
+
+    def get_success_url(self):
+        return reverse('careon:placement_detail', kwargs={'pk': self.object.pk})

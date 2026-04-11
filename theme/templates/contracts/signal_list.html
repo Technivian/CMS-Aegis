@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Signalen - Zorgregie{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="page-title">Signalen</h1>
+        <p class="page-subtitle">
+            {{ total_count }} totaal &middot; {{ open_count }} open &middot; {{ critical_count }} kritisch
+        </p>
+    </div>
+    <a href="{% url 'careon:signal_create' %}" class="action-chip">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+        Nieuw signaal
+    </a>
+</div>
+
+<form method="get" class="mb-4 flex gap-2 flex-wrap">
+    <input type="text" name="q" value="{{ search_query }}" placeholder="Zoek op casus, beschrijving..." class="flex-1 min-w-48 px-3 py-2 border border-gray-300 rounded-lg text-sm">
+    <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" onchange="this.form.submit()">
+        <option value="">Alle statussen</option>
+        {% for val, label in status_choices %}
+        <option value="{{ val }}" {% if request.GET.status == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <select name="risk_level" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" onchange="this.form.submit()">
+        <option value="">Alle niveaus</option>
+        {% for val, label in risk_level_choices %}
+        <option value="{{ val }}" {% if request.GET.risk_level == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">Zoeken</button>
+</form>
+
+<div class="panel">
+    <table class="w-full">
+        <thead class="tbl-head">
+            <tr>
+                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Signaal</th>
+                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Casus</th>
+                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Type</th>
+                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Niveau</th>
+                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Verantwoordelijke</th>
+                <th class="text-right px-5 py-3 text-xs font-medium text-gray-500 uppercase">Acties</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for signal in signals %}
+            <tr class="tbl-row hover:bg-gray-50">
+                <td class="px-5 py-3">
+                    <a href="{% url 'careon:signal_detail' signal.pk %}" class="text-sm font-medium text-blue-600 hover:text-blue-800">
+                        {% if signal.title %}{{ signal.title }}{% else %}{{ signal.get_signal_type_display }}{% endif %}
+                    </a>
+                </td>
+                <td class="px-5 py-3 text-sm text-gray-600">
+                    {% if signal.intake %}
+                    <a href="{% url 'careon:case_detail' signal.intake.pk %}" class="hover:text-blue-600">{{ signal.intake.title }}</a>
+                    {% else %}—{% endif %}
+                </td>
+                <td class="px-5 py-3 text-sm text-gray-600">{{ signal.get_signal_type_display }}</td>
+                <td class="px-5 py-3">
+                    <span class="badge-sm
+                        {% if signal.risk_level == 'CRITICAL' %}badge-red
+                        {% elif signal.risk_level == 'HIGH' %}badge-amber
+                        {% elif signal.risk_level == 'MEDIUM' %}badge-yellow
+                        {% else %}badge-gray{% endif %}">
+                        {{ signal.get_risk_level_display }}
+                    </span>
+                </td>
+                <td class="px-5 py-3">
+                    <span class="badge-sm
+                        {% if signal.status == 'OPEN' %}badge-red
+                        {% elif signal.status == 'IN_PROGRESS' %}badge-blue
+                        {% else %}badge-green{% endif %}">
+                        {{ signal.get_status_display }}
+                    </span>
+                </td>
+                <td class="px-5 py-3 text-sm text-gray-600">{{ signal.assigned_to.get_full_name|default:"—" }}</td>
+                <td class="px-5 py-3 text-right text-sm">
+                    <a href="{% url 'careon:signal_update' signal.pk %}" class="text-xs text-gray-500 hover:text-blue-600">Bewerken</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="px-5 py-12 text-center">
+                    <div style="color: var(--text-muted);">
+                        <p style="font-size: 14px; margin-bottom: 8px;">Geen signalen gevonden.</p>
+                        <a href="{% url 'careon:signal_create' %}" style="color: var(--primary); text-decoration: none; font-weight: 500;">+ Voeg eerste signaal toe</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<div class="mt-6 flex justify-center gap-2">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Vorige</a>
+    {% endif %}
+    <span class="px-3 py-2 text-sm">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Volgende</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

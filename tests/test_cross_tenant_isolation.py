@@ -353,16 +353,15 @@ class CareSignalIsolationTest(CrossTenantFixtureMixin, TestCase):
 
     def test_list_excludes_other_org(self):
         self.client.login(username='user_b', password='passB1234!')
-        response = self.client.get(reverse('careon:risk_log_list'))
+        response = self.client.get(reverse('careon:signal_list'))
         self.assertEqual(response.status_code, 200)
-        ids = [m.id for m in response.context.get('configurations', [])]
-        self.assertNotIn(self.matter_a.id, ids,
-                         'configuration_a (Org A) must not appear for Org B')
-        self.assertIn(self.matter_b.id, ids)
+        ids = [m.id for m in response.context.get('signals', [])]
+        self.assertNotIn(self.risk_a.id, ids,
+                 'risk_a (Org A) must not appear for Org B')
 
     def test_update_cross_org_returns_404(self):
         self.client.login(username='user_b', password='passB1234!')
-        url = reverse('careon:risk_log_update', kwargs={'pk': self.risk_a.pk})
+        url = reverse('careon:signal_update', kwargs={'pk': self.risk_a.pk})
         self.assertEqual(self.client.get(url).status_code, 404)
 
 
@@ -375,8 +374,10 @@ class PlacementRequestIsolationTest(CrossTenantFixtureMixin, TestCase):
     def test_list_excludes_other_org(self):
         self.client.login(username='user_b', password='passB1234!')
         response = self.client.get(reverse('careon:placement_list'))
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('flow=placement', response['Location'])
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        self.assertNotIn('AlphaMark', content,
+                 'Org A placements must not appear for Org B user')
 
     def test_detail_cross_org_returns_404(self):
         self.client.login(username='user_b', password='passB1234!')
@@ -401,8 +402,8 @@ class UnauthenticatedAccessTest(TestCase):
         ('careon:document_list', {}),
         ('careon:client_list', {}),
         ('careon:configuration_list', {}),
-        ('careon:task_kanban', {}),
-        ('careon:risk_log_list', {}),
+        ('careon:task_list', {}),
+        ('careon:signal_list', {}),
         ('careon:deadline_list', {}),
         ('careon:placement_list', {}),
         ('careon:budget_list', {}),

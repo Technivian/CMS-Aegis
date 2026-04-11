@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic.base import RedirectView
 from . import views
 from .api import views as api_views
 
@@ -49,7 +50,6 @@ urlpatterns = [
     path('budgets/<int:budget_pk>/add-expense/', views.AddExpenseView.as_view(), name='add_expense'),
 
     path('taken/', views.DeadlineListView.as_view(), name='task_list'),
-    path('taken/', views.DeadlineListView.as_view(), name='task_kanban'),
     path('taken/new/', views.DeadlineCreateView.as_view(), name='task_create'),
     path('taken/<int:pk>/edit/', views.DeadlineUpdateView.as_view(), name='task_update'),
     path('tasks/', views.CareTaskKanbanView.as_view(), name='care_task_kanban'),
@@ -75,10 +75,10 @@ urlpatterns = [
     path('reports/', views.reports_dashboard, name='reports_dashboard'),
     path('search/', views.global_search, name='global_search'),
 
-    path('wachttijden/', views.DeadlineListView.as_view(), name='waittime_list'),
-    path('wachttijden/new/', views.DeadlineCreateView.as_view(), name='waittime_create'),
-    path('wachttijden/<int:pk>/', views.DeadlineUpdateView.as_view(), name='waittime_detail'),
-    path('wachttijden/<int:pk>/edit/', views.DeadlineUpdateView.as_view(), name='waittime_update'),
+    path('wachttijden/', views.WaitTimeListView.as_view(), name='waittime_list'),
+    path('wachttijden/new/', views.WaitTimeCreateView.as_view(), name='waittime_create'),
+    path('wachttijden/<int:pk>/', views.WaitTimeDetailView.as_view(), name='waittime_detail'),
+    path('wachttijden/<int:pk>/edit/', views.WaitTimeUpdateView.as_view(), name='waittime_update'),
 
     path('intakes/', views.case_flow_list_redirect, {'step': 'intake'}, name='intake_list'),
     path('intakes/new/', views.case_flow_create_redirect, {'step': 'intake'}, name='intake_create'),
@@ -91,17 +91,16 @@ urlpatterns = [
     path('workflows/step/<int:pk>/update/', views.CareConfigurationUpdateView.as_view(), name='update_workflow_step'),
 
 
-    path('plaatsingen/', views.case_flow_list_redirect, {'step': 'placement'}, name='placement_list'),
-    path('plaatsingen/new/', views.case_flow_create_redirect, {'step': 'placement'}, name='placement_create'),
-    path('plaatsingen/<int:pk>/', views.CareConfigurationDetailView.as_view(), name='placement_detail'),
-    path('plaatsingen/<int:pk>/edit/', views.CareConfigurationUpdateView.as_view(), name='placement_update'),
+    path('plaatsingen/', views.PlacementRequestListView.as_view(), name='placement_list'),
+    path('plaatsingen/new/', RedirectView.as_view(pattern_name='careon:matching_dashboard', permanent=False), name='placement_create'),
+    path('plaatsingen/<int:pk>/', views.PlacementRequestDetailView.as_view(), name='placement_detail'),
+    path('plaatsingen/<int:pk>/edit/', views.PlacementRequestUpdateView.as_view(), name='placement_update'),
 
-    path('signalen/', views.CareConfigurationListView.as_view(), name='signal_list'),
-    path('signalen/new/', views.CareConfigurationCreateView.as_view(), name='signal_create'),
-    path('signalen/<int:pk>/edit/', views.CareConfigurationUpdateView.as_view(), name='signal_update'),
-    path('risks/', views.CareConfigurationListView.as_view(), name='risk_log_list'),
-    path('risks/new/', views.CareConfigurationCreateView.as_view(), name='risk_log_create'),
-    path('risks/<int:pk>/edit/', views.CareConfigurationUpdateView.as_view(), name='risk_log_update'),
+    path('signalen/', views.CareSignalListView.as_view(), name='signal_list'),
+    path('signalen/new/', views.CareSignalCreateView.as_view(), name='signal_create'),
+    path('signalen/<int:pk>/', views.CareSignalDetailView.as_view(), name='signal_detail'),
+    path('signalen/<int:pk>/edit/', views.CareSignalUpdateView.as_view(), name='signal_update'),
+    path('risks/', RedirectView.as_view(pattern_name='careon:signal_list', permanent=False), name='risk_log_list'),
 
     path('casussen/', views.CaseIntakeListView.as_view(), name='case_list'),
     path('casussen/new/', views.CaseIntakeCreateView.as_view(), name='case_create'),
@@ -114,5 +113,5 @@ urlpatterns = [
     path('beoordelingen/<int:pk>/', views.CaseAssessmentDetailView.as_view(), name='assessment_detail'),
     path('beoordelingen/<int:pk>/edit/', views.CaseAssessmentUpdateView.as_view(), name='assessment_update'),
 
-    path('', views.CareConfigurationListView.as_view(), name='home'),
+    path('', RedirectView.as_view(pattern_name='careon:case_list', permanent=False), name='home'),
 ]

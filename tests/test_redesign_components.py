@@ -90,7 +90,7 @@ class RedesignComponentsTestCase(TestCase):
         self.assertContains(response, 'Nieuw budget')
         self.assertContains(response, 'Regie Operaties')
 
-    def test_placement_list_alias_uses_configuration_view(self):
+    def test_placement_list_shows_real_list_view(self):
         client_record = ClientModel.objects.create(
             organization=self.organization,
             name='Acme Client',
@@ -115,12 +115,8 @@ class RedesignComponentsTestCase(TestCase):
 
         response = self.client.get(reverse('careon:placement_list'))
 
-        self.assertRedirects(
-            response,
-            f"{reverse('careon:case_list')}?flow=placement",
-            status_code=302,
-            target_status_code=200,
-        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Plaatsingen')
 
     def test_configuration_list_uses_current_authenticated_shell(self):
         response = self.client.get(reverse('careon:configuration_list'))
