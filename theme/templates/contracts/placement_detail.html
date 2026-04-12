@@ -3,7 +3,7 @@
 {% block content %}
 
 <nav class="mb-6 text-sm" style="color: var(--text-muted);">
-    <a href="{% url 'careon:home' %}" style="color: var(--text-muted); text-decoration: none;">Dashboard</a>
+    <a href="{% url 'dashboard' %}" style="color: var(--text-muted); text-decoration: none;">Dashboard</a>
     <span class="mx-2">/</span>
     <a href="{% url 'careon:placement_list' %}" style="color: var(--text-muted); text-decoration: none;">Plaatsingen</a>
     <span class="mx-2">/</span>
@@ -17,22 +17,26 @@
         <h1 class="page-title">
             {% if placement.intake %}{{ placement.intake.title }}{% else %}Plaatsing{% endif %}
         </h1>
-        {% if placement.intake %}
         <p class="page-subtitle">
-            Intake &middot; {{ placement.intake.get_urgency_display }}
+            {% if placement.intake %}Casus: {{ placement.intake.title }}{% else %}Casus: niet gekoppeld{% endif %}
+            &middot;
+            Aanbieder: {{ placement.selected_provider.name|default:placement.proposed_provider.name|default:"nog niet gekoppeld" }}
         </p>
-        {% endif %}
     </div>
     <div class="flex gap-3">
         {% if placement.intake %}
         <a href="{% url 'careon:case_detail' placement.intake.pk %}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">
-            Naar intake
+            Naar casus
         </a>
         {% endif %}
+        {% if can_edit_placement %}
         <a href="{% url 'careon:placement_update' placement.pk %}" class="action-chip">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
             Bewerken
         </a>
+        {% else %}
+        <span class="action-chip" style="opacity:0.6;cursor:not-allowed;">Alleen-lezen</span>
+        {% endif %}
     </div>
 </div>
 
@@ -52,8 +56,8 @@
         <p class="metric-md">{{ placement.start_date|date:"d-m-Y"|default:"—" }}</p>
     </div>
     <div class="panel panel-inner">
-        <p class="metric-label">Duur</p>
-        <p class="metric-md">{{ placement.duration_weeks|default:"—" }} weken</p>
+        <p class="metric-label">Plaatsingsfase</p>
+        <p class="metric-md">{{ placement_phase_label }}</p>
     </div>
 </div>
 
@@ -99,7 +103,7 @@
             </div>
             {% if placement.intake %}
             <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Gerelateerde intake</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Gerelateerde casus</p>
                 <a href="{% url 'careon:case_detail' placement.intake.pk %}" class="text-sm text-blue-600 hover:text-blue-800">
                     {{ placement.intake.title }}
                 </a>

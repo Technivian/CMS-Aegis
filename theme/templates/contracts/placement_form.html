@@ -3,7 +3,7 @@
 {% block content %}
 
 <nav class="mb-6 text-sm" style="color: var(--text-muted);">
-    <a href="{% url 'careon:home' %}" style="color: var(--text-muted); text-decoration: none;">Dashboard</a>
+    <a href="{% url 'dashboard' %}" style="color: var(--text-muted); text-decoration: none;">Dashboard</a>
     <span class="mx-2">/</span>
     <a href="{% url 'careon:placement_list' %}" style="color: var(--text-muted); text-decoration: none;">Plaatsingen</a>
     {% if is_edit %}
@@ -20,7 +20,7 @@
 
 {% if intake %}
 <div class="mb-4 px-4 py-3 rounded-lg text-sm" style="background: var(--bg-soft); color: var(--text-muted);">
-    Plaatsing voor intake: <strong>{{ intake.title }}</strong>
+    Plaatsing voor casus: <strong>{{ intake.title }}</strong>
 </div>
 {% endif %}
 
