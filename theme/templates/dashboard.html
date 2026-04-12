@@ -1,434 +1,497 @@
 {% extends "base.html" %}
-{% block title %}Dashboard - Zorgregie{% endblock %}
-
+{% block title %}Zorgregie - Regiekamer{% endblock %}
 {% block content %}
+<style>
+    :root {
+        --dash-surface: #0f182b;
+        --dash-surface-soft: #121d33;
+        --dash-border: #21304d;
+        --dash-muted: #91a0bb;
+    }
+    .page-wrap {
+        font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        max-width: 1440px;
+        padding: 22px 24px;
+    }
+    .dash-grid {
+        display: grid;
+        gap: 20px;
+        gap: var(--card-gap);
+    }
 
-<div class="page-wrap">
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: var(--card-gap);
+    }
+    .kpi-card {
+        min-height: 116px;
+        padding: 18px;
+        text-decoration: none;
+        background: linear-gradient(180deg, var(--dash-surface) 0%, #101a2d 100%);
+        border: 1px solid var(--dash-border);
+        border-radius: 13px;
+        transition: border-color 0.15s, transform 0.15s;
+    }
+    .kpi-card:hover { border-color: #3569d6; transform: translateY(-1px); }
+    .kpi-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+    .kpi-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        background: rgba(148, 163, 184, 0.12);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        color: #8ea2c8;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .kpi-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--dash-muted);
+    }
+    .kpi-value {
+        margin-top: 10px;
+        font-size: 40px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        font-weight: 800;
+        color: var(--text-primary);
+    }
+    .kpi-value.is-zero { color: #65748f; }
+    .kpi-sub {
+        margin-top: 8px;
+        font-size: 11px;
+        color: var(--text-secondary);
+    }
 
-    <div class="page-header">
+    .main-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: var(--card-gap);
+        margin-top: 0;
+    }
+    .right-stack {
+        display: flex;
+        flex-direction: column;
+        gap: var(--card-gap);
+    }
+
+    .surface-card {
+        background: linear-gradient(180deg, var(--dash-surface) 0%, #101a2d 100%);
+        border: 1px solid var(--dash-border);
+        border-radius: 14px;
+    }
+    .flow-surface {
+        border-color: color-mix(in srgb, var(--primary) 28%, var(--card-border));
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 16%, transparent);
+    }
+    .signal-surface {
+        border-color: color-mix(in srgb, var(--text-muted) 30%, var(--card-border));
+        opacity: 0.96;
+    }
+    .action-surface {
+        border-color: color-mix(in srgb, var(--primary) 42%, var(--card-border));
+        box-shadow: 0 10px 26px rgba(29, 78, 216, 0.16);
+    }
+    .section-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 18px 18px 0;
+    }
+    .section-kicker {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+        color: var(--text-primary);
+    }
+    .section-sub {
+        margin-top: 4px;
+        font-size: 11px;
+        color: var(--text-secondary);
+    }
+    .section-link-btn {
+        min-width: 156px;
+    }
+
+    .command-bar {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .action-list .btn {
+        width: 100%;
+    }
+
+    .flow-wrap {
+        margin: 14px 18px 18px;
+    }
+    .focus-strip {
+        padding: 14px 16px;
+        border-radius: 10px;
+        border: 1px solid #2a3b5f;
+        background: #121f35;
+        margin-bottom: 14px;
+    }
+    .focus-title {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #8ea2c8;
+    }
+    .focus-value {
+        margin-top: 4px;
+        font-size: 44px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        color: var(--text-primary);
+        font-weight: 800;
+    }
+    .focus-note {
+        margin-top: 2px;
+        font-size: 11px;
+        color: #9caaca;
+    }
+
+    .flow-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+        align-items: stretch;
+    }
+    .wf-connector {
+        display: none;
+    }
+    .wf-step {
+        min-height: 112px;
+        border-radius: 10px;
+        border: 1px solid #243656;
+        background: #121f35;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 14px;
+        text-decoration: none;
+    }
+    .wf-value {
+        font-size: 42px;
+        line-height: 1;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        color: var(--text-primary);
+    }
+    .wf-value.is-zero { color: var(--text-dim); }
+    .wf-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        color: var(--text-secondary);
+    }
+    .wf-status {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-secondary);
+    }
+    .wf-step.state-future { background: #121f35; border-color: #243656; }
+    .wf-step.state-active {
+        background: var(--primary-subtle);
+        border-color: var(--primary);
+        box-shadow: 0 0 0 1px rgba(37,99,235,0.3);
+    }
+    .wf-step.state-warning {
+        background: rgba(245,158,11,0.1);
+        border-color: rgba(245,158,11,0.45);
+    }
+    .wf-step.state-warning .wf-value,
+    .wf-step.state-warning .wf-label,
+    .wf-step.state-warning .wf-status { color: #F59E0B; }
+    .wf-step.state-completed {
+        background: rgba(34,197,94,0.1);
+        border-color: rgba(34,197,94,0.4);
+    }
+    .wf-step.state-completed .wf-value,
+    .wf-step.state-completed .wf-label,
+    .wf-step.state-completed .wf-status { color: #22C55E; }
+    .wf-step.state-warning.danger {
+        background: rgba(239,68,68,0.1);
+        border-color: rgba(239,68,68,0.5);
+    }
+    .wf-step.state-warning.danger .wf-value,
+    .wf-step.state-warning.danger .wf-label,
+    .wf-step.state-warning.danger .wf-status { color: #EF4444; }
+    .wf-step.stage-intake { background: rgba(148, 163, 184, 0.08); }
+    .wf-step.stage-beoordeling {
+        background: rgba(245, 158, 11, 0.12);
+        border-color: rgba(245, 158, 11, 0.4);
+    }
+    .wf-step.stage-beoordeling .wf-label,
+    .wf-step.stage-beoordeling .wf-value { color: #F59E0B; }
+    .wf-step.stage-matching {
+        background: rgba(59, 130, 246, 0.12);
+        border-color: rgba(59, 130, 246, 0.42);
+    }
+    .wf-step.stage-matching .wf-label,
+    .wf-step.stage-matching .wf-value { color: #3B82F6; }
+    .wf-step.stage-indicatie { background: rgba(148, 163, 184, 0.08); }
+    .wf-step.stage-opvolging {
+        background: rgba(16, 185, 129, 0.12);
+        border-color: rgba(16, 185, 129, 0.4);
+    }
+    .wf-step.stage-opvolging .wf-label,
+    .wf-step.stage-opvolging .wf-value { color: #10B981; }
+
+    .signal-list,
+    .action-list {
+        padding: 14px 18px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .empty-note { font-size: 12px; color: var(--text-secondary); }
+    .signal-pill {
+        border-radius: 8px;
+        padding: 8px 10px;
+        border: 1px solid #2b3b5d;
+        background: #121f35;
+        font-size: 12px;
+        color: #b8c3d9;
+    }
+    .signal-pill.risk-critical,
+    .signal-pill.risk-high {
+        background: rgba(239, 68, 68, 0.12);
+        border-color: rgba(239, 68, 68, 0.4);
+        color: #f87171;
+    }
+    .signal-pill.risk-medium {
+        background: rgba(245, 158, 11, 0.12);
+        border-color: rgba(245, 158, 11, 0.4);
+        color: #fbbf24;
+    }
+    .overview-strip {
+        margin-top: 0;
+        padding: 14px 18px;
+        display: grid;
+        grid-template-columns: 1.3fr repeat(6, minmax(0, 1fr));
+        gap: 14px;
+        align-items: center;
+    }
+    .overview-k,
+    .overview-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        font-weight: 700;
+    }
+    .overview-v {
+        margin-top: 4px;
+        font-size: 14px;
+        line-height: 1;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: var(--text-primary);
+    }
+    .overview-v.state-ok { color: #22C55E; }
+    .overview-v.state-warn { color: #F59E0B; }
+    .overview-v.state-danger { color: #EF4444; }
+
+    @media (max-width: 1180px) {
+        .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .main-grid { grid-template-columns: 1fr; }
+        .overview-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 1024px) {
+        .flow-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .overview-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+        .page-wrap { padding: 16px; }
+        .title-strong { font-size: 38px; }
+        .kpi-grid { grid-template-columns: 1fr; }
+        .overview-strip { grid-template-columns: 1fr; }
+        .kpi-head { align-items: flex-start; }
+        .flow-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="page-wrap page-stack">
+    <div class="header-row">
         <div>
-            <h1 class="page-title">Welkom terug{% if user.first_name %}, {{ user.first_name }}{% endif %}</h1>
-            <p class="page-subtitle">{{ today|date:"l, F j, Y" }}</p>
+            <h1 class="page-title title-strong">Regiekamer</h1>
+            <p class="sub-quiet">Overzicht van alle lopende zorgprocessen</p>
         </div>
-        <div class="page-actions">
-            <a href="{% url 'careon:case_create' %}" class="action-chip">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                Nieuwe casus
-            </a>
-            <a href="{% url 'careon:client_create' %}" class="action-chip">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                Nieuwe aanbieder
-            </a>
-            <a href="{% url 'careon:case_list' %}?flow=intake" class="action-chip">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Start intake vanuit casus
-            </a>
+        <div class="command-bar" aria-label="Commandobalk">
+            <a href="{% url 'careon:case_create' %}" class="btn btn-primary">Nieuwe casus</a>
+            <a href="{% url 'careon:case_list' %}" class="btn btn-secondary">Casusoverzicht</a>
         </div>
     </div>
 
-    {% if urgent_case_count > 0 or provider_capacity_critical_count > 0 %}
-    <div class="flex gap-3 mb-6 flex-wrap">
-        {% if urgent_case_count > 0 %}
-        <a href="{% url 'careon:deadline_list' %}" class="alert-banner alert-banner-red alert-link-fill">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
-            <span><strong>{{ urgent_case_count }}</strong> urgente casus{{ urgent_case_count|pluralize }} vragen nu directe opvolging</span>
-            <svg class="ic-sm ml-auto opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    <div class="kpi-grid">
+        <a href="{% url 'careon:case_list' %}" class="kpi-card">
+            <div class="kpi-head">
+                <div class="kpi-label">Open casussen</div>
+                <span class="kpi-icon">D</span>
+            </div>
+            <div class="kpi-value{% if total_cases == 0 %} is-zero{% endif %}">{{ total_cases }}</div>
+            <div class="kpi-sub">Urgente casussen: {{ urgent_case_count }}</div>
         </a>
-        {% endif %}
-        {% if provider_capacity_critical_count > 0 %}
-        <a href="{% url 'careon:client_list' %}" class="alert-banner alert-banner-yellow alert-link-fill">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            <span><strong>{{ provider_capacity_critical_count }}</strong> aanbieders vragen capaciteitssturing of opvolging</span>
-            <svg class="ic-sm ml-auto opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        <div class="kpi-card">
+            <div class="kpi-head">
+                <div class="kpi-label">Wachtend</div>
+                <span class="kpi-icon">T</span>
+            </div>
+            <div class="kpi-value{% if intake_phase_count == 0 %} is-zero{% endif %}">{{ intake_phase_count }}</div>
+            <div class="kpi-sub">Intake wachtend</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-head">
+                <div class="kpi-label">Actieve plaatsingen</div>
+                <span class="kpi-icon">P</span>
+            </div>
+            <div class="kpi-value{% if active_cases == 0 %} is-zero{% endif %}">{{ active_cases }}</div>
+            <div class="kpi-sub">Plaatsing actief</div>
+        </div>
+        <a href="{% url 'careon:client_list' %}" class="kpi-card">
+            <div class="kpi-head">
+                <div class="kpi-label">Beschikbare capaciteit</div>
+                <span class="kpi-icon">A</span>
+            </div>
+            <div class="kpi-value{% if providers_with_capacity == 0 %} is-zero{% endif %}">{{ providers_with_capacity }}</div>
+            <div class="kpi-sub">Direct inzetbaar</div>
         </a>
-        {% endif %}
-    </div>
-    {% endif %}
-
-    <div class="dash-grid dash-grid-4 mb-6">
-        <div class="kpi-card">
-            <div class="kpi-glow kpi-glow-blue"></div>
-            <div class="kpi-icon kpi-icon-blue">
-                <svg class="ic-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            </div>
-            <div class="kpi-value">{{ urgent_case_count }}</div>
-            <div class="kpi-label">Urgente casussen</div>
-            {% if urgent_case_count > 0 %}
-            <div class="kpi-sub kpi-sub-red">Directe prioriteit in intake, matching of plaatsing</div>
-            {% else %}
-            <div class="kpi-sub kpi-sub-green">Geen urgente opvolging op dit moment</div>
-            {% endif %}
-        </div>
-
-        <div class="kpi-card">
-            <div class="kpi-glow kpi-glow-green"></div>
-            <div class="kpi-icon kpi-icon-green">
-                <svg class="ic-green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            </div>
-            <div class="kpi-value">{{ cases_without_match_count }}</div>
-            <div class="kpi-label">Casussen zonder match</div>
-            <div class="kpi-sub kpi-sub-blue">{{ action_required_total }} opvolgpunten in regie en matching</div>
-        </div>
-
-        <div class="kpi-card">
-            <div class="kpi-glow kpi-glow-amber"></div>
-            <div class="kpi-icon kpi-icon-amber">
-                <svg class="ic-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
-            <div class="kpi-value">{{ intake_phase_count }}</div>
-            <div class="kpi-label">Casussen in intakefase</div>
-            {% if intake_phase_count > 0 %}
-            <div class="kpi-sub kpi-sub-amber">{{ risk_count }} signalen vragen extra opvolging</div>
-            {% else %}
-            <div class="kpi-sub kpi-sub-green">Start je eerste regiedossier om de werkvoorraad op te bouwen</div>
-            {% endif %}
-        </div>
-
-        <div class="kpi-card">
-            <div class="kpi-glow kpi-glow-purple"></div>
-            <div class="kpi-icon kpi-icon-purple">
-                <svg class="ic-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-            </div>
-            <div class="kpi-value">{{ avg_intake_to_placement_days|floatformat:1 }}</div>
-            <div class="kpi-label">Gem. doorlooptijd intake → plaatsing</div>
-            {% if avg_intake_to_placement_days > 0 %}
-            <div class="kpi-sub kpi-sub-blue">Gebaseerd op {{ completed_cases|default:0 }} afgeronde trajecten</div>
-            {% else %}
-            <div class="kpi-sub kpi-sub-green">Nog geen plaatsingen afgerond om een gemiddelde te tonen</div>
-            {% endif %}
-        </div>
     </div>
 
-    <div class="dash-grid dash-grid-2-1 mb-6">
-        <div class="panel">
-            <div class="panel-head">
-                <div class="panel-head-inner">
-                    <div class="dot dot-blue"></div>
-                    <span class="panel-title">Actie vereist</span>
+    <div class="main-grid">
+        <div class="surface-card flow-surface">
+            <div class="section-head">
+                <div>
+                    <div class="section-kicker">Casusflow</div>
+                    <div class="section-sub">Voortgang van alle actieve casussen</div>
                 </div>
-                <a href="{% url 'careon:case_list' %}" class="panel-link">
-                    Alles bekijken
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </a>
+                <a href="{% url 'careon:case_list' %}" class="btn btn-ghost section-link-btn">Casusoverzicht</a>
             </div>
-            {% for item in action_required %}
-            <a href="{{ item.href }}" class="list-row">
-                <div class="item-row">
-                    <div class="status-dot {% if item.badge_class == 'badge-red' %}red{% elif item.badge_class == 'badge-yellow' %}yellow{% elif item.badge_class == 'badge-purple' %}blue{% else %}gray{% endif %}"></div>
-                    <div class="min-w-0">
-                        <div class="item-title">{{ item.title|truncatechars:52 }}</div>
-                        <div class="item-meta">{{ item.meta }}</div>
-                    </div>
-                </div>
-                <span class="badge-sm {{ item.badge_class }}">
-                    {{ item.badge }}
-                </span>
-            </a>
-            {% empty %}
-            <div class="empty-state">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Geen acties die directe opvolging vragen.
-                <a href="{% url 'careon:case_create' %}" class="c-link no-underline font-semibold"> Start je eerste casus</a>
-            </div>
-            {% endfor %}
-        </div>
 
-        <div class="panel">
-            <div class="panel-head">
-                <div class="panel-head-inner">
-                    <div class="dot dot-purple"></div>
-                    <span class="panel-title">Casusflow: Start aanvraag -> Casus (persoonsbeeld, diagnoses, indicatie) -> Beoordeling -> Matching -> Intake -> Plaatsing</span>
-                </div>
-            </div>
-            <div class="panel-inner">
-                {% if case_status_data %}
-                {% for item in case_status_data %}
-                <div class="portfolio-item {% if forloop.last %}mb-0{% endif %}">
-                    <div class="portfolio-row-head">
-                        <span class="port-label">{{ item.label }}</span>
-                        <span class="port-count">{{ item.count }}</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-bar-fill {{ item.tone }}" style="width: {% widthratio item.count flow_total 100 %}%;"></div>
-                    </div>
-                </div>
-                {% endfor %}
-                {% else %}
-                <div class="no-data-msg">Nog geen casusdata beschikbaar</div>
-                {% endif %}
-
-                <div class="panel-divider">
-                    <div class="panel-2col">
-                        <div>
-                            <div class="metric-md">{{ total_documents }}</div>
-                            <div class="item-meta">Documenten</div>
-                        </div>
-                        <div>
-                            <div class="metric-md">{{ total_configurations }}</div>
-                            <div class="item-meta">Regiedossiers</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="dash-grid dash-grid-2 mb-6">
-        <div class="panel">
-            <div class="panel-head">
-                <div class="panel-head-inner">
-                    <div class="dot dot-purple"></div>
-                    <span class="panel-title">Match aanbevelingen open</span>
-                    {% if match_recommendations %}
-                    <span class="badge-sm badge-blue ml-1">{{ match_recommendations|length }}</span>
-                    {% endif %}
-                </div>
-                <a href="{% url 'careon:case_list' %}?flow=matching" class="panel-link">
-                    Start vanuit casus
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </a>
-            </div>
-            {% if matching_focus_case %}
-            <div class="list-row block">
-                <div class="item-row items-start">
-                    <div class="status-dot blue mt-1"></div>
-                    <div class="min-w-0 flex-1">
-                        <div class="item-title">Casusfocus: {{ matching_focus_case.title|truncatechars:48 }}</div>
-                        <div class="item-meta">Aanbevelingen zijn berekend voor deze casus.</div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-            {% for item in match_recommendations %}
-            <div class="list-row block">
-                <div class="item-row items-start">
-                    <div class="status-dot blue mt-1"></div>
-                    <div class="min-w-0 flex-1">
-                        <div class="item-title">{{ item.case_record.title|truncatechars:42 }}</div>
-                        <div class="item-meta">Top-3 suggesties klaar • {{ item.days_open }} dagen open</div>
-                        <div class="mt-2 space-y-2">
-                            {% for suggestion in item.suggestions %}
-                            <div class="flex items-start justify-between gap-3">
-                                <div>
-                                    <div class="item-title text-[13px]">{{ suggestion.name }}</div>
-                                    <div class="item-meta">Matchscore {{ suggestion.match_score }} · Wachttijd {% if suggestion.wait_days is not None %}{{ suggestion.wait_days }} dagen{% else %}onbekend{% endif %} · Capaciteit {{ suggestion.capacity }}</div>
-                                    <div class="item-meta">Reden: {{ suggestion.match_reason }}</div>
-                                </div>
-                                <a href="{{ item.action_href }}&provider={{ suggestion.id }}" class="c-link no-underline text-[12px] font-semibold">Kies vanuit casus</a>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        <div class="mt-2">
-                            <a href="{{ item.action_href }}" class="c-link no-underline text-[12px] font-semibold">Open casus voor matching</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="empty-state">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                Geen open matchaanbevelingen.
-                <a href="{% url 'careon:case_list' %}?flow=matching" class="c-link no-underline font-semibold"> Start matching vanuit casus</a>
-                {% if not has_providers %}
-                <a href="{% url 'careon:client_create' %}" class="c-link no-underline font-semibold"> Voeg een zorgaanbieder toe</a>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
-
-        <div class="panel">
-            <div class="panel-head">
-                <div class="panel-head-inner">
-                    <div class="dot dot-amber"></div>
-                    <span class="panel-title">Capaciteit signalen</span>
-                </div>
-                <a href="{% url 'careon:client_list' %}" class="panel-link">
-                    Alles bekijken
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </a>
-            </div>
-            {% for provider in provider_capacity_signals %}
-            <div class="list-row">
-                <div class="item-row">
-                    <div class="task-check"></div>
-                    <div class="min-w-0">
-                        <div class="item-title">{{ provider.name|truncatechars:40 }}</div>
-                        <div class="item-meta">{{ provider.detail }}</div>
-                    </div>
-                </div>
-                <span class="badge-sm {{ provider.badge_class }}">
-                    {{ provider.signal }}
-                </span>
-            </div>
-            {% empty %}
-            <div class="empty-state">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                Geen capaciteitsdruk gedetecteerd.
-                {% if not has_providers %}
-                <a href="{% url 'careon:client_create' %}" class="c-link no-underline font-semibold"> Voeg een zorgaanbieder toe</a>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div class="panel mb-6">
-        <div class="panel-head">
-            <div class="panel-head-inner">
-                <div class="dot dot-blue"></div>
-                <span class="panel-title">Opvolging / Taken</span>
-            </div>
-                <a href="{% url 'careon:task_list' %}" class="panel-link">
-                Alles bekijken
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </a>
-        </div>
-        {% for task in followup_tasks %}
-        <a href="{% url 'careon:task_update' task.pk %}" class="list-row">
-            <div class="item-row">
-                <div class="status-dot {% if task.priority == 'URGENT' %}red{% elif task.priority == 'HIGH' %}yellow{% else %}blue{% endif %}"></div>
-                <div class="min-w-0">
-                    <div class="item-title">{{ task.title|truncatechars:46 }}</div>
-                    <div class="item-meta">{{ task.intake.title|default:'Niet gekoppeld' }} &middot; {{ task.get_task_type_display }} &middot; {{ task.due_date|date:"M d" }}</div>
-                </div>
-            </div>
-            <span class="badge-sm {% if task.is_overdue %}badge-red{% elif task.priority == 'URGENT' %}badge-red{% elif task.priority == 'HIGH' %}badge-yellow{% else %}badge-blue{% endif %}">
-                {% if task.is_overdue %}Te laat{% elif task.priority == 'URGENT' %}Urgent{% else %}{{ task.get_priority_display }}{% endif %}
-            </span>
-        </a>
-        {% empty %}
-        <div class="empty-state">
-            Geen open opvolgtaken.
-            <a href="{% url 'careon:task_create' %}" class="c-link no-underline font-semibold"> Voeg een taak toe</a>
-        </div>
-        {% endfor %}
-    </div>
-
-    <div class="panel mb-6">
-        <div class="panel-head">
-            <div class="panel-head-inner">
-                <div class="dot dot-red"></div>
-                <span class="panel-title">Recente signalen</span>
-            </div>
-            <a href="{% url 'careon:signal_list' %}" class="panel-link">
-                Alles bekijken
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </a>
-        </div>
-        {% for signal in recent_signals %}
-        <a href="{% url 'careon:signal_update' signal.pk %}" class="list-row">
-            <div class="item-row">
-                <div class="status-dot {% if signal.risk_level == 'CRITICAL' %}red{% elif signal.risk_level == 'HIGH' %}yellow{% else %}blue{% endif %}"></div>
-                <div class="min-w-0">
-                    <div class="item-title">{{ signal.get_signal_type_display }}{% if signal.intake %} · {{ signal.intake.title|truncatechars:35 }}{% endif %}</div>
-                    <div class="item-meta">{{ signal.description|truncatechars:80 }}</div>
-                </div>
-            </div>
-            <span class="badge-sm {% if signal.status == 'OPEN' %}badge-red{% elif signal.status == 'IN_PROGRESS' %}badge-yellow{% else %}badge-green{% endif %}">
-                {{ signal.get_status_display }}
-            </span>
-        </a>
-        {% empty %}
-        <div class="empty-state">
-            Geen recente signalen.
-            <a href="{% url 'careon:signal_create' %}" class="c-link no-underline font-semibold"> Voeg een signaal toe</a>
-        </div>
-        {% endfor %}
-    </div>
-
-    <div class="dash-grid dash-grid-2-1 mb-6">
-        <div class="panel">
-            <div class="panel-head">
-                <div class="panel-head-inner">
-                    <div class="dot dot-green"></div>
-                    <span class="panel-title">Regie-activiteit</span>
-                </div>
-                <a href="{% url 'careon:audit_log_list' %}" class="panel-link">
-                    Volledig logboek
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </a>
-            </div>
-            {% for log in recent_audit %}
-            <div class="list-row kpi-row">
-                <div class="avatar-xs avatar-gradient-bg">
-                    {% if log.user %}
-                    {{ log.user.first_name|default:log.user.username|slice:":1"|upper }}
+            <div class="flow-wrap" aria-label="Knelpuntfocus">
+                <div class="focus-strip">
+                    <div class="focus-title">Knelpuntfocus</div>
+                    {% if flow_attention_stage == 'none' %}
+                        <div class="focus-value">Geen knelpunt</div>
+                        <div class="focus-note">Stabiel - geen wachtende fase</div>
                     {% else %}
-                    S
+                        <div class="focus-value">{{ flow_attention_label|default:"Aandacht vereist" }}</div>
+                        <div class="focus-note">{{ flow_attention_value|default:0 }} casussen wachten in deze fase</div>
                     {% endif %}
                 </div>
-                <div class="flex-1 min-w-0">
-                    <div class="text-[13px] c-primary">
-                        <span class="font-bold">{% if log.user %}{{ log.user.get_full_name|default:log.user.username }}{% else %}System{% endif %}</span>
-                        <span class="c-secondary font-normal">{{ log.get_action_display|lower }}</span>
-                        <span class="font-medium">{{ log.model_name }}</span>
-                    </div>
-                    <div class="item-meta">{{ log.timestamp|timesince }} ago</div>
+                <div class="flow-grid">
+                    <a href="{% url 'careon:intake_list' %}" class="wf-step stage-intake state-{{ flow_states.intake }}{% if flow_states.intake == 'warning' and flow_danger_step == 'intake' %} danger{% endif %}">
+                        <div class="wf-value{% if flow_counts.intake == 0 %} is-zero{% endif %}">{{ flow_counts.intake }}</div>
+                        <div class="wf-label">Intake</div>
+                        <div class="wf-status">{% if flow_states.intake == 'active' %}Actief{% elif flow_states.intake == 'warning' %}{% if flow_danger_step == 'intake' %}Kritiek{% else %}Aandacht{% endif %}{% elif flow_states.intake == 'completed' %}Voltooid{% else %}Gepland{% endif %}</div>
+                    </a>
+                    <span class="wf-connector" aria-hidden="true">-></span>
+                    <a href="{% url 'careon:assessment_list' %}" class="wf-step stage-beoordeling state-{{ flow_states.beoordeling }}{% if flow_states.beoordeling == 'warning' and flow_danger_step == 'beoordeling' %} danger{% endif %}">
+                        <div class="wf-value{% if flow_counts.beoordeling == 0 %} is-zero{% endif %}">{{ flow_counts.beoordeling }}</div>
+                        <div class="wf-label">Beoordeling</div>
+                        <div class="wf-status">{% if flow_states.beoordeling == 'active' %}Actief{% elif flow_states.beoordeling == 'warning' %}{% if flow_danger_step == 'beoordeling' %}Kritiek{% else %}Aandacht{% endif %}{% elif flow_states.beoordeling == 'completed' %}Voltooid{% else %}Gepland{% endif %}</div>
+                    </a>
+                    <span class="wf-connector" aria-hidden="true">-></span>
+                    <a href="{% url 'careon:matching_dashboard' %}" class="wf-step stage-matching state-{{ flow_states.matching }}{% if flow_states.matching == 'warning' and flow_danger_step == 'matching' %} danger{% endif %}">
+                        <div class="wf-value{% if flow_counts.matching == 0 %} is-zero{% endif %}">{{ flow_counts.matching }}</div>
+                        <div class="wf-label">Matching</div>
+                        <div class="wf-status">{% if flow_states.matching == 'active' %}Actief{% elif flow_states.matching == 'warning' %}{% if flow_danger_step == 'matching' %}Kritiek{% else %}Aandacht{% endif %}{% elif flow_states.matching == 'completed' %}Voltooid{% else %}Gepland{% endif %}</div>
+                    </a>
+                    <span class="wf-connector" aria-hidden="true">-></span>
+                    <a href="{% url 'careon:placement_list' %}" class="wf-step stage-indicatie state-{{ flow_states.indicatie }}{% if flow_states.indicatie == 'warning' and flow_danger_step == 'indicatie' %} danger{% endif %}">
+                        <div class="wf-value{% if flow_counts.indicatie == 0 %} is-zero{% endif %}">{{ flow_counts.indicatie }}</div>
+                        <div class="wf-label">Indicatie</div>
+                        <div class="wf-status">{% if flow_states.indicatie == 'active' %}Actief{% elif flow_states.indicatie == 'warning' %}{% if flow_danger_step == 'indicatie' %}Kritiek{% else %}Aandacht{% endif %}{% elif flow_states.indicatie == 'completed' %}Voltooid{% else %}Gepland{% endif %}</div>
+                    </a>
+                    <span class="wf-connector" aria-hidden="true">-></span>
+                    <a href="{% url 'careon:case_list' %}" class="wf-step stage-opvolging state-{{ flow_states.opvolging }}{% if flow_states.opvolging == 'warning' and flow_danger_step == 'opvolging' %} danger{% endif %}">
+                        <div class="wf-value{% if flow_counts.opvolging == 0 %} is-zero{% endif %}">{{ flow_counts.opvolging }}</div>
+                        <div class="wf-label">Opvolging</div>
+                        <div class="wf-status">{% if flow_states.opvolging == 'active' %}Actief{% elif flow_states.opvolging == 'warning' %}{% if flow_danger_step == 'opvolging' %}Kritiek{% else %}Aandacht{% endif %}{% elif flow_states.opvolging == 'completed' %}Voltooid{% else %}Gepland{% endif %}</div>
+                    </a>
                 </div>
-                <span class="audit-action {% if log.action == 'CREATE' %}badge-green{% elif log.action == 'UPDATE' %}badge-blue{% elif log.action == 'DELETE' %}badge-red{% else %}badge-gray{% endif %}">
-                    {{ log.get_action_display }}
-                </span>
             </div>
-            {% empty %}
-            <div class="empty-state">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                Geen recente regie-activiteit.
-            </div>
-            {% endfor %}
         </div>
 
-        <div class="stk-col">
-            <div class="panel">
-                <div class="panel-head">
-                    <span class="panel-title">Regie snapshot</span>
+        <div class="right-stack">
+            <div class="surface-card signal-surface">
+                <div class="section-head">
+                    <div>
+                        <div class="section-kicker">Signalen</div>
+                        <div class="section-sub">Nieuwe aandachtspunten in de regie</div>
+                    </div>
                 </div>
-                <div class="panel-inner">
-                    <div class="mb-5">
-                        <div class="metric-label">Gem. intake → plaatsing</div>
-                        <div class="metric-xl">{{ avg_intake_to_placement_days|floatformat:1 }}<span class="metric-unit">dagen</span></div>
-                    </div>
-                    <div class="panel-divider">
-                        <div class="metric-label">Aanbieders met ruimte</div>
-                        <div class="metric-lg metric-trust">{{ providers_with_capacity }}</div>
-                    </div>
+                <div class="signal-list">
+                    {% if recent_signals %}
+                        {% for signal in recent_signals|slice:":3" %}
+                            <div class="signal-pill risk-{{ signal.risk_level|lower }}">{{ signal.get_signal_type_display }} - {{ signal.description|default:signal.get_risk_level_display|truncatechars:58 }}</div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-note">Geen afwijkingen in 24u.</div>
+                    {% endif %}
                 </div>
             </div>
 
-            <div class="panel">
-                <div class="panel-head">
-                    <span class="panel-title">Snelle navigatie</span>
+            <div class="surface-card action-surface">
+                <div class="section-head">
+                    <div>
+                        <div class="section-kicker">Wat vereist nu aandacht?</div>
+                        <div class="section-sub">Eerste stap voor deze werkcyclus</div>
+                    </div>
                 </div>
-                <a href="{% url 'careon:reports_dashboard' %}" class="list-row nav-row">
-                    <div class="nav-row-body">
-                        <svg class="ic-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                        <span class="nav-row-label">Regierapportages</span>
-                    </div>
-                    <svg class="ic-muted ic-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </a>
-                <a href="{% url 'careon:audit_log_list' %}" class="list-row nav-row">
-                    <div class="nav-row-body">
-                        <svg class="ic-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                        <span class="nav-row-label">Audittrail</span>
-                    </div>
-                    <svg class="ic-muted ic-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </a>
-                <a href="{% url 'careon:matching_dashboard' %}" class="list-row nav-row">
-                    <div class="nav-row-body">
-                        <svg class="ic-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        <span class="nav-row-label">Matchingoverzicht</span>
-                    </div>
-                    <svg class="ic-muted ic-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </a>
-                <a href="{% url 'careon:case_create' %}" class="list-row nav-row">
-                    <div class="nav-row-body">
-                        <svg class="ic-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                        <span class="nav-row-label">Nieuwe casus starten</span>
-                    </div>
-                    <svg class="ic-muted ic-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </a>
+                <div class="action-list">
+                    <a href="{{ primary_action.cta_href|default:'#' }}" class="btn btn-primary">{{ primary_action.cta_label|default:"Nieuwe casus" }}</a>
+                    <a href="{% url 'careon:case_list' %}?flow=matching" class="btn btn-secondary">Start matching</a>
+                    <a href="{% url 'careon:client_list' %}" class="btn btn-secondary">Bekijk capaciteit</a>
+                    <a href="{% url 'careon:task_create' %}" class="btn btn-secondary">Plan overleg</a>
+                </div>
             </div>
         </div>
     </div>
 
+    <div class="surface-card overview-strip">
+        <div>
+            <div class="overview-label">Systeemoverzicht</div>
+            <div class="kpi-sub">Laatst bijgewerkt: {{ dashboard_updated_at|date:"d-m-Y H:i" }}</div>
+        </div>
+        <div>
+            <div class="overview-k">Systeemstatus</div>
+            {% if urgent_case_count >= 3 or provider_capacity_critical_count >= 2 %}
+                <div class="overview-v state-danger">Kritiek</div>
+            {% elif urgent_case_count > 0 or provider_capacity_critical_count > 0 or action_required_total > 0 %}
+                <div class="overview-v state-warn">Let op</div>
+            {% else %}
+                <div class="overview-v state-ok">Stabiel</div>
+            {% endif %}
+        </div>
+        <div><div class="overview-k">Urgente casussen</div><div class="overview-v">{{ urgent_case_count }}</div></div>
+        <div><div class="overview-k">Zonder match</div><div class="overview-v">{{ cases_without_match_count }}</div></div>
+        <div><div class="overview-k">Intake wachtend</div><div class="overview-v">{{ intake_phase_count }}</div></div>
+        <div><div class="overview-k">Capaciteit vrij</div><div class="overview-v">{{ providers_with_capacity }}</div></div>
+        <div><div class="overview-k">Doorlooptijd</div><div class="overview-v">{{ avg_intake_to_placement_days|floatformat:1 }}d</div></div>
+    </div>
 </div>
 {% endblock %}

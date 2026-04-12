@@ -1,71 +1,175 @@
 {% extends "base.html" %}
 {% block title %}Rapportages & Regie - Careon{% endblock %}
 {% block content %}
-<div class="page-wrap">
+<div class="page-wrap page-stack">
 
-    <div class="page-header">
+    <div class="header-row">
         <div>
-            <h1 class="page-title">Rapportages & Regie</h1>
-            <p class="page-subtitle">Organisatiebrede casusflow, capaciteit en risicodata</p>
+            <h1 class="page-title title-strong">Rapportages & Regie</h1>
+            <p class="sub-quiet">Waar knelpunten zitten, waar druk oploopt en welke actie nu logisch is</p>
         </div>
     </div>
 
-    <!-- KPI Cards: Stagnation, Matching, Escalation, Waittime -->
-    <div class="dash-grid dash-grid-4 mb-6">
-
-        <!-- Stagnatie -->
-        <a href="?attention=stagnation" class="kpi-card kpi-card-link" style="text-decoration: none;">
-            <div class="kpi-glow kpi-glow-amber"></div>
-            <div class="kpi-icon kpi-icon-amber">
-                <svg class="ic-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <div class="panel" style="border-color: color-mix(in srgb, var(--danger) 30%, var(--card-border));">
+        <div class="panel-head">
+            <div class="panel-head-inner">
+                <div class="dot dot-red"></div>
+                <span class="panel-title">Bestuurlijke samenvatting</span>
             </div>
-            <div class="kpi-value">{{ stagnation_count }}</div>
-            <div class="kpi-label">Stagnatie ({{ stagnation_days }}+ dagen)</div>
-            <div class="kpi-sub kpi-sub-amber">Casussen gecheckt voor progressie</div>
-        </a>
-
-        <!-- Geen match -->
-        <a href="?attention=unmatched" class="kpi-card kpi-card-link" style="text-decoration: none;">
-            <div class="kpi-glow kpi-glow-purple"></div>
-            <div class="kpi-icon kpi-icon-purple">
-                <svg class="ic-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <div class="flex gap-2 items-center">
+                <a href="?attention=capacity" class="btn btn-secondary">Capaciteitsdruk</a>
+                <a href="{% url 'careon:matching_dashboard' %}" class="btn btn-primary">Stuur op matching</a>
             </div>
-            <div class="kpi-value">{{ cases_without_match_count }}</div>
-            <div class="kpi-label">Casussen zonder match</div>
-            <div class="kpi-sub kpi-sub-purple">Wachten op aanbiederkeuze</div>
-        </a>
+        </div>
+        <div class="panel-inner">
+            <div class="dash-grid dash-grid-4">
+                <div class="kpi-card" style="padding:16px 18px;">
+                    <div class="kpi-value" style="font-size:24px;">{{ attention_rows|length }}</div>
+                    <div class="kpi-label">Actiepunten nu</div>
+                    <div class="kpi-sub kpi-sub-red">Direct bestuurlijk overzicht</div>
+                </div>
+                <div class="kpi-card" style="padding:16px 18px;">
+                    <div class="kpi-value" style="font-size:24px;">{{ bottleneck_value }}</div>
+                    <div class="kpi-label">Grootste bottleneck</div>
+                    <div class="kpi-sub kpi-sub-amber">{{ bottleneck_label }}</div>
+                </div>
+                <div class="kpi-card" style="padding:16px 18px;">
+                    <div class="kpi-value" style="font-size:24px;">{{ cases_without_match_count }}</div>
+                    <div class="kpi-label">Vraag zonder match</div>
+                    <div class="kpi-sub kpi-sub-purple">Wachten op aanbiederkeuze</div>
+                </div>
+                <div class="kpi-card" style="padding:16px 18px;">
+                    <div class="kpi-value" style="font-size:24px;">{{ avg_wait_days|floatformat:1 }}</div>
+                    <div class="kpi-label">Gem. wachttijd</div>
+                    <div class="kpi-sub kpi-sub-blue">Dagen tot plaatsing</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <!-- Escalaties -->
-        <a href="?attention=escalation" class="kpi-card kpi-card-link" style="text-decoration: none;">
+    <div class="panel" style="border-color: color-mix(in srgb, var(--danger) 28%, var(--card-border));">
+        <div class="panel-head">
+            <div class="panel-head-inner">
+                <div class="dot dot-red"></div>
+                <span class="panel-title">Knelpunten en drukregio's</span>
+                <span class="item-meta">Aandacht vereist</span>
+                {% if attention_filter != 'all' %}
+                <span class="ds-badge badge-critical" style="margin-left:8px;">
+                    {% if attention_filter == 'unmatched' %}Geen match{% elif attention_filter == 'stagnation' %}Stagnatie{% elif attention_filter == 'capacity' %}Capaciteit{% elif attention_filter == 'escalation' %}Escalatie{% endif %}
+                </span>
+                {% endif %}
+            </div>
+            <a href="?" class="panel-link">
+                Alle filters
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </a>
+        </div>
+        {% if attention_rows %}
+        <div>
+            {% for row in attention_rows %}
+            {% if row.kind == 'capacity' or row.kind == 'escalation' %}
+            <a href="{{ row.href }}" class="list-row" {% if forloop.first %}style="background: color-mix(in srgb, var(--danger) 9%, transparent);"{% endif %}>
+                <div class="item-row">
+                    <div>
+                        <span class="ds-badge badge-sm {% if row.kind == 'escalation' %}badge-critical{% else %}badge-high{% endif %}" style="margin-bottom:6px;display:inline-block;">{{ row.kind_label }}</span>
+                        <div class="item-title">{{ row.title|truncatechars:52 }}</div>
+                        <div class="item-meta">{{ row.meta|truncatechars:84 }}</div>
+                    </div>
+                </div>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ic-sm" style="opacity:0.5;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </a>
+            {% endif %}
+            {% endfor %}
+            {% for row in attention_rows %}
+            {% if row.kind == 'stagnation' %}
+            <a href="{{ row.href }}" class="list-row">
+                <div class="item-row">
+                    <div>
+                        <span class="ds-badge badge-sm badge-high" style="margin-bottom:6px;display:inline-block;">{{ row.kind_label }}</span>
+                        <div class="item-title">{{ row.title|truncatechars:52 }}</div>
+                        <div class="item-meta">{{ row.meta|truncatechars:84 }}</div>
+                    </div>
+                </div>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ic-sm" style="opacity:0.5;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </a>
+            {% endif %}
+            {% endfor %}
+            {% for row in attention_rows %}
+            {% if row.kind == 'unmatched' %}
+            <a href="{{ row.href }}" class="list-row">
+                <div class="item-row">
+                    <div>
+                        <span class="ds-badge badge-sm badge-medium" style="margin-bottom:6px;display:inline-block;">{{ row.kind_label }}</span>
+                        <div class="item-title">{{ row.title|truncatechars:52 }}</div>
+                        <div class="item-meta">{{ row.meta|truncatechars:84 }}</div>
+                    </div>
+                </div>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ic-sm" style="opacity:0.5;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </a>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Geen aandachtspunten op dit moment.
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="dash-grid dash-grid-4">
+        <a href="?attention=escalation" class="kpi-card kpi-card-link" style="padding:18px 20px;">
             <div class="kpi-glow kpi-glow-amber"></div>
             <div class="kpi-icon kpi-icon-amber">
                 <svg class="ic-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             </div>
             <div class="kpi-value">{{ escalation_count }}</div>
             <div class="kpi-label">Escalaties</div>
-            <div class="kpi-sub kpi-sub-amber">Hoog risico vlaggen</div>
+            <div class="kpi-sub kpi-sub-amber">Hoog risico</div>
         </a>
 
-        <!-- Gem. wachttijd -->
-        <a href="?attention=capacity" class="kpi-card kpi-card-link" style="text-decoration: none;">
+        <a href="?attention=capacity" class="kpi-card kpi-card-link" style="padding:18px 20px;">
             <div class="kpi-glow kpi-glow-blue"></div>
             <div class="kpi-icon kpi-icon-blue">
                 <svg class="ic-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <div class="kpi-value">{{ avg_wait_days|floatformat:1 }}</div>
             <div class="kpi-label">Gem. wachttijd</div>
-            <div class="kpi-sub kpi-sub-blue">dagen</div>
+            <div class="kpi-sub kpi-sub-blue">Dagen</div>
+        </a>
+
+        <a href="?attention=stagnation" class="kpi-card kpi-card-link" style="padding:16px 18px;">
+            <div class="kpi-glow kpi-glow-amber"></div>
+            <div class="kpi-icon kpi-icon-amber">
+                <svg class="ic-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div class="kpi-value" style="font-size:24px;">{{ stagnation_count }}</div>
+            <div class="kpi-label">Stagnatie ({{ stagnation_days }}+)</div>
+            <div class="kpi-sub kpi-sub-amber">Dagen zonder voortgang</div>
+        </a>
+
+        <a href="?attention=unmatched" class="kpi-card kpi-card-link" style="padding:16px 18px;">
+            <div class="kpi-glow kpi-glow-purple"></div>
+            <div class="kpi-icon kpi-icon-purple">
+                <svg class="ic-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <div class="kpi-value" style="font-size:24px;">{{ cases_without_match_count }}</div>
+            <div class="kpi-label">Zonder match</div>
+            <div class="kpi-sub kpi-sub-purple">Open vraag</div>
         </a>
     </div>
 
-    <!-- Casusflow & Bottleneck -->
-    <div class="dash-grid dash-grid-2 mb-6">
+    <div class="dash-grid dash-grid-2">
         <div class="panel">
             <div class="panel-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-blue"></div>
                     <span class="panel-title">Casusflow analyse</span>
                 </div>
+                <a href="{% url 'careon:case_list' %}" class="panel-link">
+                    Open casussen
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
             </div>
             <div class="panel-inner">
                 <div class="space-y-4">
@@ -83,7 +187,7 @@
                 </div>
                 <div class="panel-divider">
                     <div class="metric-label">Grootste bottleneck</div>
-                    <div class="metric-md" style="color: #F87171;">{{ bottleneck_label }}: {{ bottleneck_value }}</div>
+                    <div class="metric-md c-red">{{ bottleneck_label }}: {{ bottleneck_value }}</div>
                 </div>
             </div>
         </div>
@@ -92,7 +196,7 @@
             <div class="panel-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-green"></div>
-                    <span class="panel-title">Aanbieders capaciteit</span>
+                    <span class="panel-title">Capaciteit versus vraag</span>
                 </div>
                 <a href="{% url 'careon:waittime_list' %}" class="panel-link">
                     Bekijk alle
@@ -100,12 +204,18 @@
                 </a>
             </div>
             <div class="panel-inner">
+                <div class="item-meta mb-3">Vraagdruk op basis van aandeel actieve configuraties per domein</div>
                 <div class="space-y-2">
                     {% for pa in practice_areas %}
                     <div>
-                        <div class="flex justify-between item-center mb-1">
+                        <div class="flex justify-between item-center mb-1 gap-2">
                             <span class="text-sm text-gray-700">{{ pa.label }}</span>
-                            <span class="text-xs text-gray-500">{{ pa.count }} config</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-gray-500">{{ pa.count }} config</span>
+                                <span class="ds-badge {% if pa.width >= 75 %}badge-critical{% elif pa.width >= 50 %}badge-high{% else %}badge-medium{% endif %}">
+                                    {% if pa.width >= 75 %}Hoge druk{% elif pa.width >= 50 %}Opbouw{% else %}Stabiel{% endif %}
+                                </span>
+                            </div>
                         </div>
                         <div class="progress-bar-bg">
                             <div class="progress-bar-fill pf-review" style="width: {{ pa.width }}%"></div>
@@ -119,53 +229,8 @@
         </div>
     </div>
 
-    <!-- Aandacht vereist -->
-    <div class="panel mb-6">
-        <div class="panel-head">
-            <div class="panel-head-inner">
-                <div class="dot dot-red"></div>
-                <span class="panel-title">Aandacht vereist</span>
-                {% if attention_filter != 'all' %}
-                <span class="badge-sm badge-red" style="margin-left: 8px;">
-                    {% if attention_filter == 'unmatched' %}Geen match{% elif attention_filter == 'stagnation' %}Stagnatie{% elif attention_filter == 'capacity' %}Capaciteit{% elif attention_filter == 'escalation' %}Escalatie{% endif %}
-                </span>
-                {% endif %}
-            </div>
-            <a href="?" class="panel-link">
-                Alle filters
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </a>
-        </div>
-        {% if attention_rows %}
-        <div>
-            {% for row in attention_rows %}
-            <a href="{{ row.href }}" class="list-row" style="text-decoration: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 22px; border-bottom: 1px solid var(--card-border); transition: background 0.15s; color: inherit;">
-                <div class="item-row">
-                    <div>
-                        <span class="badge-sm
-                            {% if row.kind == 'unmatched' %}badge-purple{% elif row.kind == 'stagnation' %}badge-yellow{% elif row.kind == 'capacity' %}badge-yellow{% elif row.kind == 'escalation' %}badge-yellow{% else %}badge-gray{% endif %}"
-                            style="margin-bottom: 6px; display: inline-block;">
-                            {{ row.kind_label }}
-                        </span>
-                        <div class="item-title">{{ row.title }}</div>
-                        <div class="item-meta">{{ row.meta }}</div>
-                    </div>
-                </div>
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px; opacity: 0.5;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </a>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Geen aandachtspunten op dit moment. Goed gedaan!
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Aanbevelingen -->
     {% if recommendations %}
-    <div class="panel mb-6">
+    <div class="panel">
         <div class="panel-head">
             <div class="panel-head-inner">
                 <div class="dot dot-blue"></div>
@@ -174,13 +239,13 @@
         </div>
         <div>
             {% for rec in recommendations %}
-            <a href="{{ rec.href }}" class="list-row" style="text-decoration: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 22px; border-bottom: 1px solid var(--card-border); transition: background 0.15s; color: inherit;">
+            <a href="{{ rec.href }}" class="list-row">
                 <div class="item-row">
-                    <div class="item-title">{{ rec.title }}</div>
-                    <div class="item-meta">{{ rec.detail }}</div>
+                    <div class="item-title">{{ rec.title|truncatechars:66 }}</div>
+                    <div class="item-meta">{{ rec.detail|truncatechars:90 }}</div>
                 </div>
-                <div style="text-align: right; flex-shrink: 0;">
-                    <div class="c-link" style="font-size: 12px; font-weight: 600;">{{ rec.action }}</div>
+                <div style="text-align:right;flex-shrink:0;">
+                    <div class="c-link" style="font-size:12px;font-weight:600;">{{ rec.action }}</div>
                 </div>
             </a>
             {% endfor %}
@@ -189,10 +254,5 @@
     {% endif %}
 
 </div>
-
-<style>
-    .kpi-card-link { cursor: pointer; transition: transform 0.2s, border-color 0.2s; }
-    .kpi-card-link:hover { transform: translateY(-2px); border-color: var(--primary); }
-</style>
 
 {% endblock %}
