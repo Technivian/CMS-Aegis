@@ -358,27 +358,53 @@ class OrganizationInvitationForm(forms.ModelForm):
 class CaseIntakeProcessForm(forms.ModelForm):
     class Meta:
         model = CaseIntakeProcess
-        fields = ['title', 'urgency', 'care_category_main', 'care_category_sub',
-                 'case_coordinator', 'start_date', 'target_completion_date', 'description']
+        fields = [
+            'title',
+            'start_date',
+            'target_completion_date',
+            'care_category_main',
+            'care_category_sub',
+            'assessment_summary',
+            'urgency',
+            'complexity',
+            'preferred_care_form',
+            'client_age_category',
+            'family_situation',
+            'school_work_status',
+            'case_coordinator',
+            'description',
+        ]
         widgets = {
             'title': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
-            'urgency': forms.Select(attrs={'class': TAILWIND_SELECT}),
-            'care_category_main': forms.Select(attrs={'class': TAILWIND_SELECT}),
-            'care_category_sub': forms.Select(attrs={'class': TAILWIND_SELECT}),
-            'case_coordinator': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'start_date': forms.DateInput(attrs={'class': TAILWIND_INPUT, 'type': 'date'}),
             'target_completion_date': forms.DateInput(attrs={'class': TAILWIND_INPUT, 'type': 'date'}),
+            'care_category_main': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'care_category_sub': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'assessment_summary': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 4}),
+            'urgency': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'complexity': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'preferred_care_form': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'client_age_category': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'family_situation': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'school_work_status': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
+            'case_coordinator': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'description': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 4}),
         }
         labels = {
             'title': 'Casustitel',
-            'urgency': 'Urgentie',
-            'care_category_main': 'Hoofdcategorie zorgvraag',
-            'care_category_sub': 'Subcategorie zorgvraag',
-            'case_coordinator': 'Casusregisseur',
             'start_date': 'Startdatum casus',
             'target_completion_date': 'Doeldatum matchbesluit',
-            'description': 'Casussamenvatting',
+            'care_category_main': 'Hoofdcategorie zorgvraag',
+            'care_category_sub': 'Subcategorie zorgvraag',
+            'assessment_summary': 'Intake samenvatting',
+            'urgency': 'Urgentie',
+            'complexity': 'Complexiteit',
+            'preferred_care_form': 'Gewenste zorgvorm',
+            'client_age_category': 'Leeftijdscategorie cliënt',
+            'family_situation': 'Gezinssituatie',
+            'school_work_status': 'School- / werkstatus',
+            'case_coordinator': 'Casusregisseur',
+            'description': 'Aanvullende opmerkingen',
         }
 
 
@@ -681,8 +707,4 @@ class RegionalConfigurationForm(forms.ModelForm):
         }
 
 
-# Temporary compatibility aliases for legacy care-oriented views.
-CareConfigurationForm = MatterForm
-MunicipalityConfigurationForm = MatterForm
-RegionalConfigurationForm = MatterForm
-CaseAssessmentForm = DueDiligenceProcessForm
+# Deprecated aliases removed: concrete form classes above are authoritative.

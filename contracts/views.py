@@ -17,6 +17,7 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.conf import settings
 from django.db import models, connection, DatabaseError
 from django.utils.dateparse import parse_date
+from django.utils.cache import patch_cache_control
 from datetime import timedelta, date
 from decimal import Decimal
 import csv
@@ -98,6 +99,20 @@ def _can_edit_intake(user, intake):
         return True
 
     return bool(intake.case_coordinator_id and intake.case_coordinator_id == user.id)
+
+
+def _disable_response_caching(response):
+    patch_cache_control(
+        response,
+        no_cache=True,
+        no_store=True,
+        must_revalidate=True,
+        private=True,
+        max_age=0,
+    )
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
 
 
 def _can_edit_assessment(user, assessment):
@@ -502,6 +517,182 @@ class ClientDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, DetailView
         ctx['configurations'] = configurations
         ctx['case_records'] = case_records
         ctx['documents'] = self.object.documents.all()[:10]
+
+        profile = getattr(self.object, 'provider_profile', None)
+        free_slots = 0
+        waiting_days = 0
+        capacity_status_label = 'Beperkt'
+        capacity_status_badge = 'badge-capacity-limited'
+        intake_timing_label = 'Intake op korte termijn'
+        operational_status_line = 'Controleer capaciteit en casusfit voor toewijzing.'
+
+        capability_rows = []
+        why_passing = []
+        constraints = []
+        risk_signals = []
+
+        case_fit_summary = {
+            'label': 'Geen casus geselecteerd',
+            'score': None,
+            'details': ['Open matching met een casuscontext om fit direct te beoordelen.'],
+        }
+        selected_intake = None
+
+        if profile:
+            free_slots = max(profile.max_capacity - profile.current_capacity, 0)
+            waiting_days = profile.average_wait_days or 0
+
+            if free_slots <= 0 and profile.max_capacity > 0:
+                capacity_status_label = 'Vol'
+                capacity_status_badge = 'badge-capacity-full'
+                intake_timing_label = 'Intake tijdelijk niet beschikbaar'
+                operational_status_line = 'Geen vrije plek; alternatieve aanbieder nodig.'
+            elif free_slots <= 2:
+                capacity_status_label = 'Beperkt'
+                capacity_status_badge = 'badge-capacity-limited'
+                intake_timing_label = 'Intake beperkt beschikbaar'
+                operational_status_line = 'Beperkte ruimte; snel beslissen aanbevolen.'
+            else:
+                capacity_status_label = 'Actief'
+                capacity_status_badge = 'badge-capacity-open'
+                intake_timing_label = 'Intake direct mogelijk'
+                operational_status_line = 'Capaciteit beschikbaar voor directe plaatsing.'
+
+            if waiting_days > 21:
+                intake_timing_label = 'Intake met wachttijd'
+
+            offered_forms = []
+            if profile.offers_outpatient:
+                offered_forms.append('Ambulant')
+            if profile.offers_day_treatment:
+                offered_forms.append('Dagbehandeling')
+            if profile.offers_residential:
+                offered_forms.append('Residentieel')
+            if profile.offers_crisis:
+                offered_forms.append('Crisisopvang')
+
+            supported_urgency = []
+            if profile.handles_low_urgency:
+                supported_urgency.append('Laag')
+            if profile.handles_medium_urgency:
+                supported_urgency.append('Middel')
+            if profile.handles_high_urgency:
+                supported_urgency.append('Hoog')
+            if profile.handles_crisis_urgency:
+                supported_urgency.append('Crisis')
+
+            complexity_support = []
+            if profile.handles_simple:
+                complexity_support.append('Enkelvoudig')
+            if profile.handles_multiple:
+                complexity_support.append('Meervoudig')
+            if profile.handles_severe:
+                complexity_support.append('Zwaar')
+
+            ages = []
+            if profile.target_age_0_4:
+                ages.append('0-4')
+            if profile.target_age_4_12:
+                ages.append('4-12')
+            if profile.target_age_12_18:
+                ages.append('12-18')
+            if profile.target_age_18_plus:
+                ages.append('18+')
+
+            capability_rows = [
+                ('Zorgvormen', ', '.join(offered_forms) if offered_forms else 'Niet gespecificeerd'),
+                ('Urgentie', ', '.join(supported_urgency) if supported_urgency else 'Niet gespecificeerd'),
+                ('Complexiteit', ', '.join(complexity_support) if complexity_support else 'Niet gespecificeerd'),
+                ('Doelgroep leeftijd', ', '.join(ages) if ages else 'Niet gespecificeerd'),
+                ('Dienstgebied', profile.service_area or self.object.city or 'Niet gespecificeerd'),
+            ]
+
+            why_passing = [
+                f'{free_slots} vrije plek(ken) beschikbaar' if free_slots > 0 else 'Capaciteit momenteel vol',
+                f'Gemiddelde wachttijd: {waiting_days} dagen',
+                'Profiel matchbaar op zorgvorm en urgentie',
+            ]
+
+            if profile.special_facilities:
+                why_passing.append('Beschikt over aanvullende faciliteiten')
+
+            if free_slots <= 0:
+                constraints.append('Geen vrije plekken beschikbaar')
+                risk_signals.append('Capaciteit is volledig benut')
+            if waiting_days > 28:
+                constraints.append('Wachttijd boven 4 weken')
+                risk_signals.append('Verhoogde wachttijd voor intake')
+            if not profile.offers_crisis:
+                constraints.append('Geen crisisopvang in profiel')
+            if not profile.special_facilities:
+                constraints.append('Speciale faciliteiten niet gespecificeerd')
+
+            intake_raw = (self.request.GET.get('intake') or '').strip()
+            if intake_raw.isdigit():
+                selected_intake = CaseIntakeProcess.objects.filter(
+                    organization=self.object.organization,
+                    pk=int(intake_raw),
+                ).first()
+
+            if selected_intake:
+                form_fit = {
+                    str(CaseIntakeProcess.CareForm.OUTPATIENT): profile.offers_outpatient,
+                    str(CaseIntakeProcess.CareForm.DAY_TREATMENT): profile.offers_day_treatment,
+                    str(CaseIntakeProcess.CareForm.RESIDENTIAL): profile.offers_residential,
+                    str(CaseIntakeProcess.CareForm.CRISIS): profile.offers_crisis,
+                }.get(str(selected_intake.preferred_care_form), False)
+                urgency_fit = {
+                    str(CaseIntakeProcess.Urgency.LOW): profile.handles_low_urgency,
+                    str(CaseIntakeProcess.Urgency.MEDIUM): profile.handles_medium_urgency,
+                    str(CaseIntakeProcess.Urgency.HIGH): profile.handles_high_urgency,
+                    str(CaseIntakeProcess.Urgency.CRISIS): profile.handles_crisis_urgency,
+                }.get(str(selected_intake.urgency), False)
+
+                category_fit = False
+                if selected_intake.care_category_main_id:
+                    category_fit = profile.target_care_categories.filter(id=selected_intake.care_category_main_id).exists()
+
+                fit_points = [form_fit, urgency_fit, category_fit]
+                fit_score = int((sum(1 for p in fit_points if p) / 3) * 100)
+                case_fit_summary = {
+                    'label': f'Casus {selected_intake.pk}: {selected_intake.title}',
+                    'score': fit_score,
+                    'details': [
+                        f'Zorgvorm fit: {'Ja' if form_fit else 'Nee'}',
+                        f'Urgentie fit: {'Ja' if urgency_fit else 'Nee'}',
+                        f'Categorie fit: {'Ja' if category_fit else 'Nee'}',
+                    ],
+                }
+            else:
+                case_fit_summary = {
+                    'label': 'Geen casus geselecteerd',
+                    'score': None,
+                    'details': [
+                        'Open deze aanbieder vanuit matching voor directe casusfit.',
+                        'Gebruik Wijs toe om terug te gaan naar casusgerichte toewijzing.',
+                    ],
+                }
+
+        track_record = {
+            'active_cases': int(self.object.total_billed),
+            'open_cases': int(self.object.outstanding_balance),
+            'active_configurations': self.object.active_matters_count,
+        }
+
+        ctx['provider_profile'] = profile
+        ctx['provider_free_slots'] = free_slots
+        ctx['provider_wait_days'] = waiting_days
+        ctx['provider_capacity_status_label'] = capacity_status_label
+        ctx['provider_capacity_status_badge'] = capacity_status_badge
+        ctx['provider_intake_timing_label'] = intake_timing_label
+        ctx['provider_operational_status_line'] = operational_status_line
+        ctx['provider_capability_rows'] = capability_rows
+        ctx['provider_why_passing'] = why_passing
+        ctx['provider_constraints'] = constraints
+        ctx['provider_risk_signals'] = risk_signals
+        ctx['selected_intake'] = selected_intake
+        ctx['case_fit_summary'] = case_fit_summary
+        ctx['provider_track_record'] = track_record
         return ctx
 
 
@@ -585,7 +776,7 @@ _SCOPE_QUERY_ALIASES = {
 
 class CareConfigurationDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, DetailView):
     model = CareConfiguration
-    template_name = 'contracts/matter_detail.html'
+    template_name = 'contracts/configuration_detail.html'
     context_object_name = 'configuration'
 
     def get_queryset(self):
@@ -609,7 +800,7 @@ class CareConfigurationDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin,
 class CareConfigurationCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView):
     model = CareConfiguration
     form_class = CareConfigurationForm
-    template_name = 'contracts/matter_form.html'
+    template_name = 'contracts/configuration_form.html'
 
     def get_initial(self):
         initial = super().get_initial()
@@ -655,7 +846,7 @@ class CareConfigurationCreateView(TenantAssignCreateMixin, LoginRequiredMixin, C
 class CareConfigurationUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
     model = CareConfiguration
     form_class = CareConfigurationForm
-    template_name = 'contracts/matter_form.html'
+    template_name = 'contracts/configuration_form.html'
 
     def get_success_url(self):
         return reverse('careon:configuration_detail', kwargs={'pk': self.object.pk})
@@ -3220,6 +3411,145 @@ class CaseIntakeDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, Detail
         ready_for_placement = all(item['ok'] for item in placement_requirements)
         placement_missing = [item['label'] for item in placement_requirements if not item['ok']]
 
+        flow_stage_map = {
+            CaseIntakeProcess.ProcessStatus.INTAKE: 'aanvraag',
+            CaseIntakeProcess.ProcessStatus.ASSESSMENT: 'beoordeling',
+            CaseIntakeProcess.ProcessStatus.MATCHING: 'matching',
+            CaseIntakeProcess.ProcessStatus.DECISION: 'intake_aanbieder',
+            CaseIntakeProcess.ProcessStatus.COMPLETED: 'plaatsing',
+            CaseIntakeProcess.ProcessStatus.ON_HOLD: 'aanvraag',
+        }
+        active_flow_stage = flow_stage_map.get(intake.status, 'aanvraag')
+        flow_order = ['aanvraag', 'beoordeling', 'matching', 'intake_aanbieder', 'plaatsing']
+        flow_labels = {
+            'aanvraag': 'Aanvraag',
+            'beoordeling': 'Beoordeling',
+            'matching': 'Matching',
+            'intake_aanbieder': 'Intake aanbieder',
+            'plaatsing': 'Plaatsing',
+        }
+        active_index = flow_order.index(active_flow_stage)
+        flow_rail = []
+        for idx, key in enumerate(flow_order):
+            flow_rail.append(
+                {
+                    'key': key,
+                    'label': flow_labels[key],
+                    'active': key == active_flow_stage,
+                    'completed': idx < active_index,
+                }
+            )
+
+        if not can_edit_case:
+            blocker_label = 'Geen bewerkrechten voor deze casus'
+        elif not ready_for_matching:
+            blocker_label = f"Niet gereed voor matching: {', '.join(matching_missing)}"
+        elif not ready_for_placement:
+            blocker_label = f"Niet gereed voor plaatsing: {', '.join(placement_missing)}"
+        else:
+            blocker_label = 'Geen blokkades; casus kan door naar de volgende stap'
+
+        progress_label = (
+            f"{open_tasks.count()} open taken · {open_signals.count()} open signalen"
+            if (open_tasks.count() or open_signals.count())
+            else 'Geen open taken of signalen'
+        )
+
+        def _form_match(profile, current_intake):
+            return {
+                CaseIntakeProcess.CareForm.OUTPATIENT: profile.offers_outpatient,
+                CaseIntakeProcess.CareForm.DAY_TREATMENT: profile.offers_day_treatment,
+                CaseIntakeProcess.CareForm.RESIDENTIAL: profile.offers_residential,
+                CaseIntakeProcess.CareForm.CRISIS: profile.offers_crisis,
+            }.get(current_intake.preferred_care_form, False)
+
+        def _urgency_match(profile, current_intake):
+            return {
+                CaseIntakeProcess.Urgency.LOW: profile.handles_low_urgency,
+                CaseIntakeProcess.Urgency.MEDIUM: profile.handles_medium_urgency,
+                CaseIntakeProcess.Urgency.HIGH: profile.handles_high_urgency,
+                CaseIntakeProcess.Urgency.CRISIS: profile.handles_crisis_urgency,
+            }.get(current_intake.urgency, False)
+
+        matching_preview_candidates = []
+        if ready_for_matching:
+            provider_profiles = (
+                ProviderProfile.objects.filter(client__organization=self.get_organization(), client__status='ACTIVE')
+                .select_related('client')
+                .prefetch_related('target_care_categories')
+            )
+
+            for profile in provider_profiles:
+                score = 0
+                reasons = []
+
+                category_match = bool(
+                    intake.care_category_main_id
+                    and profile.target_care_categories.filter(id=intake.care_category_main_id).exists()
+                )
+                if category_match:
+                    score += 40
+                    reasons.append('Categorie match')
+
+                urgency_match = _urgency_match(profile, intake)
+                if urgency_match:
+                    score += 20
+                    reasons.append('Urgentie match')
+
+                care_form_match = _form_match(profile, intake)
+                if care_form_match:
+                    score += 20
+                    reasons.append('Zorgvorm match')
+
+                free_slots = max(profile.max_capacity - profile.current_capacity, 0)
+                if free_slots > 0:
+                    score += min(free_slots * 4, 20)
+                    reasons.append(f'{free_slots} vrije plekken')
+
+                if profile.average_wait_days <= 14:
+                    score += 10
+                    reasons.append('Korte wachttijd')
+                elif profile.average_wait_days <= 28:
+                    score += 5
+                    reasons.append('Acceptabele wachttijd')
+
+                matching_preview_candidates.append(
+                    {
+                        'provider_name': profile.client.name,
+                        'fit_score': min(score, 100),
+                        'capacity': f'{free_slots} plekken beschikbaar' if free_slots > 0 else 'Beperkte capaciteit',
+                        'reason': reasons[0] if reasons else 'Handmatige afweging nodig',
+                        'cta_href': matching_href,
+                        'cta_label': 'Open matching',
+                    }
+                )
+
+            matching_preview_candidates = sorted(
+                matching_preview_candidates,
+                key=lambda row: row['fit_score'],
+                reverse=True,
+            )[:3]
+
+        selected_tab = (self.request.GET.get('tab') or 'tijdlijn').lower()
+        tab_options = {'tijdlijn', 'documenten', 'taken', 'signalen', 'plaatsing'}
+        if selected_tab not in tab_options:
+            selected_tab = 'tijdlijn'
+
+        anonymized_title = intake.title
+        if len(anonymized_title) > 42:
+            anonymized_title = f'{anonymized_title[:39]}...'
+
+        region_municipality_label = case_record.service_region if case_record and case_record.service_region else 'Niet ingevuld'
+
+        if assessment and assessment.assessment_status == CaseAssessment.AssessmentStatus.APPROVED_FOR_MATCHING:
+            assessment_interpretation = 'Beoordeling staat op gereed voor matching.'
+        elif assessment and assessment.assessment_status == CaseAssessment.AssessmentStatus.NEEDS_INFO:
+            assessment_interpretation = 'Aanvullende informatie nodig voordat matching kan starten.'
+        elif assessment:
+            assessment_interpretation = 'Beoordeling loopt; werk status bij om volgende stap vrij te maken.'
+        else:
+            assessment_interpretation = 'Start de beoordeling om door te gaan naar matching.'
+
         can_create_case_document = bool(case_record) and can_edit_case
         case_document_href = reverse('careon:case_document_create', kwargs={'pk': intake.pk}) if can_create_case_document else reverse('careon:case_update', kwargs={'pk': intake.pk})
         if can_create_case_document:
@@ -3263,6 +3593,15 @@ class CaseIntakeDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, Detail
             'placement_requirements': placement_requirements,
             'ready_for_placement': ready_for_placement,
             'placement_missing': placement_missing,
+            'flow_rail': flow_rail,
+            'active_flow_stage': active_flow_stage,
+            'blocker_label': blocker_label,
+            'progress_label': progress_label,
+            'matching_preview_candidates': matching_preview_candidates,
+            'selected_tab': selected_tab,
+            'anonymized_title': anonymized_title,
+            'region_municipality_label': region_municipality_label,
+            'assessment_interpretation': assessment_interpretation,
         })
 
         return ctx
@@ -3273,6 +3612,11 @@ class CaseIntakeCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateVi
     model = CaseIntakeProcess
     form_class = CaseIntakeProcessForm
     template_name = 'contracts/intake_form.html'
+
+    def render_to_response(self, context, **response_kwargs):
+        response = super().render_to_response(context, **response_kwargs)
+        response['X-Careon-Template-Version'] = 'intake_form'
+        return _disable_response_caching(response)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -3302,6 +3646,11 @@ class CaseIntakeUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, Update
     model = CaseIntakeProcess
     form_class = CaseIntakeProcessForm
     template_name = 'contracts/intake_form.html'
+
+    def render_to_response(self, context, **response_kwargs):
+        response = super().render_to_response(context, **response_kwargs)
+        response['X-Careon-Template-Version'] = 'intake_form'
+        return _disable_response_caching(response)
 
     def get_queryset(self):
         org = self.get_organization()
