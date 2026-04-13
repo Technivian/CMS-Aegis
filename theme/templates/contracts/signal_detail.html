@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}{{ signal }} - Signalen - Zorgregie{% endblock %}
 {% block content %}
+<div class="page-wrap page-stack">
 
-<div class="mb-6">
-    <nav style="font-size: 13px; color: var(--text-secondary);">
+<nav style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
         <a href="{% url 'dashboard' %}" style="color: var(--primary); text-decoration: none;">Dashboard</a>
         <span> / </span>
         <a href="{% url 'careon:signal_list' %}" style="color: var(--primary); text-decoration: none;">Signalen</a>
@@ -104,4 +104,5 @@
     </div>
 </div>
 
+</div>
 {% endblock %}

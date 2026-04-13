@@ -7,69 +7,110 @@
 {% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-lg border border-gray-200 p-6">
-        <form method="post" class="space-y-6">
+<div class="page-wrap page-stack" style="max-width: 1100px;">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">{% if object %}Budget bewerken{% else %}Nieuw budget aanmaken{% endif %}</h1>
+        </div>
+    </div>
+    <div class="ds-card action-card">
+        <form method="post" class="page-stack">
             {% csrf_token %}
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="form-grid-2">
                 <div>
-                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Budgetnaam
-                    </label>
-                    {{ form.name }}
+                    <label for="{{ form.scope_type.id_for_label }}" class="field-label">{{ form.scope_type.label }}</label>
+                    {{ form.scope_type }}
+                    {% if form.scope_type.errors %}<p style="color:#f87171;font-size:12px;margin-top:4px;">{{ form.scope_type.errors.0 }}</p>{% endif %}
                 </div>
 
                 <div>
-                    <label for="{{ form.department.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Afdeling
-                    </label>
-                    {{ form.department }}
+                    <label for="{{ form.scope_name.id_for_label }}" class="field-label">{{ form.scope_name.label }}</label>
+                    {{ form.scope_name }}
+                    {% if form.scope_name.errors %}<p style="color:#f87171;font-size:12px;margin-top:4px;">{{ form.scope_name.errors.0 }}</p>{% endif %}
                 </div>
 
                 <div>
-                    <label for="{{ form.year.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Jaar
-                    </label>
+                    <label for="{{ form.target_group.id_for_label }}" class="field-label">{{ form.target_group.label }}</label>
+                    {{ form.target_group }}
+                    {% if form.target_group.errors %}<p style="color:#f87171;font-size:12px;margin-top:4px;">{{ form.target_group.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.care_type.id_for_label }}" class="field-label">{{ form.care_type.label }}</label>
+                    {{ form.care_type }}
+                    {% if form.care_type.errors %}<p style="color:#f87171;font-size:12px;margin-top:4px;">{{ form.care_type.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.year.id_for_label }}" class="field-label">{{ form.year.label }}</label>
                     {{ form.year }}
+                    {% if form.year.errors %}<p style="color:#f87171;font-size:12px;margin-top:4px;">{{ form.year.errors.0 }}</p>{% endif %}
                 </div>
 
                 <div>
-                    <label for="{{ form.quarter.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Kwartaal
-                    </label>
-                    {{ form.quarter }}
+                    <label for="{{ form.allocated_amount.id_for_label }}" class="field-label">{{ form.allocated_amount.label }}</label>
+                    {{ form.allocated_amount }}
+                    {% if form.allocated_amount.errors %}<p style="color:#f87171;font-size:12px;margin-top:4px;">{{ form.allocated_amount.errors.0 }}</p>{% endif %}
                 </div>
 
-                <div>
-                    <label for="{{ form.total_budget.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Totaal budget ($)
-                    </label>
-                    {{ form.total_budget }}
+                <div style="grid-column:1 / -1;">
+                    <label for="{{ form.linked_providers.id_for_label }}" class="field-label">{{ form.linked_providers.label }}</label>
+                    {{ form.linked_providers }}
+                    {% if form.linked_providers.errors %}<p style="color:#f87171;font-size:12px;margin-top:4px;">{{ form.linked_providers.errors.0 }}</p>{% endif %}
                 </div>
 
-                <div>
-                    <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Budgetstatus
-                    </label>
-                    {{ form.status }}
+                <div style="grid-column:1 / -1;">
+                    <label for="{{ form.linked_cases.id_for_label }}" class="field-label">{{ form.linked_cases.label }}</label>
+                    {{ form.linked_cases }}
+                    {% if form.linked_cases.errors %}<p style="color:#f87171;font-size:12px;margin-top:4px;">{{ form.linked_cases.errors.0 }}</p>{% endif %}
                 </div>
 
-                <div>
-                    <label for="{{ form.owner.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Budgeteigenaar
-                    </label>
-                    {{ form.owner }}
+                <div style="grid-column:1 / -1;">
+                    <label for="{{ form.linked_placements.id_for_label }}" class="field-label">{{ form.linked_placements.label }}</label>
+                    {{ form.linked_placements }}
+                    {% if form.linked_placements.errors %}<p style="color:#f87171;font-size:12px;margin-top:4px;">{{ form.linked_placements.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div style="grid-column:1 / -1;">
+                    <label for="{{ form.description.id_for_label }}" class="field-label">{{ form.description.label }}</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}<p style="color:#f87171;font-size:12px;margin-top:4px;">{{ form.description.errors.0 }}</p>{% endif %}
                 </div>
             </div>
 
-            <div class="flex justify-end space-x-3">
-                <a href="{% url 'careon:budget_list' %}" class="btn-outline">Annuleren</a>
-                <button type="submit" class="btn-primary">
+            <div class="form-actions">
+                <a href="{% url 'careon:budget_list' %}" class="btn btn-secondary">Annuleren</a>
+                <button type="submit" class="btn btn-primary">
                     {% if object %}Bijwerken{% else %}Aanmaken{% endif %} budget
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<style>
+    .form-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    #id_linked_providers,
+    #id_linked_cases,
+    #id_linked_placements {
+        min-height: 128px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+    @media (max-width: 820px) {
+        .form-grid-2 { grid-template-columns: 1fr; }
+    }
+</style>
 {% endblock %}

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{{ configuration.configuration_id }} - Careon{% endblock %}
+{% block content %}
+<div class="page-wrap page-stack">
+
+<div class="page-header">
+    <div style="flex:1;">
+        <h1 class="page-title">{{ configuration.title }}</h1>
+        <span class="page-subtitle">{{ configuration.configuration_id }} &middot; {{ configuration.care_domains_display }} &middot; {{ configuration.client.name }}</span>
+    </div>
+    <a href="{% url 'careon:configuration_update' configuration.pk %}" class="btn btn-secondary">Bewerken</a>
+</div>
+
+<div class="dash-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="ds-card action-card">
+        <h3 class="panel-title" style="margin-bottom:12px;">Details</h3>
+        <div class="field-group" style="gap:6px;">
+            <div style="font-size:13px;"><span style="color:var(--text-muted);">Status:</span> <span class="badge-sm {% if configuration.status == 'ACTIVE' %}badge-green{% else %}badge-gray{% endif %}">{{ configuration.get_status_display }}</span></div>
+            <div style="font-size:13px;"><span style="color:var(--text-muted);">Geopend:</span> {{ configuration.open_date|date:"d M Y" }}</div>
+            {% if configuration.statute_of_limitations %}<div style="font-size:13px;"><span style="color:var(--text-muted);">Streefdatum:</span> <span style="color:#ef4444;font-weight:600;">{{ configuration.statute_of_limitations|date:"d M Y" }}</span></div>{% endif %}
+        </div>
+    </div>
+    <div class="ds-card action-card">
+        <h3 class="panel-title" style="margin-bottom:12px;">Team</h3>
+        <div class="field-group" style="gap:6px;">
+            <div style="font-size:13px;"><span style="color:var(--text-muted);">Verantwoordelijke:</span> {{ configuration.responsible_care_coordinator.get_full_name|default:"Niet toegewezen" }}</div>
+            <div style="font-size:13px;"><span style="color:var(--text-muted);">Initiator:</span> {{ configuration.intake_creator.get_full_name|default:"—" }}</div>
+        </div>
+    </div>
+    <div class="ds-card action-card">
+        <h3 class="panel-title" style="margin-bottom:12px;">Voortgangsoverzicht</h3>
+        <div class="field-group" style="gap:6px;">
+            <div style="font-size:13px;"><span style="color:var(--text-muted);">Actieve casussen:</span> {{ configuration.case_total }}</div>
+            <div style="font-size:13px;"><span style="color:var(--text-muted);">Gekoppelde aanbieders:</span> {{ configuration.provider_total }}</div>
+        </div>
+    </div>
+</div>
+
+{% if configuration.case_number %}
+<div class="ds-card action-card">
+    <h3 class="panel-title" style="margin-bottom:12px;">Casusinfo</h3>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:13px;">
+        {% if configuration.case_number %}<div><span style="color:var(--text-muted);">Externe dossiercode:</span> {{ configuration.case_number }}</div>{% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+    <div class="ds-card action-card" style="padding:0;">
+        <div class="panel-head"><h2 class="panel-title">Recente activiteiten</h2></div>
+        {% for entry in time_entries %}
+        <div style="padding:12px 20px;border-bottom:1px solid var(--border);">
+            <div style="font-size:13px;color:var(--text-primary);">{{ entry.description|truncatechars:50 }}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">{{ entry.date|date:"d M" }} &middot; {{ entry.hours }}h &middot; {{ entry.user.get_full_name|default:entry.user.username }}</div>
+        </div>
+        {% empty %}
+        <div style="padding:32px;text-align:center;color:var(--text-muted);font-size:13px;">Nog geen activiteiten geregistreerd.</div>
+        {% endfor %}
+    </div>
+    <div class="ds-card action-card" style="padding:0;">
+        <div class="panel-head"><h2 class="panel-title">Opvolgtaken</h2></div>
+        {% for dl in deadlines %}
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);">
+            <div>
+                <div style="font-size:13px;color:var(--text-primary);">{{ dl.title }}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">{{ dl.due_date|date:"d M Y" }}</div>
+            </div>
+            <span class="badge-sm {% if dl.is_overdue %}badge-red{% else %}badge-blue{% endif %}">{% if dl.is_overdue %}Achterstallig{% else %}{{ dl.days_remaining }}d{% endif %}</span>
+        </div>
+        {% empty %}
+        <div style="padding:32px;text-align:center;color:var(--text-muted);font-size:13px;">Geen open opvolgtaken.</div>
+        {% endfor %}
+    </div>
+</div>
+
+</div>
+{% endblock %}

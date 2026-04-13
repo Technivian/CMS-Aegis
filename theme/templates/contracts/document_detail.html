@@ -1,56 +1,71 @@
 {% extends "base.html" %}
 {% block title %}{{ document.title }} - Careon{% endblock %}
 {% block content %}
-<div class="max-w-3xl">
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">{{ document.title }}</h1>
-            <p class="text-sm text-gray-500">Versie {{ document.version }} &middot; {{ document.get_document_type_display }} &middot; {{ document.get_status_display }}</p>
-        </div>
-        <div class="flex gap-2">
-            {% if document.file %}<a href="{{ document.file.url }}" class="px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700" download>Downloaden</a>{% endif %}
-            {% if can_edit_document %}
-            <a href="{% url 'careon:document_update' document.pk %}" class="px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200">Bewerken</a>
-            {% else %}
-            <span class="px-3 py-2 bg-gray-100 text-gray-400 text-sm rounded-lg">Alleen-lezen</span>
-            {% endif %}
-        </div>
+<div class="page-wrap page-stack">
+
+<div class="page-header">
+    <div style="flex:1;">
+        <h1 class="page-title">{{ document.title }}</h1>
+        <span class="page-subtitle">Versie {{ document.version }} &middot; {{ document.get_document_type_display }} &middot; {{ document.get_status_display }}</span>
     </div>
-    <div class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-        <div class="grid grid-cols-2 gap-4 text-sm">
-            {% if document.matter %}<div><span class="text-gray-500">Configuratie:</span> {{ document.matter }}</div>{% endif %}
-            {% if document.client %}<div><span class="text-gray-500">Aanbieder:</span> {{ document.client }}</div>{% endif %}
-            {% if document.contract %}<div><span class="text-gray-500">Casus:</span> {{ document.contract }}</div>{% endif %}
-            <div><span class="text-gray-500">Geupload door:</span> {{ document.uploaded_by.get_full_name|default:"—" }}</div>
-            <div><span class="text-gray-500">Aangemaakt:</span> {{ document.created_at|date:"M d, Y H:i" }}</div>
-            {% if document.file_size %}<div><span class="text-gray-500">Grootte:</span> {{ document.file_size|filesizeformat }}</div>{% endif %}
-            {% if document.tags %}<div><span class="text-gray-500">Tags:</span> {{ document.tags }}</div>{% endif %}
-        </div>
-        {% if document.is_privileged or document.is_confidential %}
-        <div class="mt-3 flex gap-2">
-            {% if document.is_privileged %}<span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Vertrouwelijk voor aanbieder</span>{% endif %}
-            {% if document.is_confidential %}<span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">Vertrouwelijk</span>{% endif %}
-        </div>
+    <div style="display:flex;gap:8px;flex-shrink:0;">
+        {% if document.file %}<a href="{{ document.file.url }}" class="btn btn-primary" download>Downloaden</a>{% endif %}
+        {% if can_edit_document %}
+        <a href="{% url 'careon:document_update' document.pk %}" class="btn btn-secondary">Bewerken</a>
+        {% else %}
+        <span class="btn btn-secondary" style="opacity:0.5;pointer-events:none;">Alleen-lezen</span>
         {% endif %}
     </div>
-    {% if document.description %}
-    <div class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-        <h3 class="text-sm font-semibold text-gray-500 uppercase mb-2">Beschrijving</h3>
-        <p class="text-sm text-gray-700">{{ document.description }}</p>
+</div>
+
+<div class="ds-card action-card">
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;font-size:13px;">
+        {% if document.matter %}<div><span style="color:var(--text-muted);">Configuratie:</span> {{ document.matter }}</div>{% endif %}
+        {% if document.client %}<div><span style="color:var(--text-muted);">Aanbieder:</span> {{ document.client }}</div>{% endif %}
+        {% if document.contract %}<div><span style="color:var(--text-muted);">Casus:</span> {{ document.contract }}</div>{% endif %}
+        <div><span style="color:var(--text-muted);">Geüpload door:</span> {{ document.uploaded_by.get_full_name|default:"—" }}</div>
+        <div><span style="color:var(--text-muted);">Aangemaakt:</span> {{ document.created_at|date:"d M Y H:i" }}</div>
+        {% if document.file_size %}<div><span style="color:var(--text-muted);">Grootte:</span> {{ document.file_size|filesizeformat }}</div>{% endif %}
+        {% if document.tags %}<div><span style="color:var(--text-muted);">Tags:</span> {{ document.tags }}</div>{% endif %}
+    </div>
+    {% if document.is_privileged or document.is_confidential %}
+    <div style="margin-top:12px;display:flex;gap:8px;">
+        {% if document.is_privileged %}<span class="badge-sm badge-yellow">Vertrouwelijk voor aanbieder</span>{% endif %}
+        {% if document.is_confidential %}<span class="badge-sm badge-red">Vertrouwelijk</span>{% endif %}
     </div>
     {% endif %}
-    {% if versions %}
-    <div class="bg-white rounded-xl border border-gray-200">
-        <div class="px-5 py-4 border-b border-gray-100"><h2 class="font-semibold text-gray-900">Versiegeschiedenis</h2></div>
-        <div class="divide-y divide-gray-100">
-            {% for v in versions %}
-            <div class="px-5 py-3 flex items-center justify-between">
-                <div class="text-sm">v{{ v.version }} - {{ v.created_at|date:"M d, Y" }}</div>
-                {% if v.file %}<a href="{{ v.file.url }}" class="text-xs text-blue-600" download>Download</a>{% endif %}
-            </div>
-            {% endfor %}
-        </div>
+</div>
+
+{% if document.description %}
+<div class="ds-card action-card">
+    <h3 style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px;">Beschrijving</h3>
+    <p style="font-size:13px;color:var(--text-primary);">{{ document.description }}</p>
+</div>
+{% endif %}
+
+{% if versions %}
+<div class="ds-card table-card">
+    <div class="panel-head"><h2 class="panel-title">Versiegeschiedenis</h2></div>
+    <div class="ds-table-wrap">
+        <table class="ds-table">
+            <thead><tr>
+                <th>Versie</th>
+                <th>Datum</th>
+                <th></th>
+            </tr></thead>
+            <tbody>
+                {% for v in versions %}
+                <tr>
+                    <td>v{{ v.version }}</td>
+                    <td>{{ v.created_at|date:"d M Y" }}</td>
+                    <td>{% if v.file %}<a href="{{ v.file.url }}" class="btn btn-ghost" download>Download</a>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    {% endif %}
+</div>
+{% endif %}
+
 </div>
 {% endblock %}

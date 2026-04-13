@@ -1,80 +1,83 @@
 {% extends "base.html" %}
 {% block title %}Zoeken{% if q %}: {{ q }}{% endif %} - Careon{% endblock %}
 {% block content %}
-<div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Zoeken</h1>
-    <p class="text-sm text-gray-500 mt-1">Zoek in casussen, aanbieders, configuraties en dossierdocumenten</p>
-</div>
-<form method="get" class="mb-8">
-    <div class="flex gap-2">
-        <input type="text" name="q" value="{{ q }}" placeholder="Zoek casussen, aanbieders, configuraties en dossierdocumenten..." autofocus
-            class="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-        <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700">Zoeken</button>
+<div class="page-wrap page-stack">
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Zoeken</h1>
+        <span class="page-subtitle">Zoek in casussen, aanbieders, configuraties en dossierdocumenten</span>
     </div>
+</div>
+
+<form method="get" class="ds-card action-card" style="display:flex;gap:8px;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Zoek casussen, aanbieders, configuraties..." autofocus style="flex:1;">
+    <button type="submit" class="btn btn-primary">Zoeken</button>
 </form>
+
 {% if q %}
+
 {% if results.case_records %}
-<div class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-3">Casussen ({{ results.case_records|length }})</h2>
-    <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-        {% for c in results.case_records %}
-        <a href="{% url 'careon:case_detail' c.pk %}" class="block px-5 py-3 hover:bg-gray-50">
-            <p class="text-sm font-medium text-blue-600">{{ c.title }}</p>
-            <p class="text-xs text-gray-500 mt-1">{{ c.get_case_phase_display|default:c.get_status_display }} &middot; {{ c.preferred_provider|default:"Geen voorkeursaanbieder" }}</p>
-        </a>
-        {% endfor %}
-    </div>
+<div class="ds-card action-card" style="padding:0;">
+    <div class="panel-head"><h2 class="panel-title">Casussen ({{ results.case_records|length }})</h2></div>
+    {% for c in results.case_records %}
+    <a href="{% url 'careon:case_detail' c.pk %}" style="display:block;padding:12px 20px;border-bottom:1px solid var(--border);text-decoration:none;">
+        <div style="font-size:14px;font-weight:600;color:var(--primary);">{{ c.title }}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">{{ c.get_case_phase_display|default:c.get_status_display }} &middot; {{ c.preferred_provider|default:"Geen voorkeursaanbieder" }}</div>
+    </a>
+    {% endfor %}
 </div>
 {% endif %}
+
 {% if results.clients %}
-<div class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-3">Aanbieders ({{ results.clients|length }})</h2>
-    <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-        {% for c in results.clients %}
-        <a href="{% url 'careon:client_detail' c.pk %}" class="block px-5 py-3 hover:bg-gray-50">
-            <p class="text-sm font-medium text-blue-600">{{ c.name }}</p>
-            <p class="text-xs text-gray-500 mt-1">{{ c.get_client_type_display }} &middot; {{ c.industry|default:"" }}</p>
-        </a>
-        {% endfor %}
-    </div>
+<div class="ds-card action-card" style="padding:0;">
+    <div class="panel-head"><h2 class="panel-title">Aanbieders ({{ results.clients|length }})</h2></div>
+    {% for c in results.clients %}
+    <a href="{% url 'careon:client_detail' c.pk %}" style="display:block;padding:12px 20px;border-bottom:1px solid var(--border);text-decoration:none;">
+        <div style="font-size:14px;font-weight:600;color:var(--primary);">{{ c.name }}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">{{ c.get_client_type_display }} &middot; {{ c.industry|default:"" }}</div>
+    </a>
+    {% endfor %}
 </div>
 {% endif %}
+
 {% if results.configurations %}
-<div class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-3">Configuraties ({{ results.configurations|length }})</h2>
-    <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-        {% for m in results.configurations %}
-        <a href="{% url 'careon:configuration_detail' m.pk %}" class="block px-5 py-3 hover:bg-gray-50">
-            <p class="text-sm font-medium text-blue-600">{{ m.configuration_id }} - {{ m.title }}</p>
-            <p class="text-xs text-gray-500 mt-1">{{ m.care_domains_display }} &middot; {{ m.get_status_display }}</p>
-        </a>
-        {% endfor %}
-    </div>
+<div class="ds-card action-card" style="padding:0;">
+    <div class="panel-head"><h2 class="panel-title">Configuraties ({{ results.configurations|length }})</h2></div>
+    {% for m in results.configurations %}
+    <a href="{% url 'careon:configuration_detail' m.pk %}" style="display:block;padding:12px 20px;border-bottom:1px solid var(--border);text-decoration:none;">
+        <div style="font-size:14px;font-weight:600;color:var(--primary);">{{ m.configuration_id }} - {{ m.title }}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">{{ m.care_domains_display }} &middot; {{ m.get_status_display }}</div>
+    </a>
+    {% endfor %}
 </div>
 {% endif %}
+
 {% if results.documents %}
-<div class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-3">Documenten ({{ results.documents|length }})</h2>
-    <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-        {% for d in results.documents %}
-        <a href="{% url 'careon:document_detail' d.pk %}" class="block px-5 py-3 hover:bg-gray-50">
-            <p class="text-sm font-medium text-blue-600">{{ d.title }}</p>
-            <p class="text-xs text-gray-500 mt-1">{{ d.get_document_type_display }} &middot; {{ d.get_status_display }}</p>
-        </a>
-        {% endfor %}
-    </div>
+<div class="ds-card action-card" style="padding:0;">
+    <div class="panel-head"><h2 class="panel-title">Documenten ({{ results.documents|length }})</h2></div>
+    {% for d in results.documents %}
+    <a href="{% url 'careon:document_detail' d.pk %}" style="display:block;padding:12px 20px;border-bottom:1px solid var(--border);text-decoration:none;">
+        <div style="font-size:14px;font-weight:600;color:var(--primary);">{{ d.title }}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">{{ d.get_document_type_display }} &middot; {{ d.get_status_display }}</div>
+    </a>
+    {% endfor %}
 </div>
 {% endif %}
+
 {% if not results.case_records and not results.clients and not results.configurations and not results.documents %}
-<div class="text-center py-12">
-    <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-    <p class="text-sm text-gray-500">Geen resultaten gevonden voor "{{ q }}"</p>
+<div class="ds-card action-card" style="text-align:center;padding:48px;">
+    <svg style="width:40px;height:40px;margin:0 auto 12px;color:var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    <p style="font-size:14px;color:var(--text-muted);">Geen resultaten gevonden voor "{{ q }}"</p>
 </div>
 {% endif %}
+
 {% else %}
-<div class="text-center py-12">
-    <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-    <p class="text-sm text-gray-500">Voer een zoekterm in om te beginnen</p>
+<div class="ds-card action-card" style="text-align:center;padding:48px;">
+    <svg style="width:40px;height:40px;margin:0 auto 12px;color:var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    <p style="font-size:14px;color:var(--text-muted);">Voer een zoekterm in om te beginnen</p>
 </div>
 {% endif %}
+
+</div>
 {% endblock %}

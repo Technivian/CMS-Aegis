@@ -84,8 +84,8 @@
                         <td class="td-date">{{ intake.created|date:"d-m-Y" }}</td>
                         <td class="td-right">
                             <div class="case-actions">
-                                <a href="{% url 'careon:case_detail' intake.pk %}" class="btn btn-ghost" style="min-height:36px;">Bekijken</a>
-                                <a href="{% url 'careon:case_update' intake.pk %}" class="btn btn-ghost" style="min-height:36px;">Bewerken</a>
+                                <a href="{% url 'careon:case_detail' intake.pk %}" class="btn btn-ghost">Bekijken</a>
+                                <a href="{% url 'careon:case_update' intake.pk %}" class="btn btn-ghost">Bewerken</a>
                             </div>
                         </td>
                     </tr>
@@ -100,12 +100,12 @@
         <span class="c-secondary">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
         <div class="feed-actions">
             {% if page_obj.has_previous %}
-            <a href="?page=1" class="btn btn-secondary" style="min-height:36px;">Eerste</a>
-            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary" style="min-height:36px;">Vorige</a>
+            <a href="?page=1" class="btn btn-secondary">Eerste</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary">Vorige</a>
             {% endif %}
             {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary" style="min-height:36px;">Volgende</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-secondary" style="min-height:36px;">Laatste</a>
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary">Volgende</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-secondary">Laatste</a>
             {% endif %}
         </div>
     </div>

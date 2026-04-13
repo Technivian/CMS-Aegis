@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ page_title }} - Zorgregie{% endblock %}
 {% block content %}
-
-<div class="mb-6">
+<div class="page-wrap page-stack" style="max-width: 980px;">
     <nav style="font-size: 13px; color: var(--text-secondary);">
         <a href="{% url 'dashboard' %}" style="color: var(--primary); text-decoration: none;">Dashboard</a>
         <span> / </span>
@@ -17,46 +16,58 @@
         <span style="color: var(--text-muted);">Nieuw</span>
         {% endif %}
     </nav>
-</div>
 
-<div class="max-w-2xl">
-    <h1 class="page-title mb-6">{{ page_title }}</h1>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">{{ page_title }}</h1>
+        </div>
+    </div>
 
-    <form method="post" class="space-y-6">
+    <form method="post" class="page-stack">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
-        <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div class="error-state">
             {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
         </div>
         {% endif %}
 
-        <div class="panel">
+        <div class="ds-card action-card field-group">
             <div class="panel-head">
                 <div class="panel-head-inner"><div class="dot dot-red"></div><span class="panel-title">Signaalbeschrijving</span></div>
             </div>
-            <div class="panel-inner space-y-4">
+            <div class="page-stack">
                 {% for field in form %}
                 <div>
-                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    <label for="{{ field.id_for_label }}" class="field-label">
                         {{ field.label }}{% if field.field.required %} *{% endif %}
                     </label>
                     {{ field }}
-                    {% if field.errors %}<p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>{% endif %}
+                    {% if field.errors %}<p style="color:#f87171;font-size:12px;margin-top:4px;">{{ field.errors.0 }}</p>{% endif %}
                 </div>
                 {% endfor %}
             </div>
         </div>
 
-        <div class="flex gap-3">
-            <button type="submit" class="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
                 {% if is_edit %}Opslaan{% else %}Signaal aanmaken{% endif %}
             </button>
-            <a href="{% url 'careon:signal_list' %}" class="px-5 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50">
+            <a href="{% url 'careon:signal_list' %}" class="btn btn-secondary">
                 Annuleren
             </a>
         </div>
     </form>
 </div>
+
+<style>
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-start;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+</style>
 
 {% endblock %}

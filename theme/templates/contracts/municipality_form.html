@@ -2,9 +2,9 @@
 {% load static %}
 {% block title %}{% if municipality %}Bewerken: {{ municipality.municipality_name }}{% else %}Nieuwe gemeente{% endif %} - Zorgregie{% endblock %}
 {% block content %}
+<div class="page-wrap page-stack">
 
-<div class="mb-6">
-    <nav style="font-size: 13px; color: var(--text-secondary);">
+<nav style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
         <a href="{% url 'dashboard' %}" style="color: var(--primary); text-decoration: none;">Dashboard</a>
         <span> / </span>
         <a href="{% url 'careon:municipality_list' %}" style="color: var(--primary); text-decoration: none;">Gemeenten</a>
@@ -20,7 +20,7 @@
     </nav>
 </div>
 
-<div class="max-w-2xl">
+<div>
     <h1 class="page-title mb-6">{% if municipality %}Gemeente bewerken{% else %}Nieuwe gemeente toevoegen{% endif %}</h1>
 
     <form method="post" class="space-y-6">
@@ -43,7 +43,7 @@
             </div>
             <div class="panel-inner space-y-4">
                 <div>
-                    <label for="{{ form.municipality_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.municipality_name.label }} *</label>
+                    <label for="{{ form.municipality_name.id_for_label }}" class="field-label">{{ form.municipality_name.label }} *</label>
                     {{ form.municipality_name }}
                     {% if form.municipality_name.errors %}
                     <p class="mt-1 text-sm text-red-600">{{ form.municipality_name.errors.0 }}</p>
@@ -51,7 +51,7 @@
                 </div>
 
                 <div>
-                    <label for="{{ form.municipality_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.municipality_code.label }}</label>
+                    <label for="{{ form.municipality_code.id_for_label }}" class="field-label">{{ form.municipality_code.label }}</label>
                     {{ form.municipality_code }}
                     {% if form.municipality_code.errors %}
                     <p class="mt-1 text-sm text-red-600">{{ form.municipality_code.errors.0 }}</p>
@@ -59,7 +59,7 @@
                 </div>
 
                 <div>
-                    <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.status.label }} *</label>
+                    <label for="{{ form.status.id_for_label }}" class="field-label">{{ form.status.label }} *</label>
                     {{ form.status }}
                     {% if form.status.errors %}
                     <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
@@ -67,7 +67,7 @@
                 </div>
 
                 <div>
-                    <label for="{{ form.responsible_coordinator.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.responsible_coordinator.label }}</label>
+                    <label for="{{ form.responsible_coordinator.id_for_label }}" class="field-label">{{ form.responsible_coordinator.label }}</label>
                     {{ form.responsible_coordinator }}
                     {% if form.responsible_coordinator.errors %}
                     <p class="mt-1 text-sm text-red-600">{{ form.responsible_coordinator.errors.0 }}</p>
@@ -85,7 +85,7 @@
             </div>
             <div class="panel-inner space-y-4">
                 <div>
-                    <label for="{{ form.care_domains.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-3">{{ form.care_domains.label }}</label>
+                    <label for="{{ form.care_domains.id_for_label }}" class="field-label">{{ form.care_domains.label }}</label>
                     <div class="space-y-2 max-h-48 overflow-y-auto">
                         {{ form.care_domains }}
                     </div>
@@ -95,7 +95,7 @@
                 </div>
 
                 <div>
-                    <label for="{{ form.linked_providers.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-3">{{ form.linked_providers.label }}</label>
+                    <label for="{{ form.linked_providers.id_for_label }}" class="field-label">{{ form.linked_providers.label }}</label>
                     <div class="space-y-2 max-h-48 overflow-y-auto">
                         {{ form.linked_providers }}
                     </div>
@@ -115,7 +115,7 @@
             </div>
             <div class="panel-inner space-y-4">
                 <div>
-                    <label for="{{ form.max_wait_days.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.max_wait_days.label }}</label>
+                    <label for="{{ form.max_wait_days.id_for_label }}" class="field-label">{{ form.max_wait_days.label }}</label>
                     {{ form.max_wait_days }}
                     {% if form.max_wait_days.errors %}
                     <p class="mt-1 text-sm text-red-600">{{ form.max_wait_days.errors.0 }}</p>
@@ -123,7 +123,7 @@
                 </div>
 
                 <div>
-                    <label for="{{ form.priority_rules.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.priority_rules.label }}</label>
+                    <label for="{{ form.priority_rules.id_for_label }}" class="field-label">{{ form.priority_rules.label }}</label>
                     {{ form.priority_rules }}
                     {% if form.priority_rules.errors %}
                     <p class="mt-1 text-sm text-red-600">{{ form.priority_rules.errors.0 }}</p>
@@ -131,7 +131,7 @@
                 </div>
 
                 <div>
-                    <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.notes.label }}</label>
+                    <label for="{{ form.notes.id_for_label }}" class="field-label">{{ form.notes.label }}</label>
                     {{ form.notes }}
                     {% if form.notes.errors %}
                     <p class="mt-1 text-sm text-red-600">{{ form.notes.errors.0 }}</p>
@@ -140,16 +140,14 @@
             </div>
         </div>
 
-        <div class="flex gap-3">
-            <button type="submit" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
                 {% if municipality %}Wijzigingen opslaan{% else %}Gemeente aanmaken{% endif %}
             </button>
-            <a href="{% url 'careon:municipality_list' %}" class="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50">
-                Annuleren
-            </a>
+            <a href="{% url 'careon:municipality_list' %}" class="btn btn-secondary">Annuleren</a>
         </div>
     </form>
 </div>
 
+</div>
 {% endblock %}

@@ -1,46 +1,50 @@
 {% extends "base.html" %}
-{% block title %}Notifications - Careon{% endblock %}
+{% block title %}Meldingen - Careon{% endblock %}
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900">Meldingen</h1>
-        <p class="text-sm text-gray-500">{{ unread_count }} ongelezen</p>
+<div class="page-wrap page-stack">
+
+<div class="page-header">
+    <div style="flex:1;">
+        <h1 class="page-title">Meldingen</h1>
+        <span class="page-subtitle">{{ unread_count }} ongelezen</span>
     </div>
     {% if unread_count > 0 %}
     <form method="post" action="{% url 'careon:mark_all_notifications_read' %}">
         {% csrf_token %}
-        <button type="submit" class="px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200">Markeer alles als gelezen</button>
+        <button type="submit" class="btn btn-secondary">Markeer alles als gelezen</button>
     </form>
     {% endif %}
 </div>
-<div class="bg-white rounded-xl border border-gray-200">
-    <div class="divide-y divide-gray-100">
-        {% for notification in notifications %}
-        <div class="flex items-start gap-4 px-5 py-4 {% if not notification.is_read %}bg-blue-50{% endif %}">
-            <div class="flex-shrink-0 mt-1">
-                {% if notification.notification_type == 'DEADLINE' %}
-                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center"><svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
-                {% elif notification.notification_type == 'TASK' %}
-                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"><svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg></div>
-                {% else %}
-                    <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"><svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg></div>
-                {% endif %}
-            </div>
-            <div class="flex-1">
-                <div class="text-sm font-medium text-gray-900">{{ notification.title }}</div>
-                <div class="text-sm text-gray-600 mt-0.5">{{ notification.message }}</div>
-                <div class="text-xs text-gray-400 mt-1">{{ notification.created_at|timesince }} geleden</div>
-            </div>
-            {% if not notification.is_read %}
-            <form method="post" action="{% url 'careon:mark_notification_read' notification.pk %}">
-                {% csrf_token %}
-                <button type="submit" class="text-xs text-blue-600 hover:text-blue-800">Markeer als gelezen</button>
-            </form>
+
+<div class="ds-card action-card" style="padding:0;">
+    {% for notification in notifications %}
+    <div style="display:flex;align-items:flex-start;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);{% if not notification.is_read %}background:rgba(37,99,235,0.06);{% endif %}">
+        <div style="flex-shrink:0;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+            {% if notification.notification_type == 'DEADLINE' %}background:rgba(239,68,68,0.12);{% elif notification.notification_type == 'TASK' %}background:rgba(37,99,235,0.12);{% else %}background:var(--surface-raised);{% endif %}">
+            {% if notification.notification_type == 'DEADLINE' %}
+                <svg style="width:16px;height:16px;color:#ef4444;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {% elif notification.notification_type == 'TASK' %}
+                <svg style="width:16px;height:16px;color:#3b82f6;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            {% else %}
+                <svg style="width:16px;height:16px;color:var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
             {% endif %}
         </div>
-        {% empty %}
-        <div class="px-5 py-12 text-center text-gray-400">Geen meldingen.</div>
-        {% endfor %}
+        <div style="flex:1;">
+            <div style="font-size:14px;font-weight:600;color:var(--text-primary);">{{ notification.title }}</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">{{ notification.message }}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">{{ notification.created_at|timesince }} geleden</div>
+        </div>
+        {% if not notification.is_read %}
+        <form method="post" action="{% url 'careon:mark_notification_read' notification.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-ghost" style="font-size:12px;">Gelezen</button>
+        </form>
+        {% endif %}
     </div>
+    {% empty %}
+    <div style="padding:48px;text-align:center;color:var(--text-muted);">Geen meldingen.</div>
+    {% endfor %}
+</div>
+
 </div>
 {% endblock %}

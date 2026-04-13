@@ -7,46 +7,49 @@
 {% endblock %}
 
 {% block content %}
-<div class="bg-white p-8 rounded-lg shadow-md">
-    <form method="post">
+<div class="page-wrap page-stack">
+    <div class="page-header">
+        <h1 class="page-title">{% if form.instance.pk %}Taak bewerken{% else %}Nieuwe taak{% endif %}</h1>
+    </div>
+    <form method="post" class="ds-card action-card page-stack">
         {% csrf_token %}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="md:col-span-2">
-                <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700">Titel</label>
+        <div class="form-grid-2">
+            <div style="grid-column:1/-1">
+                <label for="{{ form.title.id_for_label }}" class="field-label">Titel</label>
                 {{ form.title }}
             </div>
             <div>
-                <label for="{{ form.task_type.id_for_label }}" class="block text-sm font-medium text-gray-700">Taaktype</label>
+                <label for="{{ form.task_type.id_for_label }}" class="field-label">Taaktype</label>
                 {{ form.task_type }}
             </div>
             <div>
-                <label for="{{ form.priority.id_for_label }}" class="block text-sm font-medium text-gray-700">Prioriteit</label>
+                <label for="{{ form.priority.id_for_label }}" class="field-label">Prioriteit</label>
                 {{ form.priority }}
             </div>
-            <div class="md:col-span-2">
-                <label for="{{ form.subject.id_for_label }}" class="block text-sm font-medium text-gray-700">Onderwerp / Omschrijving</label>
+            <div style="grid-column:1/-1">
+                <label for="{{ form.subject.id_for_label }}" class="field-label">Onderwerp / Omschrijving</label>
                 {{ form.subject }}
             </div>
             <div>
-                <label for="{{ form.assigned_to.id_for_label }}" class="block text-sm font-medium text-gray-700">Toegewezen aan</label>
+                <label for="{{ form.assigned_to.id_for_label }}" class="field-label">Toegewezen aan</label>
                 {{ form.assigned_to }}
             </div>
             <div>
-                <label for="{{ form.due_date.id_for_label }}" class="block text-sm font-medium text-gray-700">Vervaldatum</label>
+                <label for="{{ form.due_date.id_for_label }}" class="field-label">Vervaldatum</label>
                 {{ form.due_date }}
             </div>
-             <div>
-                     <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700">Taakstatus</label>
+            <div>
+                <label for="{{ form.status.id_for_label }}" class="field-label">Taakstatus</label>
                 {{ form.status }}
             </div>
-            <div class="flex items-center">
+            <div style="display:flex;align-items:center;gap:8px;padding-top:24px;">
                 {{ form.is_recurring }}
-                <label for="{{ form.is_recurring.id_for_label }}" class="ml-2 block text-sm text-gray-900">Is dit een terugkerende taak?</label>
+                <label for="{{ form.is_recurring.id_for_label }}" class="field-label" style="margin-bottom:0;">Is dit een terugkerende taak?</label>
             </div>
         </div>
-        <div class="mt-8 flex justify-end space-x-4">
-            <a href="{% url 'careon:task_list' %}" class="bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300">Annuleren</a>
-            <button type="submit" class="btn-primary">Taak opslaan</button>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Taak opslaan</button>
+            <a href="{% url 'careon:task_list' %}" class="btn btn-secondary">Annuleren</a>
         </div>
     </form>
 </div>

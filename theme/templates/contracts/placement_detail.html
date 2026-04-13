@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Plaatsing - Zorgregie{% endblock %}
 {% block content %}
+<div class="page-wrap page-stack">
 
-<nav class="mb-6 text-sm" style="color: var(--text-muted);">
+<nav class="mb-4" style="font-size: 13px; color: var(--text-secondary);">
     <a href="{% url 'dashboard' %}" style="color: var(--text-muted); text-decoration: none;">Dashboard</a>
     <span class="mx-2">/</span>
     <a href="{% url 'careon:placement_list' %}" style="color: var(--text-muted); text-decoration: none;">Plaatsingen</a>
@@ -25,7 +26,7 @@
     </div>
     <div class="flex gap-3">
         {% if placement.intake %}
-        <a href="{% url 'careon:case_detail' placement.intake.pk %}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">
+        <a href="{% url 'careon:case_detail' placement.intake.pk %}" class="btn btn-secondary">
             Naar casus
         </a>
         {% endif %}
@@ -113,4 +114,5 @@
     </div>
 </div>
 
+</div>
 {% endblock %}

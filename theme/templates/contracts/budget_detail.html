@@ -1,53 +1,65 @@
 {% extends "base.html" %}
 {% block title %}Budgetdetails - Careon{% endblock %}
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900">{{ budget.department|default:"Budget" }} - K{{ budget.quarter }} {{ budget.year }}</h1>
-        <p class="text-sm text-gray-500">Toegekend: ${{ budget.allocated_amount|floatformat:2 }}</p>
+<div class="page-wrap page-stack">
+
+<div class="page-header">
+    <div style="flex:1;">
+        <h1 class="page-title">{{ budget.scope_name|default:"Budget" }} {{ budget.year }}</h1>
+        <span class="page-subtitle">{{ budget.get_scope_type_display }} &middot; {{ budget.get_care_type_display }}</span>
     </div>
-    <div class="flex gap-2">
-        <a href="{% url 'careon:add_expense' budget.pk %}" class="px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700">Uitgave toevoegen</a>
-        <a href="{% url 'careon:budget_update' budget.pk %}" class="px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200">Bewerken</a>
-    </div>
-</div>
-<div class="grid grid-cols-3 gap-4 mb-6">
-    <div class="bg-white rounded-xl p-4 border border-gray-200">
-        <div class="text-sm text-gray-500">Toegekend</div>
-        <div class="text-2xl font-bold text-gray-900">${{ budget.allocated_amount|floatformat:0 }}</div>
-    </div>
-    <div class="bg-white rounded-xl p-4 border border-gray-200">
-        <div class="text-sm text-gray-500">Besteed</div>
-        <div class="text-2xl font-bold text-orange-600">${{ budget.total_spent|floatformat:0 }}</div>
-    </div>
-    <div class="bg-white rounded-xl p-4 border border-gray-200">
-        <div class="text-sm text-gray-500">Resterend</div>
-        <div class="text-2xl font-bold {% if budget.remaining >= 0 %}text-green-600{% else %}text-red-600{% endif %}">${{ budget.remaining|floatformat:0 }}</div>
+    <div style="display:flex;gap:8px;flex-shrink:0;">
+        <a href="{% url 'careon:add_expense' budget.pk %}" class="btn btn-primary">+ Uitgave toevoegen</a>
+        <a href="{% url 'careon:budget_update' budget.pk %}" class="btn btn-secondary">Bewerken</a>
     </div>
 </div>
-<div class="bg-white rounded-xl border border-gray-200">
-    <div class="px-5 py-4 border-b border-gray-100"><h2 class="font-semibold text-gray-900">Uitgaven</h2></div>
-    <table class="w-full">
-        <thead class="bg-gray-50">
-            <tr>
-                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Datum</th>
-                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Omschrijving</th>
-                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Categorie</th>
-                <th class="text-right px-5 py-3 text-xs font-medium text-gray-500 uppercase">Bedrag</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-            {% for expense in budget.expenses.all %}
-            <tr>
-                <td class="px-5 py-3 text-sm text-gray-500">{{ expense.date|date:"M d, Y" }}</td>
-                <td class="px-5 py-3 text-sm text-gray-900">{{ expense.description }}</td>
-                <td class="px-5 py-3 text-sm text-gray-600">{{ expense.get_category_display }}</td>
-                <td class="px-5 py-3 text-sm text-right font-medium">${{ expense.amount|floatformat:2 }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="4" class="px-5 py-8 text-center text-gray-400">Geen uitgaven geregistreerd.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+
+<div class="dash-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="panel">
+        <div class="panel-inner">
+            <span class="panel-title">Toegekend</span>
+            <div class="kpi-value">€{{ budget.allocated_amount|floatformat:0 }}</div>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-inner">
+            <span class="panel-title">Besteed</span>
+            <div class="kpi-value" style="color:#f97316;">€{{ budget.spent_amount|floatformat:0 }}</div>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-inner">
+            <span class="panel-title">Resterend</span>
+            <div class="kpi-value" style="color:{% if budget.remaining_amount >= 0 %}#22c55e{% else %}#ef4444{% endif %};">€{{ budget.remaining_amount|floatformat:0 }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="ds-card table-card">
+    <div class="panel-head"><h2 class="panel-title">Uitgaven</h2></div>
+    <div class="ds-table-wrap">
+        <table class="ds-table">
+            <thead><tr>
+                <th>Datum</th>
+                <th>Omschrijving</th>
+                <th>Categorie</th>
+                <th style="text-align:right;">Bedrag</th>
+            </tr></thead>
+            <tbody>
+                {% for expense in budget.expenses.all %}
+                <tr>
+                    <td>{{ expense.date|date:"d M Y" }}</td>
+                    <td>{{ expense.description }}</td>
+                    <td>{{ expense.get_category_display }}</td>
+                    <td style="text-align:right;font-weight:600;">€{{ expense.amount|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-muted);">Geen uitgaven geregistreerd.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
 </div>
 {% endblock %}

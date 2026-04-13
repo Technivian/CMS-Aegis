@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}{{ municipality.municipality_name }} - Zorgregie{% endblock %}
 {% block content %}
+<div class="page-wrap page-stack">
 
-<div class="mb-6">
-    <nav style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+<nav style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
         <a href="{% url 'dashboard' %}" style="color: var(--primary); text-decoration: none;">Dashboard</a>
         <span> / </span>
         <a href="{% url 'careon:municipality_list' %}" style="color: var(--primary); text-decoration: none;">Gemeenten</a>
@@ -147,4 +147,5 @@
 </div>
 {% endif %}
 
+</div>
 {% endblock %}

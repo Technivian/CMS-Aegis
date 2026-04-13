@@ -4,114 +4,162 @@
 {% block title %}Budget & capaciteit - Careon{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-    <div>
-        <h1 class="text-2xl font-bold c-primary">Budgetten</h1>
-        <p class="text-sm mt-1 c-muted">Stuur op budget, capaciteit en inzet per gemeente of regio.</p>
-    </div>
-    <a href="{% url 'careon:budget_create' %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg transition-opacity hover:opacity-90 btn-primary-grad">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-        Nieuw budget
-    </a>
-</div>
-
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="rounded-xl p-5 border stat-card">
-        <p class="text-xs font-semibold uppercase tracking-widest mb-2 c-muted">Totaal budgetten</p>
-        <p class="text-3xl font-bold c-primary">{{ total_budgets }}</p>
-        <p class="text-xs mt-1 c-muted">actieve budgetregels</p>
-    </div>
-    <div class="rounded-xl p-5 border stat-card">
-        <p class="text-xs font-semibold uppercase tracking-widest mb-2 c-muted">Totaal besteed</p>
-        <p class="text-3xl font-bold c-primary-brand">${{ total_spent|floatformat:0 }}</p>
-        <p class="text-xs mt-1 c-muted">realisatie over alle jaren</p>
-    </div>
-    <div class="rounded-xl p-5 border stat-card">
-        <p class="text-xs font-semibold uppercase tracking-widest mb-2 c-muted">Nog beschikbaar</p>
-        <p class="text-3xl font-bold c-accent">${{ total_remaining|floatformat:0 }}</p>
-        <p class="text-xs mt-1 c-muted">beschikbaar budget</p>
-    </div>
-    <div class="rounded-xl p-5 border stat-card">
-        <p class="text-xs font-semibold uppercase tracking-widest mb-2 c-muted">Budgetdruk</p>
-        <p class="text-3xl font-bold {% if budget_under_pressure > 0 %}c-red{% else %}c-primary{% endif %}">{{ budget_under_pressure }}</p>
-        <p class="text-xs mt-1 c-muted">regels met >= 80% benutting</p>
-    </div>
-</div>
-
-<div class="flex items-center gap-3 mb-4 flex-wrap">
-    {% with cur=selected_year %}
-    <div class="flex items-center rounded-lg p-1 border flex-shrink-0 tabs-shell">
-        {% for tab_label, tab_value in budget_tabs %}
-          <a href="?{% if tab_value %}year={{ tab_value }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
-              class="px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap {% if cur == tab_value or not cur and not tab_value %}tab-pill-active{% else %}tab-pill-idle{% endif %}">
-            {{ tab_label }}
-        </a>
-        {% endfor %}
-    </div>
-    {% endwith %}
-
-    <form method="get" class="flex items-center gap-2 flex-1 min-w-0">
-        <div class="relative flex-1 min-w-0">
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none c-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
-            <input type="text" name="q" value="{{ search_query }}" placeholder="Zoek budgetten op afdeling of omschrijving..." class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border focus:outline-none form-input">
+<div class="page-wrap page-stack">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Budgetten</h1>
+            <p class="page-subtitle">Stuur op budget, capaciteit en inzet per gemeente of regio.</p>
         </div>
-        <select name="year" class="px-3 py-2 text-sm rounded-lg border focus:outline-none form-select">
-            <option value="">Alle jaren</option>
-            <option value="{{ current_year }}" {% if selected_year == current_year|stringformat:'s' %}selected{% endif %}>{{ current_year }}</option>
-        </select>
-        <button type="submit" class="flex-shrink-0 px-3 py-2 text-sm font-medium rounded-lg border btn-ghost">Zoeken</button>
-        {% if search_query or selected_year %}
-        <a href="{% url 'careon:budget_list' %}" class="flex-shrink-0 px-3 py-2 text-sm rounded-lg border inline-flex items-center gap-1.5 btn-ghost">Wissen</a>
-        {% endif %}
+        <div class="page-actions">
+            <a href="{% url 'careon:budget_create' %}" class="btn btn-primary">Nieuw budget</a>
+        </div>
+    </div>
+
+    <div class="budget-kpi-grid">
+        <div class="ds-card budget-kpi-card">
+            <div class="kpi-label">Totaal budgetten</div>
+            <div class="kpi-value">{{ total_budgets }}</div>
+            <div class="kpi-sub">actieve budgetregels</div>
+        </div>
+        <div class="ds-card budget-kpi-card">
+            <div class="kpi-label">Totaal besteed</div>
+            <div class="kpi-value">${{ total_spent|floatformat:0 }}</div>
+            <div class="kpi-sub">realisatie over alle jaren</div>
+        </div>
+        <div class="ds-card budget-kpi-card">
+            <div class="kpi-label">Nog beschikbaar</div>
+            <div class="kpi-value tone-good">${{ total_remaining|floatformat:0 }}</div>
+            <div class="kpi-sub">beschikbaar budget</div>
+        </div>
+        <div class="ds-card budget-kpi-card">
+            <div class="kpi-label">Budgetdruk</div>
+            <div class="kpi-value {% if budget_under_pressure > 0 %}tone-critical{% endif %}">{{ budget_under_pressure }}</div>
+            <div class="kpi-sub">regels met >= 80% benutting</div>
+        </div>
+    </div>
+
+    <div class="ds-card feed-card budget-tabs-row">
+        {% with cur=selected_year %}
+        {% for tab_label, tab_value in budget_tabs %}
+        <a href="?{% if tab_value %}year={{ tab_value }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="filter-pill {% if cur == tab_value or not cur and not tab_value %}active{% endif %}">{{ tab_label }}</a>
+        {% endfor %}
+        {% endwith %}
+    </div>
+
+    <form method="get" class="ds-card action-card form-grid-3">
+        <div>
+            <label for="budget-q" class="field-label">Zoeken</label>
+            <input id="budget-q" type="text" name="q" value="{{ search_query }}" placeholder="Zoek budgetten op afdeling of omschrijving...">
+        </div>
+        <div>
+            <label for="budget-year" class="field-label">Jaar</label>
+            <select id="budget-year" name="year">
+                <option value="">Alle jaren</option>
+                <option value="{{ current_year }}" {% if selected_year == current_year|stringformat:'s' %}selected{% endif %}>{{ current_year }}</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-secondary">Zoeken</button>
     </form>
+
+    <div class="ds-card table-card">
+        <div class="ds-table-wrap">
+            <table class="ds-table">
+                <thead>
+                    <tr>
+                        <th>Gemeente / regio</th>
+                        <th>Doelgroep</th>
+                        <th>Zorgtype</th>
+                        <th>Jaar</th>
+                        <th class="th-num">Toegewezen</th>
+                        <th class="th-num">Besteed</th>
+                        <th class="th-num">Resterend</th>
+                        <th>Casussen / plaatsingen</th>
+                        <th class="th-right">Acties</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in budget_rows %}
+                    {% with budget=row.budget %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'careon:budget_detail' budget.pk %}">{{ budget.get_scope_type_display }} {{ budget.scope_name }}</a>
+                            {% if budget.department %}
+                            <div class="c-secondary" style="font-size:11px; margin-top:2px;">{{ budget.department }}</div>
+                            {% endif %}
+                            {% if row.configuration_hint %}
+                            <div class="c-secondary" style="font-size:11px; margin-top:2px;">{{ row.configuration_hint }}</div>
+                            {% endif %}
+                            {% if budget.description %}
+                            <div class="c-secondary" style="font-size:11px; margin-top:2px;">{{ budget.description|truncatechars:72 }}</div>
+                            {% endif %}
+                        </td>
+                        <td>{{ budget.target_group|default:'-' }}</td>
+                        <td>{{ budget.get_care_type_display }}</td>
+                        <td>{{ budget.year }}</td>
+                        <td class="td-num">${{ budget.allocated_amount|floatformat:2 }}</td>
+                        <td class="td-num">${{ budget.spent_amount|floatformat:2 }}</td>
+                        <td class="td-num {% if budget.is_over_budget %}tone-critical{% endif %}">
+                            ${{ budget.remaining_amount|floatformat:2 }}
+                            <div style="font-size:11px; margin-top:2px;" class="{% if budget.utilization_percentage >= 80 %}tone-critical{% else %}c-secondary{% endif %}">{{ budget.utilization_percentage|floatformat:0 }}% benut</div>
+                        </td>
+                        <td>{{ budget.linked_cases.count }} / {{ budget.linked_placements.count }}</td>
+                        <td class="td-right"><a href="{% url 'careon:budget_detail' budget.pk %}" class="btn btn-ghost" style="min-height:34px;">Bekijken</a></td>
+                    </tr>
+                    {% endwith %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="td-empty">
+                            Geen budgetten gevonden.
+                            <div style="margin-top:10px;">
+                                {% if search_query or selected_year %}
+                                <a href="{% url 'careon:budget_list' %}" class="btn btn-secondary">Wis filters</a>
+                                {% else %}
+                                <a href="{% url 'careon:budget_create' %}" class="btn btn-primary">Maak eerste budget aan</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-<div class="rounded-xl border overflow-hidden stat-card">
-    <table class="w-full text-sm">
-        <thead class="tbl-head">
-            <tr>
-                <th class="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wide tbl-th">Gemeente / regio</th>
-                <th class="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wide tbl-th">Doelgroep</th>
-                <th class="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wide tbl-th">Zorgtype</th>
-                <th class="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wide tbl-th">Jaar</th>
-                <th class="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wide tbl-th">Toegewezen</th>
-                <th class="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wide tbl-th">Besteed</th>
-                <th class="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wide tbl-th">Resterend</th>
-                <th class="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wide tbl-th">Casussen / plaatsingen</th>
-                <th class="text-right px-5 py-3 text-xs font-semibold uppercase tracking-wide tbl-th">Acties</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in budget_rows %}
-            {% with budget=row.budget %}
-            <tr class="border-b transition-colors tbl-row" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''">
-                <td class="px-5 py-3.5">
-                    <a href="{% url 'careon:budget_detail' budget.pk %}" class="font-medium c-link">{{ budget.get_scope_type_display }} {{ budget.scope_name }}</a>
-                    {% if budget.department %}
-                    <p class="text-xs mt-0.5 c-muted">{{ budget.department }}</p>
-                    {% endif %}
-                    {% if row.configuration_hint %}
-                    <p class="text-[11px] c-muted mt-0.5">{{ row.configuration_hint }}</p>
-                    {% endif %}
-                    {% if budget.description %}<p class="text-xs mt-0.5 c-muted">{{ budget.description|truncatechars:72 }}</p>{% endif %}
-                </td>
-                <td class="px-5 py-3.5 tbl-td">{{ budget.target_group|default:'-' }}</td>
-                <td class="px-5 py-3.5 tbl-td">{{ budget.get_care_type_display }}</td>
-                <td class="px-5 py-3.5 tbl-td">{{ budget.year }}</td>
-                <td class="px-5 py-3.5 font-medium tabular-nums c-primary">${{ budget.allocated_amount|floatformat:2 }}</td>
-                <td class="px-5 py-3.5 tabular-nums tbl-td">${{ budget.spent_amount|floatformat:2 }}</td>
-                <td class="px-5 py-3.5 tabular-nums {% if budget.is_over_budget %}c-red{% else %}tbl-td{% endif %}">
-                    ${{ budget.remaining_amount|floatformat:2 }}
-                    <p class="text-[11px] {% if budget.utilization_percentage >= 80 %}c-red{% else %}c-muted{% endif %}">{{ budget.utilization_percentage|floatformat:0 }}% benut</p>
-                </td>
-                <td class="px-5 py-3.5 tbl-td">{{ budget.linked_cases.count }} / {{ budget.linked_placements.count }}</td>
-                <td class="px-5 py-3.5 text-right"><a href="{% url 'careon:budget_detail' budget.pk %}" class="text-xs font-medium px-2.5 py-1 rounded-md border transition-opacity hover:opacity-80 btn-ghost">Bekijken</a></td>
-            </tr>
-            {% endwith %}
-            {% empty %}
-            <tr><td colspan="9" class="px-5 py-20 text-center"><div class="flex flex-col items-center gap-3"><div class="w-12 h-12 rounded-full flex items-center justify-center surface-bubble"><svg class="w-6 h-6 c-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/></svg></div><div><p class="font-medium c-primary">Geen budgetten gevonden</p><p class="text-sm mt-1 c-muted">{% if search_query or selected_year %}Pas je filters aan of <a href="{% url 'careon:budget_list' %}" class="c-link">wis de zoekopdracht</a>.{% else %}Begin met <a href="{% url 'careon:budget_create' %}" class="c-link">je eerste capaciteitbudget aanmaken</a>.{% endif %}</p></div></div></td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+<style>
+    .budget-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: var(--card-gap);
+    }
+    .budget-kpi-card { padding: 14px 16px; }
+    .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); font-weight: 700; }
+    .kpi-value { margin-top: 8px; font-size: 30px; line-height: 1; font-weight: 800; color: var(--text-primary); }
+    .kpi-sub { margin-top: 8px; font-size: 11px; color: var(--text-secondary); }
+    .tone-critical { color: #fca5a5 !important; }
+    .tone-good { color: #86efac; }
+    .budget-tabs-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .filter-pill {
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        background: color-mix(in srgb, var(--surface-alt) 88%, #1b2f5d 12%);
+        border: 1px solid color-mix(in srgb, var(--border) 82%, #24427a 18%);
+        padding: 6px 12px;
+        border-radius: 10px;
+    }
+    .filter-pill.active {
+        color: #dbe8ff;
+        background: color-mix(in srgb, var(--primary) 28%, var(--surface-alt) 72%);
+        border-color: color-mix(in srgb, var(--primary) 55%, var(--border) 45%);
+    }
+    .td-empty { text-align: center; padding: 28px 16px; color: var(--text-secondary); }
+    @media (max-width: 1100px) {
+        .budget-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 700px) {
+        .budget-kpi-grid { grid-template-columns: 1fr; }
+    }
+</style>
 {% endblock %}

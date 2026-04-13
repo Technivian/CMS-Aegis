@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block title %}{% if is_edit %}Plaatsing bewerken{% else %}Nieuwe plaatsing{% endif %} - Zorgregie{% endblock %}
 {% block content %}
+<div class="page-wrap page-stack">
 
-<nav class="mb-6 text-sm" style="color: var(--text-muted);">
+<nav class="mb-4" style="font-size: 13px; color: var(--text-secondary);">
     <a href="{% url 'dashboard' %}" style="color: var(--text-muted); text-decoration: none;">Dashboard</a>
     <span class="mx-2">/</span>
     <a href="{% url 'careon:placement_list' %}" style="color: var(--text-muted); text-decoration: none;">Plaatsingen</a>
@@ -54,9 +55,9 @@
                 {% for error in form.non_field_errors %}<p class="text-xs text-red-600">{{ error }}</p>{% endfor %}
             </div>
             {% endif %}
-            <div class="flex gap-3 pt-2">
-                <button type="submit" class="action-chip">{% if is_edit %}Wijzigingen opslaan{% else %}Aanmaken{% endif %}</button>
-                <a href="{% url 'careon:placement_list' %}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">Annuleren</a>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">{% if is_edit %}Wijzigingen opslaan{% else %}Aanmaken{% endif %}</button>
+                <a href="{% url 'careon:placement_list' %}" class="btn btn-secondary">Annuleren</a>
             </div>
         </form>
     </div>

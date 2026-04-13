@@ -1,144 +1,138 @@
 {% extends "base.html" %}
 {% block title %}Organisatieteam - Careon{% endblock %}
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900">Organisatieteam</h1>
-        <p class="text-sm text-gray-500 mt-1">Beheer leden en nodig teamgenoten uit voor {{ organization.name }}.</p>
+<div class="page-wrap page-stack">
+
+<div class="page-header">
+    <div style="flex:1;">
+        <h1 class="page-title">Organisatieteam</h1>
+        <span class="page-subtitle">Beheer leden en nodig teamgenoten uit voor {{ organization.name }}.</span>
     </div>
-    <a href="{% url 'careon:organization_activity' %}" class="inline-flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">Bekijk activiteit</a>
+    <a href="{% url 'careon:organization_activity' %}" class="btn btn-secondary">Bekijk activiteit</a>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100">
-            <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Actieve leden</h2>
+<div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;">
+
+    <!-- Members table -->
+    <div class="ds-card table-card">
+        <div class="panel-head"><h2 class="panel-title">Actieve leden</h2></div>
+        <div class="ds-table-wrap">
+            <table class="ds-table">
+                <thead><tr>
+                    <th>Gebruiker</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Toegevoegd</th>
+                    <th></th>
+                </tr></thead>
+                <tbody>
+                    {% for membership in memberships %}
+                    <tr>
+                        <td style="font-weight:600;">{{ membership.user.get_full_name|default:membership.user.username }}</td>
+                        <td>{{ membership.user.email|default:"—" }}</td>
+                        <td>
+                            <form method="post" action="{% url 'careon:update_membership_role' membership.id %}" style="display:inline-flex;align-items:center;gap:6px;">
+                                {% csrf_token %}
+                                <select name="role" {% if membership.role == 'OWNER' and not is_owner %}disabled{% endif %}>
+                                    <option value="OWNER" {% if membership.role == 'OWNER' %}selected{% endif %}>Eigenaar</option>
+                                    <option value="ADMIN" {% if membership.role == 'ADMIN' %}selected{% endif %}>Admin</option>
+                                    <option value="MEMBER" {% if membership.role == 'MEMBER' %}selected{% endif %}>Lid</option>
+                                </select>
+                                <button type="submit" class="btn btn-ghost" {% if membership.role == 'OWNER' and not is_owner %}disabled{% endif %}>Opslaan</button>
+                            </form>
+                        </td>
+                        <td>{{ membership.created_at|date:"d M Y" }}</td>
+                        <td style="text-align:right;">
+                            {% if membership.user_id != current_user_id %}
+                            <form method="post" action="{% url 'careon:deactivate_organization_member' membership.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Deactiveren</button>
+                            </form>
+                            {% else %}
+                            <span style="font-size:12px;color:var(--text-muted);">Jij</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted);">Geen leden gevonden.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        <table class="w-full">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Gebruiker</th>
-                    <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Role</th>
-                    <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Toegevoegd</th>
-                    <th class="text-right px-5 py-3 text-xs font-medium text-gray-500 uppercase">Acties</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                {% for membership in memberships %}
-                <tr>
-                    <td class="px-5 py-3 text-sm font-medium text-gray-800">{{ membership.user.get_full_name|default:membership.user.username }}</td>
-                    <td class="px-5 py-3 text-sm text-gray-600">{{ membership.user.email|default:"-" }}</td>
-                    <td class="px-5 py-3 text-sm text-gray-600">
-                        <form method="post" action="{% url 'careon:update_membership_role' membership.id %}" class="inline-flex items-center gap-2">
-                            {% csrf_token %}
-                            <select name="role" class="px-2 py-1 border border-gray-300 rounded text-sm bg-white" {% if membership.role == 'OWNER' and not is_owner %}disabled{% endif %}>
-                                <option value="OWNER" {% if membership.role == 'OWNER' %}selected{% endif %}>Eigenaar</option>
-                                <option value="ADMIN" {% if membership.role == 'ADMIN' %}selected{% endif %}>Admin</option>
-                                <option value="MEMBER" {% if membership.role == 'MEMBER' %}selected{% endif %}>Lid</option>
-                            </select>
-                            <button type="submit" class="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200" {% if membership.role == 'OWNER' and not is_owner %}disabled{% endif %}>Opslaan</button>
-                        </form>
-                    </td>
-                    <td class="px-5 py-3 text-sm text-gray-500">{{ membership.created_at|date:"M j, Y" }}</td>
-                    <td class="px-5 py-3 text-right">
-                        {% if membership.user_id != current_user_id %}
-                        <form method="post" action="{% url 'careon:deactivate_organization_member' membership.id %}" class="inline">
-                            {% csrf_token %}
-                            <button type="submit" class="text-xs px-2 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100">Deactiveren</button>
-                        </form>
-                        {% else %}
-                        <span class="text-xs text-gray-400">Jij</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="px-5 py-10 text-center text-sm text-gray-400">Geen leden gevonden.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div>
 
-    <div class="space-y-6">
-        <div class="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Inactieve leden</h2>
-            <div class="space-y-3">
-                {% for membership in inactive_memberships %}
-                <div class="border border-gray-100 rounded-lg p-3 flex items-center justify-between gap-2">
-                    <div>
-                        <p class="text-sm font-medium text-gray-800">{{ membership.user.get_full_name|default:membership.user.username }}</p>
-                        <p class="text-xs text-gray-500">{{ membership.user.email|default:"-" }} | {{ membership.get_role_display }}</p>
-                    </div>
-                    <form method="post" action="{% url 'careon:reactivate_organization_member' membership.id %}">
-                        {% csrf_token %}
-                        <button type="submit" class="text-xs px-2 py-1 bg-green-50 text-green-700 rounded hover:bg-green-100">Heractiveren</button>
-                    </form>
-                </div>
-                {% empty %}
-                <p class="text-sm text-gray-400">Geen inactieve leden.</p>
-                {% endfor %}
-            </div>
-        </div>
+    <!-- Sidebar panels -->
+    <div class="page-stack">
 
-        <div class="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Lid uitnodigen</h2>
-            <form method="post" class="space-y-4">
+        <div class="ds-card action-card page-stack">
+            <h2 class="panel-title">Lid uitnodigen</h2>
+            <form method="post" class="field-group">
                 {% csrf_token %}
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Email</label>
+                    <label class="field-label">Email</label>
                     {{ invite_form.email }}
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Role</label>
+                    <label class="field-label">Rol</label>
                     {{ invite_form.role }}
                 </div>
-                <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
-                    Uitnodiging maken
-                </button>
+                <button type="submit" class="btn btn-primary" style="width:100%;">Uitnodiging maken</button>
             </form>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Openstaande uitnodigingen</h2>
-            <div class="space-y-3">
-                {% for invitation in invitations %}
-                <div class="border border-gray-100 rounded-lg p-3">
-                    <p class="text-sm font-medium text-gray-800">{{ invitation.email }}</p>
-                    <p class="text-xs text-gray-500 mt-1">{{ invitation.get_role_display }} | Verloopt {{ invitation.expires_at|date:"M j, Y g:i A" }}</p>
-                    <div class="flex items-center gap-2 mt-2">
-                        <form method="post" action="{% url 'careon:resend_organization_invite' invitation.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100">Opnieuw verzenden</button>
-                        </form>
-                        <form method="post" action="{% url 'careon:revoke_organization_invite' invitation.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="text-xs px-2 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100">Intrekken</button>
-                        </form>
-                    </div>
+        <div class="ds-card action-card page-stack">
+            <h2 class="panel-title">Openstaande uitnodigingen</h2>
+            {% for invitation in invitations %}
+            <div style="border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;">
+                <div style="font-size:14px;font-weight:600;color:var(--text-primary);">{{ invitation.email }}</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">{{ invitation.get_role_display }} &middot; Verloopt {{ invitation.expires_at|date:"d M Y" }}</div>
+                <div style="display:flex;gap:6px;margin-top:8px;">
+                    <form method="post" action="{% url 'careon:resend_organization_invite' invitation.id %}">
+                        {% csrf_token %}<button type="submit" class="btn btn-ghost">Opnieuw verzenden</button>
+                    </form>
+                    <form method="post" action="{% url 'careon:revoke_organization_invite' invitation.id %}">
+                        {% csrf_token %}<button type="submit" class="btn btn-danger">Intrekken</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <p style="font-size:13px;color:var(--text-muted);">Geen openstaande uitnodigingen.</p>
+            {% endfor %}
+        </div>
+
+        <div class="ds-card action-card page-stack">
+            <h2 class="panel-title">Inactieve leden</h2>
+            {% for membership in inactive_memberships %}
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
+                <div>
+                    <div style="font-size:13px;font-weight:600;color:var(--text-primary);">{{ membership.user.get_full_name|default:membership.user.username }}</div>
+                    <div style="font-size:11px;color:var(--text-muted);">{{ membership.user.email|default:"—" }} &middot; {{ membership.get_role_display }}</div>
+                </div>
+                <form method="post" action="{% url 'careon:reactivate_organization_member' membership.id %}">
+                    {% csrf_token %}<button type="submit" class="btn btn-ghost">Heractiveren</button>
+                </form>
+            </div>
+            {% empty %}
+            <p style="font-size:13px;color:var(--text-muted);">Geen inactieve leden.</p>
+            {% endfor %}
+        </div>
+
+        <div class="ds-card action-card page-stack">
+            <h2 class="panel-title">Uitnodigingshistorie</h2>
+            <div style="max-height:280px;overflow-y:auto;">
+                {% for invitation in invitation_history %}
+                <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+                    <div style="font-size:13px;font-weight:600;color:var(--text-primary);">{{ invitation.email }}</div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">{{ invitation.get_role_display }} &middot; {{ invitation.get_status_display }} &middot; {{ invitation.created_at|date:"d M Y" }}</div>
                 </div>
                 {% empty %}
-                <p class="text-sm text-gray-400">Geen openstaande uitnodigingen.</p>
+                <p style="font-size:13px;color:var(--text-muted);">Nog geen uitnodigingshistorie.</p>
                 {% endfor %}
             </div>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Uitnodigingshistorie</h2>
-            <div class="space-y-3 max-h-72 overflow-auto pr-1">
-                {% for invitation in invitation_history %}
-                <div class="border border-gray-100 rounded-lg p-3">
-                    <p class="text-sm font-medium text-gray-800">{{ invitation.email }}</p>
-                    <p class="text-xs text-gray-500 mt-1">
-                        {{ invitation.get_role_display }} | {{ invitation.get_status_display }} | {{ invitation.created_at|date:"M j, Y g:i A" }}
-                    </p>
-                </div>
-                {% empty %}
-                <p class="text-sm text-gray-400">Nog geen uitnodigingshistorie.</p>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
+    </div><!-- end sidebar -->
+</div>
+
 </div>
 {% endblock %}

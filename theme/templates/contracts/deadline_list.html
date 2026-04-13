@@ -61,13 +61,13 @@
                     {% for row in task_rows %}
                     <tr{% if row.deadline.is_overdue and not row.deadline.is_completed %} class="row-overdue"{% endif %}>
                         <td>
-                            <div class="c-primary" style="font-size:13px;font-weight:600;">{{ row.deadline.title|truncatechars:52 }}</div>
-                            <div class="c-secondary" style="font-size:11px;">{{ row.deadline.get_priority_display }}</div>
+                            <div class="c-primary task-title">{{ row.deadline.title|truncatechars:52 }}</div>
+                            <div class="c-secondary task-subtitle">{{ row.deadline.get_priority_display }}</div>
                         </td>
                         <td>
                             <div class="c-primary">{{ row.case_title }}</div>
                             {% if row.open_href %}
-                            <a href="{{ row.open_href }}" class="c-link" style="font-size:11px;">Open casus</a>
+                            <a href="{{ row.open_href }}" class="task-open-link">Open casus</a>
                             {% endif %}
                         </td>
                         <td>{{ row.deadline.get_task_type_display }}</td>
@@ -97,13 +97,13 @@
                                 {% if row.can_edit and not row.deadline.is_completed %}
                                 <form method="post" action="{% url 'careon:deadline_complete' row.deadline.pk %}" class="inline">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-ghost" style="min-height:34px;">Voltooien</button>
+                                    <button type="submit" class="btn btn-ghost task-action-btn">Voltooien</button>
                                 </form>
                                 {% endif %}
                                 {% if row.can_edit %}
-                                <a href="{% url 'careon:task_update' row.deadline.pk %}" class="btn btn-ghost" style="min-height:34px;">Bewerken</a>
+                                <a href="{% url 'careon:task_update' row.deadline.pk %}" class="btn btn-ghost task-action-btn">Bewerken</a>
                                 {% else %}
-                                <span class="c-secondary" style="font-size:11px;">Alleen-lezen</span>
+                                <span class="task-readonly">Alleen-lezen</span>
                                 {% endif %}
                             </div>
                         </td>
@@ -118,95 +118,4 @@
         </div>
     </div>
 </div>
-
-<style>
-    .task-kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: var(--card-gap);
-    }
-    .task-kpi-card { padding: 14px 16px; }
-    .kpi-label {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--text-secondary);
-        font-weight: 700;
-    }
-    .kpi-value {
-        margin-top: 8px;
-        font-size: 32px;
-        line-height: 1;
-        font-weight: 800;
-        color: var(--text-primary);
-    }
-    .tone-critical { color: #f87171; }
-    .tone-warning { color: #f59e0b; }
-    .tone-good { color: #34d399; }
-    .filter-pills {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        align-items: center;
-    }
-    .filter-pill {
-        text-decoration: none;
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--text-secondary);
-        background: color-mix(in srgb, var(--surface-alt) 88%, #1b2f5d 12%);
-        border: 1px solid color-mix(in srgb, var(--border) 82%, #24427a 18%);
-        padding: 6px 12px;
-        border-radius: 10px;
-    }
-    .filter-pill:hover {
-        color: var(--text-primary);
-        border-color: color-mix(in srgb, var(--primary) 42%, var(--border) 58%);
-    }
-    .filter-pill.active {
-        color: #dbe8ff;
-        background: color-mix(in srgb, var(--primary) 28%, var(--surface-alt) 72%);
-        border-color: color-mix(in srgb, var(--primary) 55%, var(--border) 45%);
-    }
-    .filter-pill-critical.active {
-        color: #ffe2e2;
-        background: color-mix(in srgb, #ef4444 32%, var(--surface-alt) 68%);
-        border-color: color-mix(in srgb, #ef4444 52%, var(--border) 48%);
-    }
-    .filter-pill-warning.active {
-        color: #ffe7bf;
-        background: color-mix(in srgb, #f59e0b 28%, var(--surface-alt) 72%);
-        border-color: color-mix(in srgb, #f59e0b 48%, var(--border) 52%);
-    }
-    .row-overdue td {
-        background: color-mix(in srgb, #7f1d1d 22%, transparent);
-    }
-    .td-overdue {
-        color: #fca5a5;
-        font-weight: 700;
-    }
-    .task-actions {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-    }
-    .badge-status-done { background: rgba(34, 197, 94, 0.2); color: #86efac; border-color: rgba(34, 197, 94, 0.35); }
-    .badge-status-overdue { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border-color: rgba(239, 68, 68, 0.35); }
-    .badge-status-today { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border-color: rgba(245, 158, 11, 0.35); }
-    .badge-status-open { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border-color: rgba(59, 130, 246, 0.35); }
-    .badge-flow { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border-color: rgba(139, 92, 246, 0.35); }
-    .td-empty {
-        text-align: center;
-        padding: 28px 16px;
-        color: var(--text-secondary);
-    }
-    @media (max-width: 1100px) {
-        .task-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-    @media (max-width: 640px) {
-        .task-kpi-grid { grid-template-columns: 1fr; }
-    }
-</style>
 {% endblock %}

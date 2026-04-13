@@ -1,59 +1,71 @@
 {% extends "base.html" %}
 {% block title %}Audit en activiteitenlog - Careon{% endblock %}
 {% block content %}
-<div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Audit en activiteitenlog</h1>
-    <p class="text-sm text-gray-500 mt-1">Volledige geschiedenis van acties binnen zorgregie, privacy en dossierbeheer.</p>
+<div class="page-wrap page-stack">
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Audit en activiteitenlog</h1>
+        <span class="page-subtitle">Volledige geschiedenis van acties binnen zorgregie, privacy en dossierbeheer.</span>
+    </div>
 </div>
-<form method="get" class="mb-4 flex gap-2">
-    <select name="action" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" onchange="this.form.submit()">
+
+<form method="get" class="ds-card action-card" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <select name="action" onchange="this.form.submit()">
         <option value="">Alle acties</option>
         <option value="CREATE" {% if request.GET.action == 'CREATE' %}selected{% endif %}>Aangemaakt</option>
         <option value="UPDATE" {% if request.GET.action == 'UPDATE' %}selected{% endif %}>Bijgewerkt</option>
         <option value="DELETE" {% if request.GET.action == 'DELETE' %}selected{% endif %}>Verwijderd</option>
         <option value="APPROVE" {% if request.GET.action == 'APPROVE' %}selected{% endif %}>Goedgekeurd</option>
     </select>
-    <select name="model" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" onchange="this.form.submit()">
+    <select name="model" onchange="this.form.submit()">
         <option value="">Alle typen</option>
         <option value="Contract" {% if request.GET.model == 'Contract' %}selected{% endif %}>Casus</option>
         <option value="Client" {% if request.GET.model == 'Client' %}selected{% endif %}>Aanbieder</option>
         <option value="Matter" {% if request.GET.model == 'Matter' %}selected{% endif %}>Configuratie</option>
         <option value="Document" {% if request.GET.model == 'Document' %}selected{% endif %}>Document</option>
     </select>
+    <button type="submit" class="btn btn-secondary">Filteren</button>
 </form>
-<div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-    <table class="w-full">
-        <thead class="bg-gray-50">
-            <tr>
-                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Tijdstip</th>
-                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Gebruiker</th>
-                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Actie</th>
-                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Objecttype</th>
-                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Objectnaam</th>
-                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">IP</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-            {% for log in logs %}
-            <tr class="hover:bg-gray-50">
-                <td class="px-5 py-3 text-sm text-gray-500">{{ log.timestamp|date:"M d, Y H:i" }}</td>
-                <td class="px-5 py-3 text-sm text-gray-900">{{ log.user.get_full_name|default:log.user.username }}</td>
-                <td class="px-5 py-3"><span class="text-xs px-2 py-1 rounded-full {% if log.action == 'CREATE' %}bg-green-100 text-green-800{% elif log.action == 'UPDATE' %}bg-blue-100 text-blue-800{% elif log.action == 'DELETE' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-600{% endif %}">{{ log.get_action_display }}</span></td>
-                <td class="px-5 py-3 text-sm text-gray-600">{{ log.model_name }}</td>
-                <td class="px-5 py-3 text-sm text-gray-600">{{ log.object_repr|truncatechars:50 }}</td>
-                <td class="px-5 py-3 text-xs text-gray-400 font-mono">{{ log.ip_address|default:"—" }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="6" class="px-5 py-12 text-center text-gray-400">Geen activiteiten gevonden.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+
+<div class="ds-card table-card">
+    <div class="ds-table-wrap">
+        <table class="ds-table">
+            <thead><tr>
+                <th>Tijdstip</th>
+                <th>Gebruiker</th>
+                <th>Actie</th>
+                <th>Objecttype</th>
+                <th>Objectnaam</th>
+                <th>IP</th>
+            </tr></thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td style="white-space:nowrap;">{{ log.timestamp|date:"d M Y H:i" }}</td>
+                    <td>{{ log.user.get_full_name|default:log.user.username }}</td>
+                    <td>
+                        <span class="badge-sm {% if log.action == 'CREATE' %}badge-green{% elif log.action == 'UPDATE' %}badge-blue{% elif log.action == 'DELETE' %}badge-red{% else %}badge-gray{% endif %}">{{ log.get_action_display }}</span>
+                    </td>
+                    <td>{{ log.model_name }}</td>
+                    <td>{{ log.object_repr|truncatechars:50 }}</td>
+                    <td style="font-family:monospace;font-size:11px;color:var(--text-muted);">{{ log.ip_address|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-muted);">Geen activiteiten gevonden.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
+
 {% if is_paginated %}
-<div class="mt-4 flex justify-center gap-2">
-    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-white border border-gray-300 rounded text-sm">Vorige</a>{% endif %}
-    <span class="px-3 py-1 text-sm text-gray-600">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-white border border-gray-300 rounded text-sm">Volgende</a>{% endif %}
+<div style="display:flex;justify-content:center;gap:8px;margin-top:16px;">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn btn-ghost">Vorige</a>{% endif %}
+    <span style="padding:8px 12px;font-size:13px;color:var(--text-muted);">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn btn-ghost">Volgende</a>{% endif %}
 </div>
 {% endif %}
+
+</div>
 {% endblock %}
