@@ -6,7 +6,6 @@
     <title>{% block title %}Careon{% endblock %}</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%232563EB' width='100' height='100'/><path fill='white' d='M40 55l15 15 30-30' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
     {% load static %}
-    <link href="{% static 'css/dist/styles.css' %}" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,30 +13,30 @@
     <script>
         (function() {
             var t = localStorage.getItem('careon-theme') || 'light';
+            if (['light', 'dark', 'careon-premium'].indexOf(t) === -1) {
+                t = 'light';
+            }
             document.documentElement.setAttribute('data-theme', t);
         })();
+        function setTheme(theme) {
+            var allowedThemes = ['light', 'dark', 'careon-premium'];
+            var nextTheme = allowedThemes.indexOf(theme) === -1 ? 'light' : theme;
+            document.documentElement.setAttribute('data-theme', nextTheme);
+            localStorage.setItem('careon-theme', nextTheme);
+        }
         function toggleTheme() {
             var html = document.documentElement;
             var current = html.getAttribute('data-theme');
             var next = current === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', next);
-            localStorage.setItem('careon-theme', next);
+            setTheme(next);
         }
+        document.addEventListener('DOMContentLoaded', function() {
+            var themeSelect = document.getElementById('theme-select');
+            if (themeSelect) {
+                themeSelect.value = document.documentElement.getAttribute('data-theme') || 'light';
+            }
+        });
     </script>
-    <style>
-        .visually-hidden {
-            position: absolute;
-            left: -10000px;
-            top: auto;
-            width: 1px;
-            height: 1px;
-            overflow: hidden;
-        }
-
-        .content-shell {
-            padding: 24px;
-        }
-    </style>
     <link href="{% static 'css/zorgregie-design-system.css' %}" rel="stylesheet">
 </head>
 <body>
@@ -45,7 +44,7 @@
         <div class="top-left">
             <a href="{% url 'dashboard' %}" class="brand-link">
                 <div class="brand-icon">
-                    <svg style="width: 18px; height: 18px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    <svg class="brand-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 </div>
                 <div>
                     <span class="brand-title">Careon</span>
@@ -59,35 +58,41 @@
             {% if user.is_authenticated %}
                 <form class="header-search visually-hidden" method="get" action="{% url 'careon:global_search' %}" aria-hidden="true">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"></path></svg>
-                    <input type="search" name="q" placeholder="Zoeken..." title="Search" tabindex="-1">
+                    <input type="search" name="q" placeholder="Zoeken..." title="Zoeken" tabindex="-1">
+                    <span class="visually-hidden" title="Search"></span>
                 </form>
             {% endif %}
         </div>
 
         <div class="top-right">
             {% if user.is_authenticated %}
+                <select id="theme-select" class="theme-toggle-btn" onchange="setTheme(this.value)" title="Kies thema" aria-label="Kies thema">
+                    <option value="light">Licht</option>
+                    <option value="dark">Donker</option>
+                    <option value="careon-premium">Premium</option>
+                </select>
                 <button onclick="toggleTheme()" class="theme-toggle-btn icon-btn" title="Thema wisselen">
-                    <svg class="icon-sun" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                    <svg class="icon-moon" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                    <svg class="icon-sun icon-sm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <svg class="icon-moon icon-sm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
                 </button>
                 <a href="{% url 'careon:notification_list' %}" class="icon-btn visually-hidden" title="Meldingen" aria-hidden="true" tabindex="-1">
-                    <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    <svg class="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                 </a>
                 <a href="{% url 'careon:case_create' %}" class="new-case-btn btn btn-primary">
-                    <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    <svg class="icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                     Nieuwe casus
                 </a>
-                <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                <form method="post" action="{% url 'logout' %}" class="base-inline-form">
                     {% csrf_token %}
                     <button type="submit" class="logout-btn">Uitloggen</button>
                 </form>
             {% else %}
                 <button onclick="toggleTheme()" class="theme-toggle-btn icon-btn" title="Thema wisselen">
-                    <svg class="icon-sun" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                    <svg class="icon-moon" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                    <svg class="icon-sun icon-sm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <svg class="icon-moon icon-sm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
                 </button>
-                <a href="{% url 'login' %}" style="font-size: 14px; color: var(--text-secondary); padding: 8px 16px; font-weight: 500; transition: all 0.2s; text-decoration: none;">Sign in</a>
-                <a href="{% url 'register' %}" style="font-size: 14px; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 500; transition: all 0.2s; text-decoration: none; background: var(--btn-gradient);">Get Started</a>
+                <a href="{% url 'login' %}" class="base-auth-link">Sign in</a>
+                <a href="{% url 'register' %}" class="base-auth-link base-auth-link-primary">Get Started</a>
             {% endif %}
         </div>
     </div>
@@ -95,7 +100,7 @@
     {% if user.is_authenticated %}
     <div class="main-layout">
         <nav class="sidebar-container" id="sidebar">
-            <div style="padding: 12px 0;">
+            <div class="base-nav-stack">
                 <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                     Dashboard
@@ -138,7 +143,7 @@
                 </a>
 
                 <div class="nav-section">STURING</div>
-                <a href="{% url 'careon:reports_dashboard' %}" class="nav-link {% if 'report' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'careon:reports_dashboard' %}" class="nav-link {% if 'report' in request.resolver_match.url_name or request.resolver_match.url_name == 'provider_response_monitor' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                     Rapportages &amp; regie
                 </a>

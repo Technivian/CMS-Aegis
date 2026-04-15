@@ -22,8 +22,12 @@ class RedesignLayoutTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Careon')
         self.assertContains(response, 'zorgregie-design-system.css')
+        self.assertContains(response, 'data-theme="light"')
         self.assertContains(response, 'toggleTheme()')
-        self.assertContains(response, 'title="Search"')
+        self.assertContains(response, 'setTheme(this.value)')
+        self.assertNotContains(response, 'Careon Premium')
+        self.assertContains(response, 'title="Zoeken"')
+        self.assertContains(response, 'name="q"')
 
     def test_sidebar_navigation_sections_and_links(self):
         response = self.client.get(reverse('dashboard'))
@@ -44,18 +48,18 @@ class RedesignLayoutTests(TestCase):
     def test_dashboard_kpis_and_panels(self):
         response = self.client.get(reverse('dashboard'))
         self.assertContains(response, 'Urgente casussen')
-        self.assertContains(response, 'Zonder match')
-        self.assertContains(response, 'Systeemoverzicht')
-        self.assertContains(response, 'Knelpuntfocus')
+        self.assertContains(response, 'Priority Case Queue')
+        self.assertContains(response, 'Active Case Panel')
+        self.assertContains(response, 'Bottlenecks')
         self.assertContains(response, 'Signalen')
-        self.assertContains(response, 'Systeemstatus')
+        self.assertContains(response, 'Capacity Signals')
 
     def test_dashboard_quick_actions(self):
         response = self.client.get(reverse('dashboard'))
         self.assertContains(response, 'Nieuwe casus')
-        self.assertContains(response, 'Start matching')
-        self.assertContains(response, 'Bekijk capaciteit')
-        self.assertContains(response, 'Plan overleg')
+        self.assertContains(response, 'Open volledige queue')
+        self.assertContains(response, 'command-alert-strip')
+        self.assertContains(response, '/care/matching/')
 
     def tearDown(self):
         if 'FEATURE_REDESIGN' in os.environ:

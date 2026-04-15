@@ -1,21 +1,23 @@
 {% extends "base.html" %}
 {% block title %}{{ waittime.provider.name }} – Wachttijd - Zorgregie{% endblock %}
 {% block content %}
+<div class="ds-detail-shell">
 
-<div class="mb-6">
-    <nav style="font-size: 13px; color: var(--text-secondary);">
-        <a href="{% url 'dashboard' %}" style="color: var(--primary); text-decoration: none;">Dashboard</a>
-        <span> / </span>
-        <a href="{% url 'careon:waittime_list' %}" style="color: var(--primary); text-decoration: none;">Wachttijden</a>
-        <span> / </span>
-        <span style="color: var(--text-muted);">{{ waittime.provider.name }}</span>
-    </nav>
-</div>
+<nav class="mb-4 ds-i-10k60uh">
+    <a class="ds-i-1iadm4s" href="{% url 'dashboard' %}">Dashboard</a>
+    <span class="mx-2">/</span>
+    <a class="ds-i-1iadm4s" href="{% url 'careon:waittime_list' %}">Wachttijden</a>
+    <span class="mx-2">/</span>
+    <span class="ds-i-1vkpsqq">{{ waittime.provider.name }}</span>
+</nav>
 
-<div class="flex items-start justify-between mb-6">
+<div class="ds-detail-header">
     <div>
-        <h1 class="page-title">{{ waittime.provider.name }}</h1>
-        <p class="page-subtitle">{{ waittime.region }} &middot; {{ waittime.get_care_type_display }}</p>
+        <h1 class="text-2xl font-bold">{{ waittime.provider.name }}</h1>
+        <p class="ds-header-meta">
+            <span>{{ waittime.region }}</span>
+            <span>{{ waittime.get_care_type_display }}</span>
+        </p>
     </div>
     <div class="flex gap-2">
         <a href="{% url 'careon:waittime_update' waittime.pk %}" class="action-chip">
@@ -29,61 +31,48 @@
     </div>
 </div>
 
-<div class="dash-grid dash-grid-3 mb-6">
-    <div class="panel">
-        <div class="panel-inner text-center">
-            <div class="metric-label">Gemiddelde wachttijd</div>
-            <div class="metric-xl {% if waittime.wait_days > 42 %}text-red-600{% elif waittime.wait_days > 14 %}text-amber-500{% else %}text-green-600{% endif %}">
-                {{ waittime.wait_days }}
-            </div>
-            <div class="metric-unit">dagen</div>
-        </div>
+<div class="ds-detail-metrics">
+    <div class="ds-detail-metric-item">
+        <p class="ds-detail-metric-label">Gemiddelde wachttijd</p>
+        <p class="ds-detail-metric-value {% if waittime.wait_days > 42 %}text-red-600{% elif waittime.wait_days > 14 %}text-amber-500{% else %}text-green-600{% endif %}">{{ waittime.wait_days }} <span class="text-sm font-normal">dagen</span></p>
     </div>
-    <div class="panel">
-        <div class="panel-inner text-center">
-            <div class="metric-label">Beschikbare plekken</div>
-            <div class="metric-xl {% if waittime.open_slots <= 0 %}text-red-600{% else %}text-green-600{% endif %}">
-                {{ waittime.open_slots }}
-            </div>
-            <div class="metric-unit">plekken vrij</div>
-        </div>
+    <div class="ds-detail-metric-item">
+        <p class="ds-detail-metric-label">Beschikbare plekken</p>
+        <p class="ds-detail-metric-value {% if waittime.open_slots <= 0 %}text-red-600{% else %}text-green-600{% endif %}">{{ waittime.open_slots }}</p>
     </div>
-    <div class="panel">
-        <div class="panel-inner text-center">
-            <div class="metric-label">Wachtlijst</div>
-            <div class="metric-xl">{{ waittime.waiting_list_size }}</div>
-            <div class="metric-unit">personen</div>
+    <div class="ds-detail-metric-item">
+        <p class="ds-detail-metric-label">Wachtlijst</p>
+        <p class="ds-detail-metric-value">{{ waittime.waiting_list_size }}</p>
+    </div>
+</div>
+
+<div class="ds-detail-sections">
+    <div class="ds-detail-card">
+        <div class="ds-detail-card-head">
+            <h2 class="ds-detail-card-title">Details</h2>
+        </div>
+        <div class="ds-detail-card-inner">
+            <div class="ds-detail-row">
+                <p class="ds-detail-label">Aanbieder</p>
+                <a href="{% url 'careon:client_detail' waittime.provider.pk %}" class="ds-detail-value text-blue-600 hover:text-blue-800">{{ waittime.provider.name }}</a>
+            </div>
+            <div class="ds-detail-row">
+                <p class="ds-detail-label">Regio / gemeente</p>
+                <p class="ds-detail-value">{{ waittime.region }}</p>
+            </div>
+            <div class="ds-detail-row">
+                <p class="ds-detail-label">Zorgtype</p>
+                <p class="ds-detail-value">{{ waittime.get_care_type_display }}</p>
+            </div>
+            {% if waittime.notes %}
+            <div class="ds-detail-row">
+                <p class="ds-detail-label">Toelichting</p>
+                <p class="ds-detail-value">{{ waittime.notes }}</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<div class="panel">
-    <div class="panel-head">
-        <div class="panel-head-inner">
-            <div class="dot dot-blue"></div>
-            <span class="panel-title">Details</span>
-        </div>
-    </div>
-    <div class="panel-inner space-y-4">
-        <div>
-            <div class="metric-label">Aanbieder</div>
-            <div><a href="{% url 'careon:client_detail' waittime.provider.pk %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">{{ waittime.provider.name }}</a></div>
-        </div>
-        <div>
-            <div class="metric-label">Regio / gemeente</div>
-            <div class="text-sm text-gray-900">{{ waittime.region }}</div>
-        </div>
-        <div>
-            <div class="metric-label">Zorgtype</div>
-            <div class="text-sm text-gray-900">{{ waittime.get_care_type_display }}</div>
-        </div>
-        {% if waittime.notes %}
-        <div>
-            <div class="metric-label">Toelichting</div>
-            <div class="text-sm text-gray-700">{{ waittime.notes }}</div>
-        </div>
-        {% endif %}
-    </div>
 </div>
-
 {% endblock %}

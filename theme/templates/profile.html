@@ -1,41 +1,36 @@
 {% extends "base.html" %}
 {% block title %}Profiel - Careon{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
-
-<div class="page-header">
-    <div style="display:flex;align-items:center;gap:16px;">
-        <div style="width:52px;height:52px;background:rgba(37,99,235,0.12);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#60A5FA;flex-shrink:0;">
-            {{ user.first_name.0|default:user.username.0|upper }}
-        </div>
-        <div>
-            <h1 class="page-title">{{ user.get_full_name|default:user.username }}</h1>
-            <span class="page-subtitle">{{ user.email }} &middot; Lid sinds {{ user.date_joined|date:"F Y" }}</span>
+<div class="max-w-2xl">
+    <div class="mb-6">
+        <div class="flex items-center gap-4 mb-4">
+            <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
+                <span class="text-xl font-bold text-blue-700">{{ user.first_name.0|default:user.username.0|upper }}</span>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">{{ user.get_full_name|default:user.username }}</h1>
+                <p class="text-sm text-gray-500">{{ user.email }} &middot; Lid sinds {{ user.date_joined|date:"F Y" }}</p>
+            </div>
         </div>
     </div>
-</div>
-
-{% if form %}
-<form method="post" class="ds-card action-card page-stack">
-    {% csrf_token %}
-    <div class="field-group">
-        {% for field in form %}
-        <div>
-            <label class="field-label">{{ field.label }}</label>
-            {{ field }}
-            {% if field.errors %}<p style="color:#f87171;font-size:12px;margin-top:4px;">{{ field.errors.0 }}</p>{% endif %}
+    <form method="post" class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+        {% csrf_token %}
+        {% if form %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for field in form %}
+            <div class="{% if field.name == 'bio' %}md:col-span-2{% endif %}">
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-    <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Wijzigingen opslaan</button>
-    </div>
-</form>
-{% else %}
-<div class="ds-card action-card">
-    <p style="color:var(--text-muted);font-size:14px;">Log in om je profiel te bekijken.</p>
-</div>
-{% endif %}
-
+        <div class="flex gap-3 pt-4">
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">Wijzigingen opslaan</button>
+        </div>
+        {% else %}
+        <p class="text-gray-500">Log in om je profiel te bekijken.</p>
+        {% endif %}
+    </form>
 </div>
 {% endblock %}

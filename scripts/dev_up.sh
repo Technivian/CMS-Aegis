@@ -120,12 +120,24 @@ if 'href=\"/care/casussen/new/\"' not in dashboard_html:
   raise SystemExit('Verification failed: dashboard new-case link is not canonical')
 if '/care/casussen/new/?v=' in dashboard_html:
   raise SystemExit('Verification failed: dashboard contains version-query create href')
+if 'dash-grid' not in dashboard_html or 'Knelpuntfocus' not in dashboard_html:
+  raise SystemExit('Verification failed: dashboard design shell is missing expected layout contracts')
+if 'careon-premium-theme.css' not in dashboard_html or 'title=\"Zoeken\"' not in dashboard_html:
+  raise SystemExit('Verification failed: dashboard base shell lost theme/search contracts')
+if 'data-theme-selector' not in dashboard_html or 'toggleTheme' not in dashboard_html:
+  raise SystemExit('Verification failed: dashboard base shell lost theme controls')
 
 case_list_html = client.get('/care/casussen/').content.decode('utf-8')
 if 'href=\"/care/casussen/new/\"' not in case_list_html:
   raise SystemExit('Verification failed: case list new-case link is not canonical')
 if '/care/casussen/new/?v=' in case_list_html:
   raise SystemExit('Verification failed: case list contains version-query create href')
+
+reports_html = client.get('/care/reports/').content.decode('utf-8')
+if 'page-wrap' not in reports_html or 'dash-grid' not in reports_html:
+  raise SystemExit('Verification failed: reports dashboard lost page-wrap/dash-grid layout contracts')
+if 'Rapportages & Regie' not in reports_html:
+  raise SystemExit('Verification failed: reports dashboard did not render expected heading')
 
 print('Startup verification passed')
 "

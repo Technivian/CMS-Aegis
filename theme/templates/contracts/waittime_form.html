@@ -1,55 +1,55 @@
 {% extends "base.html" %}
 {% block title %}{{ page_title }} - Zorgregie{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack" style="max-width: 980px;">
-    <nav style="font-size: 13px; color: var(--text-secondary);">
-        <a href="{% url 'dashboard' %}" style="color: var(--primary); text-decoration: none;">Dashboard</a>
-        <span> / </span>
-        <a href="{% url 'careon:waittime_list' %}" style="color: var(--primary); text-decoration: none;">Wachttijden</a>
+<div class="ds-detail-shell">
+    <nav class="ds-i-10k60uh">
+        <a class="ds-i-1iadm4s" href="{% url 'dashboard' %}">Regiekamer</a>
+        <span class="ds-muted-label"> / </span>
+        <a class="ds-i-1iadm4s" href="{% url 'careon:waittime_list' %}">Wachttijden</a>
         {% if is_edit %}
+        <span class="ds-muted-label"> / </span>
+        <a class="ds-i-1iadm4s" href="{% url 'careon:waittime_detail' object.pk %}">{{ object.provider.name }}</a>
         <span> / </span>
-        <a href="{% url 'careon:waittime_detail' object.pk %}" style="color: var(--primary); text-decoration: none;">{{ object.provider.name }}</a>
-        <span> / </span>
-        <span style="color: var(--text-muted);">Bewerken</span>
+        <span class="ds-i-1vkpsqq">Wijzigen</span>
         {% else %}
         <span> / </span>
-        <span style="color: var(--text-muted);">Nieuw</span>
+        <span class="ds-i-1vkpsqq">Nieuw</span>
         {% endif %}
     </nav>
 
-    <div class="page-header">
+    <div class="ds-detail-header">
         <div>
-            <h1 class="page-title">{{ page_title }}</h1>
+            <h1 class="page-title ds-section-title">{{ page_title }}</h1>
         </div>
     </div>
 
-    <form method="post" class="page-stack">
+    <form method="post" class="ds-detail-card-inner">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
-        <div class="error-state">
+        <div class="ds-detail-card error-state">
             {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
         </div>
         {% endif %}
 
-        <div class="ds-card action-card field-group">
-            <div class="panel-head">
-                <div class="panel-head-inner"><div class="dot dot-blue"></div><span class="panel-title">Aanbiedersinformatie</span></div>
+        <div class="ds-detail-card">
+            <div class="ds-detail-card-head">
+                <h2 class="ds-detail-card-title">Aanbiedersinformatie</h2>
             </div>
-            <div class="page-stack">
+            <div class="ds-detail-card-inner">
                 {% for field in form %}
                 <div>
-                    <label for="{{ field.id_for_label }}" class="field-label">
+                    <label for="{{ field.id_for_label }}" class="ds-detail-label field-label">
                         {{ field.label }}{% if field.field.required %} *{% endif %}
                     </label>
                     {{ field }}
-                    {% if field.errors %}<p style="color:#f87171;font-size:12px;margin-top:4px;">{{ field.errors.0 }}</p>{% endif %}
+                    {% if field.errors %}<p class="ds-i-1ynt37i">{{ field.errors.0 }}</p>{% endif %}
                 </div>
                 {% endfor %}
             </div>
         </div>
 
-        <div class="form-actions">
+        <div class="ds-list-actions">
             <button type="submit" class="btn btn-primary">
                 {% if is_edit %}Bijwerken{% else %}Registreren{% endif %}
             </button>
@@ -60,14 +60,6 @@
     </form>
 </div>
 
-<style>
-    .form-actions {
-        display: flex;
-        gap: 10px;
-        justify-content: flex-start;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-</style>
+
 
 {% endblock %}

@@ -3,12 +3,12 @@
 {% block content %}
 <div class="page-wrap page-stack">
 
-<nav class="mb-4" style="font-size: 13px; color: var(--text-secondary);">
-    <a href="{% url 'dashboard' %}" style="color: var(--text-muted); text-decoration: none;">Dashboard</a>
+<nav class="ds-breadcrumb">
+    <a href="{% url 'dashboard' %}" class="ds-breadcrumb-link">Regiekamer</a>
     <span class="mx-2">/</span>
-    <a href="{% url 'careon:placement_list' %}" style="color: var(--text-muted); text-decoration: none;">Plaatsingen</a>
+    <a href="{% url 'careon:placement_list' %}" class="ds-breadcrumb-link">Plaatsingen</a>
     <span class="mx-2">/</span>
-    <span style="color: var(--primary);">
+    <span class="ds-breadcrumb-current">
         {% if placement.intake %}{{ placement.intake.title }}{% else %}Plaatsing #{{ placement.pk }}{% endif %}
     </span>
 </nav>
@@ -30,13 +30,13 @@
             Naar casus
         </a>
         {% endif %}
-        {% if can_edit_placement %}
-        <a href="{% url 'careon:placement_update' placement.pk %}" class="action-chip">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-            Bewerken
+        {% if placement.intake %}
+        <a href="{% url 'careon:case_detail' placement.intake.pk %}?tab=plaatsing" class="action-chip">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m7.5-2l-2.5 2.5"/></svg>
+            Open casus voor beslisactie
         </a>
         {% else %}
-        <span class="action-chip" style="opacity:0.6;cursor:not-allowed;">Alleen-lezen</span>
+        <span class="action-chip ds-readonly-chip">Alleen-lezen</span>
         {% endif %}
     </div>
 </div>
@@ -71,22 +71,22 @@
         </div>
         <div class="panel-inner space-y-4">
             <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Voorgestelde aanbieder</p>
-                <p class="text-sm text-gray-800">{{ placement.proposed_provider.name|default:"—" }}</p>
+                <p class="text-xs font-medium ds-text-muted uppercase tracking-wide mb-1">Voorgestelde aanbieder</p>
+                <p class="text-sm ds-text-strong">{{ placement.proposed_provider.name|default:"—" }}</p>
             </div>
             <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Geselecteerde aanbieder</p>
+                <p class="text-xs font-medium ds-text-muted uppercase tracking-wide mb-1">Geselecteerde aanbieder</p>
                 {% if placement.selected_provider %}
-                <a href="{% url 'careon:client_detail' placement.selected_provider.pk %}" class="text-sm text-blue-600 hover:text-blue-800">
+                <a href="{% url 'careon:client_detail' placement.selected_provider.pk %}" class="text-sm ds-link">
                     {{ placement.selected_provider.name }}
                 </a>
                 {% else %}
-                <p class="text-sm text-gray-400">Nog niet geselecteerd</p>
+                <p class="text-sm ds-text-dim">Nog niet geselecteerd</p>
                 {% endif %}
             </div>
             <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Zorgvorm</p>
-                <p class="text-sm text-gray-800">{{ placement.get_care_form_display|default:"—" }}</p>
+                <p class="text-xs font-medium ds-text-muted uppercase tracking-wide mb-1">Zorgvorm</p>
+                <p class="text-sm ds-text-strong">{{ placement.get_care_form_display|default:"—" }}</p>
             </div>
         </div>
     </div>
@@ -99,13 +99,13 @@
         </div>
         <div class="panel-inner space-y-4">
             <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Beslissingsnotities</p>
-                <p class="text-sm text-gray-700">{{ placement.decision_notes|default:"Geen notities." }}</p>
+                <p class="text-xs font-medium ds-text-muted uppercase tracking-wide mb-1">Beslissingsnotities</p>
+                <p class="text-sm ds-text-secondary">{{ placement.decision_notes|default:"Geen notities." }}</p>
             </div>
             {% if placement.intake %}
             <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Gerelateerde casus</p>
-                <a href="{% url 'careon:case_detail' placement.intake.pk %}" class="text-sm text-blue-600 hover:text-blue-800">
+                <p class="text-xs font-medium ds-text-muted uppercase tracking-wide mb-1">Gerelateerde casus</p>
+                <a href="{% url 'careon:case_detail' placement.intake.pk %}" class="text-sm ds-link">
                     {{ placement.intake.title }}
                 </a>
             </div>

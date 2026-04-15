@@ -1,33 +1,37 @@
 {% extends "base.html" %}
 {% block title %}Matching - Careon{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
-    <div class="page-header">
-        <div>
-            <h1 class="page-title">Matching</h1>
-            <p class="page-subtitle">Beslisruimte voor aanbiederkeuze</p>
-        </div>
-    </div>
+<div class="ds-detail-shell">
 
     {% if rows %}
     {% with focus_row=rows.0 %}
-    <section class="ds-card matching-context-card">
-        <div class="matching-context-head">
-            <div class="matching-context-meta">
-                <div class="matching-id-line">
-                    <span class="ds-badge badge-blue">Casus {{ focus_row.intake.pk }}</span>
-                    <span class="ds-badge {% if focus_row.intake.urgency == 'CRISIS' %}badge-high{% elif focus_row.intake.urgency == 'HIGH' %}badge-medium{% else %}badge-low{% endif %}">{{ focus_row.intake.get_urgency_display }}</span>
-                    <span class="ds-badge badge-status">{{ focus_row.intake.get_status_display }}</span>
+
+    <section class="ds-card ds-detail-head">
+        <div class="ds-detail-card-head">
+            <div class="min-w-0 space-y-2">
+                <div class="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-wide ds-text-muted">
+                    <span class="ds-badge badge-gray">Casus {{ focus_row.intake.pk }}</span>
+                    <span class="ds-badge {% if focus_row.intake.urgency == 'CRISIS' %}badge-critical{% elif focus_row.intake.urgency == 'HIGH' %}badge-high{% else %}badge-low{% endif %}">{{ focus_row.intake.get_urgency_display }}</span>
+                    <span class="ds-badge ds-stage-matching">{{ focus_row.intake.get_status_display }}</span>
                 </div>
-                <h2 class="matching-case-title">{{ focus_row.intake.title|truncatechars:60 }}</h2>
-                <div class="matching-case-submeta">
-                    <span>Regio/Gemeente: {% firstof focus_row.intake.region focus_row.intake.region_name "Onbekend" %}</span>
-                    <span>&middot;</span>
-                    <span>Zorgvorm: {{ focus_row.intake.get_preferred_care_form_display }}</span>
-                </div>
+                <h1 class="truncate text-2xl font-semibold leading-tight ds-text-strong">{{ focus_row.intake.title|truncatechars:60 }}</h1>
+                <dl class="grid gap-x-5 gap-y-1 text-xs sm:grid-cols-3">
+                    <div>
+                        <dt class="uppercase tracking-wide ds-text-muted">Regio/Gemeente</dt>
+                        <dd class="font-semibold ds-text-strong">{% firstof focus_row.intake.region focus_row.intake.region_name "Onbekend" %}</dd>
+                    </div>
+                    <div>
+                        <dt class="uppercase tracking-wide ds-text-muted">Zorgvorm</dt>
+                        <dd class="font-semibold ds-text-strong">{{ focus_row.intake.get_preferred_care_form_display }}</dd>
+                    </div>
+                    <div>
+                        <dt class="uppercase tracking-wide ds-text-muted">Matches gevonden</dt>
+                        <dd class="font-semibold ds-text-strong">{{ focus_row.suggestions|length }}</dd>
+                    </div>
+                </dl>
             </div>
-            <div class="matching-context-actions">
-                <a href="{% url 'careon:case_detail' focus_row.intake.pk %}" class="btn btn-ghost">Terug naar casus</a>
+            <div class="flex flex-col items-stretch gap-2 sm:items-end">
+                <a href="{% url 'careon:case_detail' focus_row.intake.pk %}" class="btn btn-secondary">Terug naar casus</a>
                 {% if selected_intake %}
                 <a href="{% url 'careon:matching_dashboard' %}?intake={{ selected_intake.pk }}" class="btn btn-ghost">Ververs matching</a>
                 <a href="{% url 'careon:matching_dashboard' %}" class="btn btn-ghost">Filter wissen</a>
@@ -38,14 +42,14 @@
         </div>
     </section>
 
-    <section class="matching-summary-strip">
-        <div class="summary-item">
-            <div class="summary-label">Huidige staat</div>
-            <div class="summary-value">{{ focus_row.suggestions|length }} geschikte matches</div>
+    <section class="ds-summary-strip">
+        <div class="ds-summary-item">
+            <p class="ds-summary-label">Huidige staat</p>
+            <p class="mt-1 text-base font-semibold ds-text-strong">{{ focus_row.suggestions|length }} geschikte matches</p>
         </div>
-        <div class="summary-item summary-risk">
-            <div class="summary-label">Blokkade</div>
-            <div class="summary-value">
+        <div class="ds-summary-item ds-summary-item--risk">
+            <p class="ds-summary-label">Blokkade</p>
+            <p class="mt-1 text-sm font-semibold ds-text-strong">
                 {% if focus_row.suggestions and focus_row.suggestions.0.avg_wait_days > 28 %}
                 Lange wachttijd
                 {% elif focus_row.suggestions and focus_row.suggestions.0.free_slots|default:0 == 0 %}
@@ -53,86 +57,70 @@
                 {% else %}
                 Geen directe blokkade
                 {% endif %}
-            </div>
+            </p>
         </div>
-        <div class="summary-item">
-            <div class="summary-label">Volgende actie</div>
-            <div class="summary-value">
-                {% if focus_row.assigned_provider %}
-                Controleer plaatsing
-                {% elif focus_row.suggestions and focus_row.can_assign %}
-                Wijs beste match toe
-                {% elif focus_row.suggestions %}
-                Vergelijk top opties
-                {% else %}
-                Vul profielgegevens aan
-                {% endif %}
-            </div>
+        <div class="ds-summary-item">
+            <p class="ds-summary-label">Actieroute</p>
+            <p class="mt-1 text-sm font-semibold ds-text-strong">
+                {% if focus_row.assigned_provider %}Zie Beslisactie{% else %}Volg Beslisactie{% endif %}
+            </p>
         </div>
-        <div class="summary-item">
-            <div class="summary-label">Beslisregel</div>
-            <div class="summary-value">Systeem adviseert, regie beslist</div>
+        <div class="ds-summary-item">
+            <p class="ds-summary-label">Beslisregel</p>
+            <p class="mt-1 text-sm font-semibold ds-text-strong">Systeem adviseert, regie beslist</p>
         </div>
     </section>
 
-    <div class="matching-workspace-grid">
-        <section class="matching-main-col">
-            <div class="recommendation-head">
-                <h3 class="panel-title">Top aanbevelingen</h3>
-                <span class="text-xs text-gray-400">Gerangschikt op matchscore</span>
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
+        <section class="space-y-4 xl:col-span-8">
+            <div class="flex items-center justify-between">
+                <h2 class="text-base font-semibold ds-text-strong">Top aanbevelingen</h2>
+                <span class="text-xs ds-text-dim">Gerangschikt op matchscore</span>
             </div>
 
             {% if focus_row.suggestions %}
-            <div class="recommendation-stack">
+            <div class="space-y-4">
                 {% for suggestion in focus_row.suggestions|slice:":3" %}
-                <article class="ds-card recommendation-card {% if forloop.first %}recommendation-best{% endif %}">
-                    <div class="rec-top">
-                        <div class="rec-rank">{% if forloop.first %}Beste match{% else %}Optie {{ forloop.counter }}{% endif %}</div>
-                        <span class="ds-badge badge-blue">Fitscore {{ suggestion.match_score }}%</span>
+                <article class="ds-card {% if forloop.first %}ds-sidebar-card--primary{% endif %}">
+                    <div class="mb-2 flex items-center justify-between">
+                        <span class="text-xs font-semibold uppercase tracking-wide {% if forloop.first %}text-blue-700{% else %}ds-text-muted{% endif %}">{% if forloop.first %}Beste match{% else %}Optie {{ forloop.counter }}{% endif %}</span>
+                        <span class="ds-badge ds-stage-matching">Fitscore {{ suggestion.match_score }}%</span>
                     </div>
-                    <h4 class="rec-provider">{{ suggestion.provider_name }}</h4>
-                    <div class="rec-chip-row">
+                    <h3 class="ds-card-title">{{ suggestion.provider_name }}</h3>
+                    <div class="mb-3 flex flex-wrap gap-2">
                         {% if suggestion.free_slots|default:0 > 3 %}
-                        <span class="ds-badge badge-capacity-open">Capaciteit: beschikbaar</span>
+                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">Capaciteit: beschikbaar</span>
                         {% elif suggestion.free_slots|default:0 > 0 %}
-                        <span class="ds-badge badge-capacity-limited">Capaciteit: beperkt</span>
+                        <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-1 text-[11px] font-semibold text-yellow-700">Capaciteit: beperkt</span>
                         {% else %}
-                        <span class="ds-badge badge-capacity-full">Capaciteit: vol</span>
+                        <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-[11px] font-semibold text-red-700">Capaciteit: vol</span>
                         {% endif %}
-                        <span class="ds-badge badge-low">Regio: {% firstof focus_row.intake.region focus_row.intake.region_name "n.b." %}</span>
-                        <span class="ds-badge badge-medium">Wachttijd {{ suggestion.avg_wait_days }} dagen</span>
+                        {% if suggestion.region_match %}
+                        <span class="inline-flex items-center rounded-full bg-teal-100 px-2.5 py-1 text-[11px] font-semibold text-teal-700">Regio: match</span>
+                        {% endif %}
+                        <span class="ds-badge badge-gray">Regio: {% firstof focus_row.intake.region focus_row.intake.region_name "n.b." %}</span>
+                        <span class="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-1 text-[11px] font-semibold text-orange-700">Wachttijd {{ suggestion.avg_wait_days }} dagen</span>
                     </div>
-                    <div class="rec-grid">
-                        <div>
-                            <div class="rec-label">Waarom dit past</div>
-                            <div class="rec-copy">{{ suggestion.reason }}</div>
+                    <dl class="divide-y divide-gray-100 rounded-lg border border-gray-100 text-sm">
+                        <div class="px-3 py-2">
+                            <dt class="mb-1 text-xs font-semibold uppercase tracking-wide ds-text-muted">Waarom dit past</dt>
+                            <dd class="text-sm ds-text-secondary">{{ suggestion.reason }}</dd>
                         </div>
-                        <div>
-                            <div class="rec-label">Aandachtspunt</div>
-                            <div class="rec-copy">
-                                {% if suggestion.free_slots|default:0 == 0 %}
-                                Geen vrije plekken nu
-                                {% elif suggestion.avg_wait_days > 28 %}
-                                Wachttijd is relatief lang
-                                {% elif suggestion.match_score < 70 %}
-                                Lagere zekerheid dan topmatch
-                                {% else %}
-                                Bevestig intake fit handmatig
-                                {% endif %}
-                            </div>
+                        <div class="px-3 py-2">
+                            <dt class="mb-1 text-xs font-semibold uppercase tracking-wide ds-text-muted">Aandachtspunt</dt>
+                            <dd class="text-sm ds-text-secondary">
+                                {% if suggestion.free_slots|default:0 == 0 %}Geen vrije plekken nu
+                                {% elif suggestion.avg_wait_days > 28 %}Wachttijd is relatief lang
+                                {% elif suggestion.match_score < 70 %}Lagere zekerheid dan topmatch
+                                {% else %}Bevestig intake fit handmatig{% endif %}
+                            </dd>
                         </div>
-                    </div>
-                    <div class="rec-actions">
+                    </dl>
+                    <div class="mt-3 flex flex-wrap gap-2">
                         {% if focus_row.can_assign %}
-                        <form method="post" class="inline">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="assign">
-                            <input type="hidden" name="assessment_id" value="{{ focus_row.assessment.pk }}">
-                            <input type="hidden" name="provider_id" value="{{ suggestion.provider_id }}">
-                            <button type="submit" class="btn {% if forloop.first %}btn-primary{% else %}btn-secondary{% endif %}">Wijs toe</button>
-                        </form>
+                        <a href="{% url 'careon:case_detail' focus_row.intake.pk %}?tab=matching" class="btn {% if forloop.first %}btn-primary{% else %}btn-secondary{% endif %}">Open casus voor toewijzing</a>
                         {% else %}
-                        <span class="text-xs text-gray-400">Geen bewerkrechten</span>
+                        <span class="text-xs ds-text-dim">Geen bewerkrechten</span>
                         {% endif %}
                         <a href="{% url 'careon:client_detail' suggestion.provider_id %}" class="btn btn-ghost">Bekijk profiel</a>
                     </div>
@@ -140,156 +128,155 @@
                 {% endfor %}
             </div>
             {% else %}
-            <div class="ds-card empty-state">Geen zorgaanbieders met profielgegevens beschikbaar voor deze beoordeling.</div>
+            <div class="ds-empty-state text-center">
+                <p class="mb-4 text-sm ds-text-muted">Geen zorgaanbieders met profielgegevens beschikbaar voor deze beoordeling.</p>
+                <div class="flex justify-center gap-3">
+                    <a href="{% url 'careon:assessment_detail' focus_row.assessment.pk %}" class="btn btn-secondary">Open beoordeling</a>
+                    <a href="{% url 'careon:case_detail' focus_row.intake.pk %}" class="btn btn-ghost">Terug naar casus</a>
+                </div>
+            </div>
+            {% endif %}
+
+            <section class="ds-card ds-tabs-container">
+                <div class="mb-4 flex gap-2 border-b border-gray-100 pb-3">
+                    <a href="#vergelijking" class="ds-tab-item ds-tab-item--active">Vergelijking</a>
+                    <a href="#matchgeschiedenis" class="ds-tab-item">Matchgeschiedenis</a>
+                    <a href="#afgevallen" class="ds-tab-item">Afgevallen aanbieders</a>
+                </div>
+
+                <div id="vergelijking">
+                    <h3 class="mb-3 text-sm font-semibold ds-text-strong">Vergelijking</h3>
+                    {% if focus_row.suggestions %}
+                    <div class="ds-table-wrap">
+                        <table class="ds-table">
+                            <thead>
+                                <tr>
+                                    <th>Aanbieder</th>
+                                    <th>Matchscore</th>
+                                    <th>Capaciteit</th>
+                                    <th>Wachttijd</th>
+                                    <th>Waarom</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for suggestion in focus_row.suggestions %}
+                                <tr>
+                                    <td>{{ suggestion.provider_name }}</td>
+                                    <td><span class="ds-badge badge-blue">{{ suggestion.match_score }}%</span></td>
+                                    <td>
+                                        {% if suggestion.free_slots|default:0 > 3 %}Beschikbaar ({{ suggestion.free_slots }})
+                                        {% elif suggestion.free_slots|default:0 > 0 %}Beperkt ({{ suggestion.free_slots }})
+                                        {% else %}Vol{% endif %}
+                                    </td>
+                                    <td>{{ suggestion.avg_wait_days }} dagen</td>
+                                    <td>{{ suggestion.reason }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-sm ds-text-dim">Geen zorgaanbieders met profielgegevens beschikbaar voor deze beoordeling.</p>
+                    {% endif %}
+                </div>
+
+                <div id="matchgeschiedenis" class="mt-4 border-t border-gray-100 pt-4">
+                    <h3 class="mb-3 text-sm font-semibold ds-text-strong">Matchgeschiedenis</h3>
+                    {% if focus_row.assigned_provider %}
+                    <p class="mb-2 text-sm ds-text-secondary">Toegewezen: {{ focus_row.assigned_provider.name }}</p>
+                    {% if focus_row.placement_pk %}
+                    <a href="{% url 'careon:placement_detail' focus_row.placement_pk %}" class="btn btn-ghost">Bekijk plaatsing</a>
+                    {% endif %}
+                    {% else %}
+                    <p class="text-sm ds-text-dim">Nog niet toegewezen</p>
+                    {% endif %}
+                </div>
+
+                <div id="afgevallen" class="mt-4 border-t border-gray-100 pt-4">
+                    <h3 class="mb-3 text-sm font-semibold ds-text-strong">Niet passend / afgevallen aanbieders</h3>
+                    {% if focus_row.suggestions|slice:"3:" %}
+                    <div class="flex flex-wrap gap-2">
+                        {% for suggestion in focus_row.suggestions|slice:"3:" %}
+                        <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold ds-text-secondary">{{ suggestion.provider_name }} · {{ suggestion.match_score }}%</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-sm ds-text-dim">Geen extra afgevallen aanbieders.</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            {% if not selected_intake and rows|length > 1 %}
+            <section class="ds-card">
+                <h3 class="ds-card-title">Andere casussen gereed voor matching</h3>
+                <div class="divide-y divide-gray-100">
+                    {% for row in rows|slice:"1:6" %}
+                    <a href="{% url 'careon:matching_dashboard' %}?intake={{ row.intake.pk }}" class="flex items-center justify-between rounded-lg px-2 py-2.5 text-sm hover:bg-gray-50">
+                        <span class="font-medium ds-text-strong">{{ row.intake.title|truncatechars:38 }}</span>
+                        <span class="text-xs ds-text-muted">{{ row.suggestions|length }} matches</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </section>
             {% endif %}
         </section>
 
-        <aside class="matching-side-col">
-            <section class="ds-card rail-card rail-next">
-                <h4 class="rail-title">Beslisactie</h4>
+        <aside class="space-y-4 xl:col-span-4 xl:sticky xl:top-6 xl:max-h-[calc(100vh-3rem)] xl:overflow-y-auto">
+            <section class="ds-card ds-sidebar-card ds-sidebar-card--primary">
+                <h3 class="ds-sidebar-title">Beslisactie</h3>
                 {% if focus_row.assigned_provider %}
-                <p class="rail-note">Toegewezen: {{ focus_row.assigned_provider.name }}</p>
+                <p class="mb-3 text-sm font-semibold text-blue-800">Toegewezen: {{ focus_row.assigned_provider.name }}</p>
                 {% if focus_row.placement_pk %}
-                <a href="{% url 'careon:placement_detail' focus_row.placement_pk %}" class="btn btn-ghost">Bekijk plaatsing</a>
+                <a href="{% url 'careon:placement_detail' focus_row.placement_pk %}" class="btn btn-ghost w-full">Bekijk plaatsing</a>
                 {% endif %}
                 {% elif focus_row.suggestions %}
                 {% if focus_row.can_assign %}
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="assign">
-                    <input type="hidden" name="assessment_id" value="{{ focus_row.assessment.pk }}">
-                    <input type="hidden" name="provider_id" value="{{ focus_row.suggestions.0.provider_id }}">
-                    <button type="submit" class="btn btn-primary">Wijs beste match toe</button>
-                </form>
+                <a href="{% url 'careon:case_detail' focus_row.intake.pk %}?tab=matching" class="btn btn-primary w-full">Open casus voor beslisactie</a>
                 {% else %}
-                <span class="text-xs text-gray-400">Geen bewerkrechten</span>
+                <span class="text-xs ds-text-dim">Geen bewerkrechten</span>
                 {% endif %}
                 {% else %}
-                <p class="rail-note">Vul profielgegevens aan voor betere matching.</p>
+                <p class="text-sm text-blue-800">Vul profielgegevens aan voor betere matching.</p>
                 {% endif %}
             </section>
 
-            <section class="ds-card rail-card">
-                <h4 class="rail-title">Matchcriteria</h4>
-                <div class="rail-list">
-                    <div class="rail-row"><span>Categorie</span><strong>{{ focus_row.intake.care_category_main.name|default:"Onbekend" }}</strong></div>
-                    <div class="rail-row"><span>Urgentie</span><strong>{{ focus_row.intake.get_urgency_display }}</strong></div>
-                    <div class="rail-row"><span>Zorgvorm</span><strong>{{ focus_row.intake.get_preferred_care_form_display }}</strong></div>
-                </div>
+            <section class="ds-card ds-sidebar-card">
+                <h3 class="ds-sidebar-title">Matchcriteria</h3>
+                <dl class="divide-y divide-gray-100 text-sm">
+                    <div class="flex justify-between py-2"><dt class="ds-text-muted">Categorie</dt><dd class="font-semibold ds-text-strong">{{ focus_row.intake.care_category_main.name|default:"Onbekend" }}</dd></div>
+                    <div class="flex justify-between py-2"><dt class="ds-text-muted">Urgentie</dt><dd class="font-semibold ds-text-strong">{{ focus_row.intake.get_urgency_display }}</dd></div>
+                    <div class="flex justify-between py-2"><dt class="ds-text-muted">Zorgvorm</dt><dd class="font-semibold ds-text-strong">{{ focus_row.intake.get_preferred_care_form_display }}</dd></div>
+                    <div class="flex justify-between py-2"><dt class="ds-text-muted">Regiotype</dt><dd class="font-semibold ds-text-strong">{{ focus_row.intake.get_preferred_region_type_display }}</dd></div>
+                    <div class="flex justify-between py-2"><dt class="ds-text-muted">Voorkeursregio</dt><dd class="font-semibold ds-text-strong">{{ focus_row.intake.preferred_region.region_name|default:'Niet gekozen' }}</dd></div>
+                </dl>
             </section>
 
-            <section class="ds-card rail-card">
-                <h4 class="rail-title">Beoordeling snapshot</h4>
-                <div class="rail-list">
-                    <div class="rail-row"><span>Status</span><strong>{{ focus_row.assessment.get_assessment_status_display }}</strong></div>
-                    <div class="rail-row"><span>Laatst bijgewerkt</span><strong>{{ focus_row.assessment.updated_at|date:"d-m-Y H:i" }}</strong></div>
-                    <div class="rail-row"><span>Beoordelaar</span><strong>{{ focus_row.assessment.assessed_by.get_full_name|default:"-" }}</strong></div>
-                </div>
+            <section class="ds-card ds-sidebar-card">
+                <h3 class="ds-sidebar-title">Beoordeling snapshot</h3>
+                <dl class="divide-y divide-gray-100 text-sm">
+                    <div class="flex justify-between py-2"><dt class="ds-text-muted">Status</dt><dd class="font-semibold ds-text-strong">{{ focus_row.assessment.get_assessment_status_display }}</dd></div>
+                    <div class="flex justify-between py-2"><dt class="ds-text-muted">Bijgewerkt</dt><dd class="font-semibold ds-text-strong">{{ focus_row.assessment.updated_at|date:"d-m-Y H:i" }}</dd></div>
+                    <div class="flex justify-between py-2"><dt class="ds-text-muted">Beoordelaar</dt><dd class="font-semibold ds-text-strong">{{ focus_row.assessment.assessed_by.get_full_name|default:"-" }}</dd></div>
+                </dl>
             </section>
 
-            <section class="ds-card rail-card">
-                <h4 class="rail-title">Capaciteitsoverzicht</h4>
-                <div class="rail-list">
-                    <div class="rail-row"><span>Fitscore top</span><strong>{% if focus_row.suggestions %}{{ focus_row.suggestions.0.match_score }}%{% else %}-{% endif %}</strong></div>
-                    <div class="rail-row"><span>Capaciteit top</span><strong>{% if focus_row.suggestions %}{{ focus_row.suggestions.0.free_slots|default:0 }} plekken{% else %}-{% endif %}</strong></div>
-                    <div class="rail-row"><span>Wachttijd top</span><strong>{% if focus_row.suggestions %}{{ focus_row.suggestions.0.avg_wait_days }} dagen{% else %}-{% endif %}</strong></div>
-                </div>
+            <section class="ds-card ds-sidebar-card">
+                <h3 class="ds-sidebar-title">Capaciteitsoverzicht</h3>
+                <dl class="divide-y divide-gray-100 text-sm">
+                    <div class="flex justify-between py-2"><dt class="ds-text-muted">Fitscore top</dt><dd class="font-semibold ds-text-strong">{% if focus_row.suggestions %}{{ focus_row.suggestions.0.match_score }}%{% else %}-{% endif %}</dd></div>
+                    <div class="flex justify-between py-2"><dt class="ds-text-muted">Capaciteit top</dt><dd class="font-semibold ds-text-strong">{% if focus_row.suggestions %}{{ focus_row.suggestions.0.free_slots|default:0 }} plekken{% else %}-{% endif %}</dd></div>
+                    <div class="flex justify-between py-2"><dt class="ds-text-muted">Wachttijd top</dt><dd class="font-semibold ds-text-strong">{% if focus_row.suggestions %}{{ focus_row.suggestions.0.avg_wait_days }} dagen{% else %}-{% endif %}</dd></div>
+                </dl>
             </section>
         </aside>
     </div>
 
-    <section class="ds-card matching-detail-card">
-        <div class="detail-segments">
-            <a href="#vergelijking" class="tab-chip tab-chip-active">Vergelijking</a>
-            <a href="#matchgeschiedenis" class="tab-chip">Matchgeschiedenis</a>
-            <a href="#afgevallen" class="tab-chip">Niet passend / afgevallen aanbieders</a>
-        </div>
-
-        <div id="vergelijking" class="detail-block">
-            <h4 class="detail-title">Vergelijking</h4>
-            {% if focus_row.suggestions %}
-            <div class="ds-table-wrap">
-                <table class="ds-table">
-                    <thead>
-                        <tr>
-                            <th>Aanbieder</th>
-                            <th>Matchscore</th>
-                            <th>Capaciteit</th>
-                            <th>Wachttijd</th>
-                            <th>Waarom</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for suggestion in focus_row.suggestions %}
-                        <tr>
-                            <td>{{ suggestion.provider_name }}</td>
-                            <td><span class="ds-badge badge-blue">{{ suggestion.match_score }}%</span></td>
-                            <td>
-                                {% if suggestion.free_slots|default:0 > 3 %}
-                                Beschikbaar ({{ suggestion.free_slots }})
-                                {% elif suggestion.free_slots|default:0 > 0 %}
-                                Beperkt ({{ suggestion.free_slots }})
-                                {% else %}
-                                Vol
-                                {% endif %}
-                            </td>
-                            <td>{{ suggestion.avg_wait_days }} dagen</td>
-                            <td>{{ suggestion.reason }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="empty-state">Geen zorgaanbieders met profielgegevens beschikbaar voor deze beoordeling.</div>
-            {% endif %}
-        </div>
-
-        <div id="matchgeschiedenis" class="detail-block">
-            <h4 class="detail-title">Matchgeschiedenis</h4>
-            {% if focus_row.assigned_provider %}
-            <p class="text-sm text-gray-200">Toegewezen: {{ focus_row.assigned_provider.name }}</p>
-            {% if focus_row.placement_pk %}
-            <a href="{% url 'careon:placement_detail' focus_row.placement_pk %}" class="btn btn-ghost">Bekijk plaatsing</a>
-            {% endif %}
-            {% else %}
-            <p class="text-sm text-gray-400">Nog niet toegewezen</p>
-            {% endif %}
-        </div>
-
-        <div id="afgevallen" class="detail-block">
-            <h4 class="detail-title">Niet passend / afgevallen aanbieders</h4>
-            {% if focus_row.suggestions|slice:"3:" %}
-            <div class="detail-tags">
-                {% for suggestion in focus_row.suggestions|slice:"3:" %}
-                <span class="ds-badge badge-low">{{ suggestion.provider_name }} · {{ suggestion.match_score }}%</span>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p class="text-sm text-gray-400">Geen extra afgevallen aanbieders.</p>
-            {% endif %}
-        </div>
-    </section>
-
-    {% if not selected_intake and rows|length > 1 %}
-    <section class="ds-card queue-card">
-        <h4 class="queue-title">Andere casussen gereed voor matching</h4>
-        <div class="queue-list">
-            {% for row in rows|slice:"1:6" %}
-            <a href="{% url 'careon:matching_dashboard' %}?intake={{ row.intake.pk }}" class="queue-item">
-                <span class="queue-item-title">{{ row.intake.title|truncatechars:38 }}</span>
-                <span class="queue-item-meta">{{ row.suggestions|length }} matches</span>
-            </a>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
     {% endwith %}
     {% else %}
-    <div class="ds-card empty-state">
-        <svg class="empty-icon icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-        Geen beoordelingen met status "Goedgekeurd voor matching".
-        <div style="margin-top:10px;"><a href="{% url 'careon:assessment_list' %}" class="btn btn-primary">Open beoordelingen</a></div>
+    <div class="ds-empty-state text-center">
+        <svg class="mx-auto mb-4 h-10 w-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <p class="mb-4 text-sm ds-text-muted">Geen beoordelingen met status "Goedgekeurd voor matching".</p>
+        <a href="{% url 'careon:assessment_list' %}" class="btn btn-primary">Open beoordelingen</a>
     </div>
     {% endif %}
 </div>

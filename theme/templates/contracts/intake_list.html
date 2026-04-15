@@ -2,155 +2,140 @@
 {% block title %}Casussen - Careon{% endblock %}
 {% block content %}
 {% load static %}
-<div class="page-wrap page-stack">
-    <div class="page-header">
-        <div>
-            <h1 class="page-title">Casussen</h1>
-            <p class="page-subtitle">{{ total_intakes }} totaal &middot; {{ active_intakes }} actief &middot; {{ urgent_intakes }} urgent in intakefase</p>
+<div class="ds-list-shell">
+    <div class="ds-list-header">
+        <h1 class="page-title">Casussen</h1>
+        <p class="ds-note-text">{{ total_intakes }} totaal &middot; {{ active_intakes }} actief &middot; {{ urgent_intakes }} urgent in intakefase</p>
+    </div>
+
+    <div class="ds-list-kpi-grid">
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Totaal</div>
+            <div class="ds-list-kpi-value">{{ total_intakes }}</div>
+        </div>
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Actief</div>
+            <div class="ds-list-kpi-value">{{ active_intakes }}</div>
+        </div>
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Urgent</div>
+            <div class="ds-list-kpi-value tone-critical">{{ urgent_intakes }}</div>
         </div>
     </div>
 
-    <div class="intake-kpi-grid">
-        <div class="ds-card intake-kpi-card">
-            <div class="kpi-label">Totaal</div>
-            <div class="kpi-value">{{ total_intakes }}</div>
-        </div>
-        <div class="ds-card intake-kpi-card">
-            <div class="kpi-label">Actief</div>
-            <div class="kpi-value">{{ active_intakes }}</div>
-        </div>
-        <div class="ds-card intake-kpi-card">
-            <div class="kpi-label">Urgent</div>
-            <div class="kpi-value tone-critical">{{ urgent_intakes }}</div>
-        </div>
+    <div class="ds-list-filters">
+        <form method="get" class="ds-list-filter-row">
+            <div class="ds-list-filter-group">
+                <label for="intake-q" class="ds-list-filter-label">Zoeken</label>
+                <input id="intake-q" type="search" name="q" value="{{ search_query }}" placeholder="Zoek op titel of casus-ID...">
+            </div>
+            <div class="ds-list-filter-group">
+                <label for="intake-status" class="ds-list-filter-label">Fase</label>
+                <select id="intake-status" name="status" onchange="this.form.submit()">
+                    <option value="">Alle statussen</option>
+                    <option value="INTAKE" {% if request.GET.status == 'INTAKE' %}selected{% endif %}>Intake</option>
+                    <option value="ASSESSMENT" {% if request.GET.status == 'ASSESSMENT' %}selected{% endif %}>Beoordeling</option>
+                    <option value="MATCHING" {% if request.GET.status == 'MATCHING' %}selected{% endif %}>Matching</option>
+                    <option value="DECISION" {% if request.GET.status == 'DECISION' %}selected{% endif %}>Matchbesluit</option>
+                    <option value="COMPLETED" {% if request.GET.status == 'COMPLETED' %}selected{% endif %}>Afgerond</option>
+                </select>
+            </div>
+            <div class="ds-list-filter-group">
+                <label for="intake-urgency" class="ds-list-filter-label">Urgentie</label>
+                <select id="intake-urgency" name="urgency" onchange="this.form.submit()">
+                    <option value="">Alle urgentie</option>
+                    <option value="LOW" {% if request.GET.urgency == 'LOW' %}selected{% endif %}>Laag</option>
+                    <option value="MEDIUM" {% if request.GET.urgency == 'MEDIUM' %}selected{% endif %}>Middel</option>
+                    <option value="HIGH" {% if request.GET.urgency == 'HIGH' %}selected{% endif %}>Hoog</option>
+                    <option value="CRISIS" {% if request.GET.urgency == 'CRISIS' %}selected{% endif %}>Crisis</option>
+                </select>
+            </div>
+            <div class="ds-list-filter-group">
+                <label for="intake-region-type" class="ds-list-filter-label">Regiotype</label>
+                <select id="intake-region-type" name="region_type" onchange="this.form.submit()">
+                    <option value="">Alle typen</option>
+                    {% for value, label in region_type_choices %}
+                    <option value="{{ value }}" {% if selected_region_type == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="ds-list-filter-group">
+                <label for="intake-region" class="ds-list-filter-label">Regio</label>
+                <select id="intake-region" name="region" onchange="this.form.submit()">
+                    <option value="">Alle regio's</option>
+                    {% for region in region_choices %}
+                    <option value="{{ region.pk }}" {% if selected_region == region.pk|stringformat:"s" %}selected{% endif %}>{{ region.region_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-secondary ds-btn-compact">Filter</button>
+        </form>
     </div>
-
-    <form method="get" class="ds-card action-card form-grid-4">
-        <div>
-            <label for="intake-q" class="field-label">Zoeken</label>
-            <input id="intake-q" type="search" name="q" value="{{ search_query }}" placeholder="Zoek op titel of casus-ID...">
-        </div>
-        <div>
-            <label for="intake-status" class="field-label">Fase</label>
-            <select id="intake-status" name="status" onchange="this.form.submit()">
-                <option value="">Alle statussen</option>
-                <option value="INTAKE" {% if request.GET.status == 'INTAKE' %}selected{% endif %}>Intake</option>
-                <option value="ASSESSMENT" {% if request.GET.status == 'ASSESSMENT' %}selected{% endif %}>Beoordeling</option>
-                <option value="MATCHING" {% if request.GET.status == 'MATCHING' %}selected{% endif %}>Matching</option>
-                <option value="DECISION" {% if request.GET.status == 'DECISION' %}selected{% endif %}>Matchbesluit</option>
-                <option value="COMPLETED" {% if request.GET.status == 'COMPLETED' %}selected{% endif %}>Afgerond</option>
-            </select>
-        </div>
-        <div>
-            <label for="intake-urgency" class="field-label">Urgentie</label>
-            <select id="intake-urgency" name="urgency" onchange="this.form.submit()">
-                <option value="">Alle urgentie</option>
-                <option value="LOW" {% if request.GET.urgency == 'LOW' %}selected{% endif %}>Laag</option>
-                <option value="MEDIUM" {% if request.GET.urgency == 'MEDIUM' %}selected{% endif %}>Middel</option>
-                <option value="HIGH" {% if request.GET.urgency == 'HIGH' %}selected{% endif %}>Hoog</option>
-                <option value="CRISIS" {% if request.GET.urgency == 'CRISIS' %}selected{% endif %}>Crisis</option>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-secondary">Filter</button>
-    </form>
 
     {% if intakes %}
-    <div class="ds-card table-card">
-        <div class="ds-table-wrap">
-            <table class="ds-table">
-                <thead>
-                    <tr>
-                        <th>Identificatie</th>
-                        <th>Status</th>
-                        <th>Urgentie</th>
-                        <th>Zorgvraag</th>
-                        <th>Regisseur</th>
-                        <th class="th-right">Intakedatum</th>
-                        <th style="text-align:right;">Acties</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for intake in intakes %}
-                    <tr>
-                        <td><a href="{% url 'careon:case_detail' intake.pk %}">{{ intake.title }}</a></td>
-                        <td>
-                            <span class="ds-badge {% if intake.status == 'COMPLETED' %}badge-low{% elif intake.status == 'MATCHING' %}badge-high{% else %}badge-medium{% endif %}">{{ intake.get_status_display }}</span>
-                        </td>
-                        <td>
-                            <span class="ds-badge {% if intake.urgency == 'CRISIS' %}badge-critical{% elif intake.urgency == 'HIGH' %}badge-high{% elif intake.urgency == 'MEDIUM' %}badge-medium{% else %}badge-low{% endif %}">{{ intake.get_urgency_display }}</span>
-                        </td>
-                        <td>{{ intake.category }}</td>
-                        <td>{{ intake.lead }}</td>
-                        <td class="td-date">{{ intake.created|date:"d-m-Y" }}</td>
-                        <td class="td-right">
-                            <div class="case-actions">
-                                <a href="{% url 'careon:case_detail' intake.pk %}" class="btn btn-ghost">Bekijken</a>
-                                <a href="{% url 'careon:case_update' intake.pk %}" class="btn btn-ghost">Bewerken</a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <table class="ds-list-table">
+        <thead>
+            <tr>
+                <th>Identificatie</th>
+                <th>Status</th>
+                <th>Urgentie</th>
+                <th>Zorgvraag</th>
+                <th>Voorkeursregio</th>
+                <th>Regisseur</th>
+                <th class="ds-cell-right">Intakedatum</th>
+                <th class="ds-cell-right">Acties</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for intake in intakes %}
+            <tr>
+                <td><a href="{% url 'careon:case_detail' intake.pk %}" class="ds-link">{{ intake.title }}</a></td>
+                <td>
+                    <span class="ds-badge {% if intake.status == 'COMPLETED' %}badge-low{% elif intake.status == 'MATCHING' %}badge-high{% else %}badge-medium{% endif %}">{{ intake.get_status_display }}</span>
+                </td>
+                <td>
+                    <span class="ds-badge {% if intake.urgency == 'CRISIS' %}badge-critical{% elif intake.urgency == 'HIGH' %}badge-high{% elif intake.urgency == 'MEDIUM' %}badge-medium{% else %}badge-low{% endif %}">{{ intake.get_urgency_display }}</span>
+                </td>
+                <td>{{ intake.category }}</td>
+                <td>{{ intake.region }}</td>
+                <td>{{ intake.lead }}</td>
+                <td class="ds-cell-right">{{ intake.created|date:"d-m-Y" }}</td>
+                <td class="ds-cell-right">
+                    <div class="ds-list-row-actions">
+                        <a href="{% url 'careon:case_detail' intake.pk %}" class="ds-list-row-action-btn">Openen</a>
+                        <a href="{% url 'careon:case_update' intake.pk %}" class="ds-list-row-action-btn">Wijzigen</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
     {% if is_paginated %}
-    <div class="ds-card feed-card feed-row">
-        <span class="c-secondary">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
-        <div class="feed-actions">
+    <div class="ds-list-pagination">
+        <span>Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
+        <div class="ds-list-pagination-buttons">
             {% if page_obj.has_previous %}
-            <a href="?page=1" class="btn btn-secondary">Eerste</a>
-            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary">Vorige</a>
+            <a href="?page=1" class="ds-list-pagination-btn">Eerste</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="ds-list-pagination-btn">Vorige</a>
             {% endif %}
             {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary">Volgende</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-secondary">Laatste</a>
+            <a href="?page={{ page_obj.next_page_number }}" class="ds-list-pagination-btn">Volgende</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="ds-list-pagination-btn">Laatste</a>
             {% endif %}
         </div>
     </div>
     {% endif %}
 
     {% else %}
-    <div class="ds-card empty-state">
-        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        Nog geen casussen.
-        <div style="margin-top:10px;"><a href="{% url 'careon:case_create' %}" class="btn btn-primary">Maak je eerste casus aan</a></div>
+    <div class="ds-list-empty">
+        <svg class="ds-list-empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <h3 class="ds-list-empty-title">Nog geen casussen</h3>
+        <p class="ds-list-empty-copy">
+            <a href="{% url 'careon:case_create' %}" class="btn btn-primary ds-stack-top-sm">Maak je eerste casus aan</a>
+        </p>
     </div>
     {% endif %}
 </div>
-
-<style>
-    .intake-kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: var(--card-gap);
-    }
-    .intake-kpi-card { padding: 14px 16px; }
-    .kpi-label {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--text-secondary);
-        font-weight: 700;
-    }
-    .kpi-value {
-        margin-top: 8px;
-        font-size: 30px;
-        line-height: 1;
-        font-weight: 800;
-        color: var(--text-primary);
-    }
-    .tone-critical { color: #fca5a5; }
-    .case-actions {
-        display: inline-flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 8px;
-    }
-    @media (max-width: 920px) {
-        .intake-kpi-grid { grid-template-columns: 1fr; }
-    }
-</style>
 
 {% endblock %}

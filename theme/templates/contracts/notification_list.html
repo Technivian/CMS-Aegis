@@ -1,13 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Meldingen - Careon{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
+<div class="ds-list-shell">
 
-<div class="page-header">
-    <div style="flex:1;">
+<div class="ds-list-header">
+    <div class="ds-detail-card-inner ds-i-g2rnps">
         <h1 class="page-title">Meldingen</h1>
-        <span class="page-subtitle">{{ unread_count }} ongelezen</span>
-    </div>
+        </div>
     {% if unread_count > 0 %}
     <form method="post" action="{% url 'careon:mark_all_notifications_read' %}">
         {% csrf_token %}
@@ -16,33 +15,45 @@
     {% endif %}
 </div>
 
-<div class="ds-card action-card" style="padding:0;">
+<div class="ds-list-kpi-grid">
+    <div class="ds-list-kpi-card">
+        <span class="ds-list-kpi-value">{{ notifications|length }}</span>
+        <span class="ds-list-kpi-label">Totaal</span>
+    </div>
+    {% if unread_count > 0 %}
+    <div class="ds-list-kpi-card">
+        <span class="ds-list-kpi-value">{{ unread_count }}</span>
+        <span class="ds-list-kpi-label">Ongelezen</span>
+    </div>
+    {% endif %}
+</div>
+
+<div class="ds-list-table">
     {% for notification in notifications %}
-    <div style="display:flex;align-items:flex-start;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);{% if not notification.is_read %}background:rgba(37,99,235,0.06);{% endif %}">
-        <div style="flex-shrink:0;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-            {% if notification.notification_type == 'DEADLINE' %}background:rgba(239,68,68,0.12);{% elif notification.notification_type == 'TASK' %}background:rgba(37,99,235,0.12);{% else %}background:var(--surface-raised);{% endif %}">
+    <div class="ds-detail-card notification-row {% if not notification.is_read %}notification-row-unread{% endif %}">
+        <div class="notification-icon {% if notification.notification_type == 'DEADLINE' %}notification-icon-deadline{% elif notification.notification_type == 'TASK' %}notification-icon-task{% else %}notification-icon-default{% endif %}">
             {% if notification.notification_type == 'DEADLINE' %}
-                <svg style="width:16px;height:16px;color:#ef4444;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <svg class="ds-i-wp3era" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             {% elif notification.notification_type == 'TASK' %}
-                <svg style="width:16px;height:16px;color:#3b82f6;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                <svg class="ds-i-5jt8hq" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
             {% else %}
-                <svg style="width:16px;height:16px;color:var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                <svg class="ds-i-elg9w9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
             {% endif %}
         </div>
-        <div style="flex:1;">
-            <div style="font-size:14px;font-weight:600;color:var(--text-primary);">{{ notification.title }}</div>
-            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">{{ notification.message }}</div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">{{ notification.created_at|timesince }} geleden</div>
+        <div class="ds-detail-card-inner ds-i-g2rnps">
+            <div class="ds-detail-card-title ds-i-1vqbv4b">{{ notification.title }}</div>
+            <div class="ds-helper-text ds-i-lt09iw">{{ notification.message }}</div>
+            <div class="ds-muted-label ds-i-1uq6l3d">{{ notification.created_at|timesince }} geleden</div>
         </div>
         {% if not notification.is_read %}
         <form method="post" action="{% url 'careon:mark_notification_read' notification.pk %}">
             {% csrf_token %}
-            <button type="submit" class="btn btn-ghost" style="font-size:12px;">Gelezen</button>
+            <button type="submit" class="btn btn-ghost ds-i-1gh1j30">Gelezen</button>
         </form>
         {% endif %}
     </div>
     {% empty %}
-    <div style="padding:48px;text-align:center;color:var(--text-muted);">Geen meldingen.</div>
+    <div class="ds-list-empty ds-i-19f611b">Geen meldingen.</div>
     {% endfor %}
 </div>
 

@@ -4,41 +4,40 @@
 {% block title %}Budget & capaciteit - Careon{% endblock %}
 
 {% block content %}
-<div class="page-wrap page-stack">
-    <div class="page-header">
+<div class="ds-list-shell">
+    <div class="ds-list-header">
         <div>
             <h1 class="page-title">Budgetten</h1>
-            <p class="page-subtitle">Stuur op budget, capaciteit en inzet per gemeente of regio.</p>
-        </div>
+            </div>
         <div class="page-actions">
             <a href="{% url 'careon:budget_create' %}" class="btn btn-primary">Nieuw budget</a>
         </div>
     </div>
 
-    <div class="budget-kpi-grid">
-        <div class="ds-card budget-kpi-card">
-            <div class="kpi-label">Totaal budgetten</div>
-            <div class="kpi-value">{{ total_budgets }}</div>
+    <div class="ds-list-kpi-grid">
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Totaal budgetten</div>
+            <div class="ds-list-kpi-value">{{ total_budgets }}</div>
             <div class="kpi-sub">actieve budgetregels</div>
         </div>
-        <div class="ds-card budget-kpi-card">
-            <div class="kpi-label">Totaal besteed</div>
-            <div class="kpi-value">${{ total_spent|floatformat:0 }}</div>
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Totaal besteed</div>
+            <div class="ds-list-kpi-value">${{ total_spent|floatformat:0 }}</div>
             <div class="kpi-sub">realisatie over alle jaren</div>
         </div>
-        <div class="ds-card budget-kpi-card">
-            <div class="kpi-label">Nog beschikbaar</div>
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Nog beschikbaar</div>
             <div class="kpi-value tone-good">${{ total_remaining|floatformat:0 }}</div>
             <div class="kpi-sub">beschikbaar budget</div>
         </div>
-        <div class="ds-card budget-kpi-card">
-            <div class="kpi-label">Budgetdruk</div>
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Budgetdruk</div>
             <div class="kpi-value {% if budget_under_pressure > 0 %}tone-critical{% endif %}">{{ budget_under_pressure }}</div>
             <div class="kpi-sub">regels met >= 80% benutting</div>
         </div>
     </div>
 
-    <div class="ds-card feed-card budget-tabs-row">
+    <div class="ds-list-filters ds-list-filter-row">
         {% with cur=selected_year %}
         {% for tab_label, tab_value in budget_tabs %}
         <a href="?{% if tab_value %}year={{ tab_value }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="filter-pill {% if cur == tab_value or not cur and not tab_value %}active{% endif %}">{{ tab_label }}</a>
@@ -46,13 +45,13 @@
         {% endwith %}
     </div>
 
-    <form method="get" class="ds-card action-card form-grid-3">
+    <form method="get" class="ds-list-filters">
         <div>
-            <label for="budget-q" class="field-label">Zoeken</label>
+            <label for="budget-q" class="ds-list-filter-label">Zoeken</label>
             <input id="budget-q" type="text" name="q" value="{{ search_query }}" placeholder="Zoek budgetten op afdeling of omschrijving...">
         </div>
         <div>
-            <label for="budget-year" class="field-label">Jaar</label>
+            <label for="budget-year" class="ds-list-filter-label">Jaar</label>
             <select id="budget-year" name="year">
                 <option value="">Alle jaren</option>
                 <option value="{{ current_year }}" {% if selected_year == current_year|stringformat:'s' %}selected{% endif %}>{{ current_year }}</option>
@@ -61,7 +60,7 @@
         <button type="submit" class="btn btn-secondary">Zoeken</button>
     </form>
 
-    <div class="ds-card table-card">
+    <div class="ds-list-table">
         <div class="ds-table-wrap">
             <table class="ds-table">
                 <thead>
@@ -84,13 +83,13 @@
                         <td>
                             <a href="{% url 'careon:budget_detail' budget.pk %}">{{ budget.get_scope_type_display }} {{ budget.scope_name }}</a>
                             {% if budget.department %}
-                            <div class="c-secondary" style="font-size:11px; margin-top:2px;">{{ budget.department }}</div>
+                            <div class="c-secondary ds-i-yj6n0e">{{ budget.department }}</div>
                             {% endif %}
                             {% if row.configuration_hint %}
-                            <div class="c-secondary" style="font-size:11px; margin-top:2px;">{{ row.configuration_hint }}</div>
+                            <div class="c-secondary ds-i-yj6n0e">{{ row.configuration_hint }}</div>
                             {% endif %}
                             {% if budget.description %}
-                            <div class="c-secondary" style="font-size:11px; margin-top:2px;">{{ budget.description|truncatechars:72 }}</div>
+                            <div class="c-secondary ds-i-yj6n0e">{{ budget.description|truncatechars:72 }}</div>
                             {% endif %}
                         </td>
                         <td>{{ budget.target_group|default:'-' }}</td>
@@ -100,17 +99,17 @@
                         <td class="td-num">${{ budget.spent_amount|floatformat:2 }}</td>
                         <td class="td-num {% if budget.is_over_budget %}tone-critical{% endif %}">
                             ${{ budget.remaining_amount|floatformat:2 }}
-                            <div style="font-size:11px; margin-top:2px;" class="{% if budget.utilization_percentage >= 80 %}tone-critical{% else %}c-secondary{% endif %}">{{ budget.utilization_percentage|floatformat:0 }}% benut</div>
+                            <div class="ds-i-yj6n0e" class="{% if budget.utilization_percentage >= 80 %}tone-critical{% else %}c-secondary{% endif %}">{{ budget.utilization_percentage|floatformat:0 }}% benut</div>
                         </td>
                         <td>{{ budget.linked_cases.count }} / {{ budget.linked_placements.count }}</td>
-                        <td class="td-right"><a href="{% url 'careon:budget_detail' budget.pk %}" class="btn btn-ghost" style="min-height:34px;">Bekijken</a></td>
+                        <td class="td-right"><a href="{% url 'careon:budget_detail' budget.pk %}" class="btn btn-ghost ds-i-okgsyj">Openen</a></td>
                     </tr>
                     {% endwith %}
                     {% empty %}
                     <tr>
                         <td colspan="9" class="td-empty">
                             Geen budgetten gevonden.
-                            <div style="margin-top:10px;">
+                            <div class="ds-i-1tei6ul">
                                 {% if search_query or selected_year %}
                                 <a href="{% url 'careon:budget_list' %}" class="btn btn-secondary">Wis filters</a>
                                 {% else %}
@@ -126,40 +125,5 @@
     </div>
 </div>
 
-<style>
-    .budget-kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: var(--card-gap);
-    }
-    .budget-kpi-card { padding: 14px 16px; }
-    .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); font-weight: 700; }
-    .kpi-value { margin-top: 8px; font-size: 30px; line-height: 1; font-weight: 800; color: var(--text-primary); }
-    .kpi-sub { margin-top: 8px; font-size: 11px; color: var(--text-secondary); }
-    .tone-critical { color: #fca5a5 !important; }
-    .tone-good { color: #86efac; }
-    .budget-tabs-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .filter-pill {
-        text-decoration: none;
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--text-secondary);
-        background: color-mix(in srgb, var(--surface-alt) 88%, #1b2f5d 12%);
-        border: 1px solid color-mix(in srgb, var(--border) 82%, #24427a 18%);
-        padding: 6px 12px;
-        border-radius: 10px;
-    }
-    .filter-pill.active {
-        color: #dbe8ff;
-        background: color-mix(in srgb, var(--primary) 28%, var(--surface-alt) 72%);
-        border-color: color-mix(in srgb, var(--primary) 55%, var(--border) 45%);
-    }
-    .td-empty { text-align: center; padding: 28px 16px; color: var(--text-secondary); }
-    @media (max-width: 1100px) {
-        .budget-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-    @media (max-width: 700px) {
-        .budget-kpi-grid { grid-template-columns: 1fr; }
-    }
-</style>
+
 {% endblock %}

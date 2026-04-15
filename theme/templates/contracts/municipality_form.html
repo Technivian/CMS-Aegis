@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}{% if municipality %}Bewerken: {{ municipality.municipality_name }}{% else %}Nieuwe gemeente{% endif %} - Zorgregie{% endblock %}
+{% block title %}{% if municipality %}Wijzigen: {{ municipality.municipality_name }}{% else %}Nieuwe gemeente{% endif %} - Zorgregie{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
+<div class="ds-detail-shell">
 
-<nav style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
-        <a href="{% url 'dashboard' %}" style="color: var(--primary); text-decoration: none;">Dashboard</a>
+<nav class="ds-i-j4dftv">
+        <a class="ds-i-1iadm4s" href="{% url 'dashboard' %}">Regiekamer</a>
         <span> / </span>
-        <a href="{% url 'careon:municipality_list' %}" style="color: var(--primary); text-decoration: none;">Gemeenten</a>
+        <a class="ds-i-1iadm4s" href="{% url 'careon:municipality_list' %}">Gemeenten</a>
         {% if municipality %}
         <span> / </span>
-        <a href="{% url 'careon:municipality_detail' municipality.pk %}" style="color: var(--primary); text-decoration: none;">{{ municipality.municipality_name }}</a>
+        <a class="ds-i-1iadm4s" href="{% url 'careon:municipality_detail' municipality.pk %}">{{ municipality.municipality_name }}</a>
         <span> / </span>
-        <span style="color: var(--text-muted);">Bewerken</span>
+        <span class="ds-i-1vkpsqq">Wijzigen</span>
         {% else %}
         <span> / </span>
-        <span style="color: var(--text-muted);">Nieuw</span>
+        <span class="ds-i-1vkpsqq">Nieuw</span>
         {% endif %}
     </nav>
 </div>
@@ -23,7 +23,7 @@
 <div>
     <h1 class="page-title mb-6">{% if municipality %}Gemeente bewerken{% else %}Nieuwe gemeente toevoegen{% endif %}</h1>
 
-    <form method="post" class="space-y-6">
+    <form method="post" class="ds-detail-sections space-y-6">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
@@ -34,14 +34,15 @@
         </div>
         {% endif %}
 
-        <div class="panel">
-            <div class="panel-head">
+        <div class="ds-detail-sections">
+            <div class="ds-detail-card">
+            <div class="ds-detail-card-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-blue"></div>
                     <span class="panel-title">Gemeentegegevens</span>
                 </div>
             </div>
-            <div class="panel-inner space-y-4">
+            <div class="ds-detail-card-inner">
                 <div>
                     <label for="{{ form.municipality_name.id_for_label }}" class="field-label">{{ form.municipality_name.label }} *</label>
                     {{ form.municipality_name }}
@@ -76,14 +77,15 @@
             </div>
         </div>
 
-        <div class="panel">
-            <div class="panel-head">
+        <div class="ds-detail-sections">
+            <div class="ds-detail-card">
+            <div class="ds-detail-card-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-purple"></div>
                     <span class="panel-title">Zorgconfiguratie</span>
                 </div>
             </div>
-            <div class="panel-inner space-y-4">
+            <div class="ds-detail-card-inner">
                 <div>
                     <label for="{{ form.care_domains.id_for_label }}" class="field-label">{{ form.care_domains.label }}</label>
                     <div class="space-y-2 max-h-48 overflow-y-auto">
@@ -106,14 +108,15 @@
             </div>
         </div>
 
-        <div class="panel">
-            <div class="panel-head">
+        <div class="ds-detail-sections">
+            <div class="ds-detail-card">
+            <div class="ds-detail-card-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-amber"></div>
                     <span class="panel-title">Capaciteitsbeheer</span>
                 </div>
             </div>
-            <div class="panel-inner space-y-4">
+            <div class="ds-detail-card-inner">
                 <div>
                     <label for="{{ form.max_wait_days.id_for_label }}" class="field-label">{{ form.max_wait_days.label }}</label>
                     {{ form.max_wait_days }}
@@ -140,7 +143,7 @@
             </div>
         </div>
 
-        <div class="form-actions">
+        <div class="ds-list-actions">
             <button type="submit" class="btn btn-primary">
                 {% if municipality %}Wijzigingen opslaan{% else %}Gemeente aanmaken{% endif %}
             </button>

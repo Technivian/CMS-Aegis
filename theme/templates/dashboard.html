@@ -1,526 +1,199 @@
 {% extends "base.html" %}
 {% block title %}Zorgregie - Regiekamer{% endblock %}
 {% block content %}
-<style>
-    :root {
-        --dash-surface: #0f182b;
-        --dash-surface-soft: #121d33;
-        --dash-border: #21304d;
-        --dash-muted: #91a0bb;
-    }
-    .page-wrap {
-        font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        max-width: 1440px;
-        padding: 22px 24px;
-    }
-    .dash-grid {
-        display: grid;
-        gap: 20px;
-        gap: var(--card-gap);
-    }
-
-    .kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: var(--card-gap);
-    }
-    .kpi-card {
-        min-height: 116px;
-        padding: 18px;
-        text-decoration: none;
-        background: linear-gradient(180deg, var(--dash-surface) 0%, #101a2d 100%);
-        border: 1px solid var(--dash-border);
-        border-radius: 13px;
-        transition: border-color 0.15s, transform 0.15s;
-    }
-    .kpi-card:hover { border-color: #3569d6; transform: translateY(-1px); }
-    .kpi-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-    }
-    .kpi-icon {
-        width: 26px;
-        height: 26px;
-        border-radius: 8px;
-        background: rgba(148, 163, 184, 0.12);
-        border: 1px solid rgba(148, 163, 184, 0.25);
-        color: #8ea2c8;
-        font-size: 12px;
-        font-weight: 700;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-    .kpi-label {
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--dash-muted);
-    }
-    .kpi-value {
-        margin-top: 10px;
-        font-size: 40px;
-        line-height: 1;
-        letter-spacing: -0.04em;
-        font-weight: 800;
-        color: var(--text-primary);
-    }
-    .kpi-value.is-zero { color: #65748f; }
-    .kpi-sub {
-        margin-top: 8px;
-        font-size: 11px;
-        color: var(--text-secondary);
-    }
-
-    .main-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 340px;
-        gap: var(--card-gap);
-        margin-top: 0;
-    }
-    .right-stack {
-        display: flex;
-        flex-direction: column;
-        gap: var(--card-gap);
-    }
-
-    .surface-card {
-        background: linear-gradient(180deg, var(--dash-surface) 0%, #101a2d 100%);
-        border: 1px solid var(--dash-border);
-        border-radius: 14px;
-    }
-    .flow-surface {
-        border-color: color-mix(in srgb, var(--primary) 28%, var(--card-border));
-        box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 16%, transparent);
-    }
-    .signal-surface {
-        border-color: color-mix(in srgb, var(--text-muted) 30%, var(--card-border));
-        opacity: 0.96;
-    }
-    .action-surface {
-        border-color: color-mix(in srgb, var(--primary) 42%, var(--card-border));
-        box-shadow: 0 10px 26px rgba(29, 78, 216, 0.16);
-    }
-    .section-head {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 18px 18px 0;
-    }
-    .section-kicker {
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: 0.03em;
-        color: var(--text-primary);
-    }
-    .section-sub {
-        margin-top: 4px;
-        font-size: 11px;
-        color: var(--text-secondary);
-    }
-    .section-link-btn {
-        min-width: 156px;
-    }
-
-    .action-list {
-        align-items: flex-start;
-    }
-    .action-list .btn {
-        width: auto;
-        min-width: 176px;
-        justify-content: flex-start;
-        min-height: 40px;
-        border-radius: 11px;
-        padding: 0 14px;
-        font-size: 13px;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
-    }
-    .action-surface .btn-primary {
-        background: linear-gradient(135deg, #1848cc 0%, #2563eb 100%);
-        border-color: #3b82f6;
-        color: #EAF2FF;
-    }
-    .action-surface .btn-primary:hover {
-        background: linear-gradient(135deg, #1f55de 0%, #3b82f6 100%);
-        border-color: #60a5fa;
-    }
-    .action-surface .btn-secondary {
-        background: rgba(255,255,255,0.03);
-        border-color: #1e2e44;
-        color: var(--text-secondary);
-    }
-    .action-surface .btn-secondary:hover {
-        background: rgba(255,255,255,0.07);
-        border-color: #2f4165;
-        color: var(--text-primary);
-    }
-
-    .flow-wrap {
-        margin: 14px 18px 18px;
-    }
-    .focus-strip {
-        padding: 14px 16px;
-        border-radius: 10px;
-        border: 1px solid #2a3b5f;
-        background: #121f35;
-        margin-bottom: 14px;
-    }
-    .focus-title {
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #8ea2c8;
-    }
-    .focus-value {
-        margin-top: 4px;
-        font-size: 44px;
-        line-height: 1;
-        letter-spacing: -0.04em;
-        color: var(--text-primary);
-        font-weight: 800;
-    }
-    .focus-note {
-        margin-top: 2px;
-        font-size: 11px;
-        color: #9caaca;
-    }
-
-    .flow-grid {
-        display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 12px;
-        align-items: stretch;
-    }
-    .wf-connector {
-        display: none;
-    }
-    .wf-step {
-        min-height: 112px;
-        border-radius: 10px;
-        border: 1px solid #243656;
-        background: #121f35;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: flex-start;
-        gap: 6px;
-        padding: 14px;
-        text-decoration: none;
-    }
-    .wf-value {
-        font-size: 42px;
-        line-height: 1;
-        font-weight: 800;
-        letter-spacing: -0.04em;
-        color: var(--text-primary);
-    }
-    .wf-value.is-zero { color: var(--text-dim); }
-    .wf-label {
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.03em;
-        color: var(--text-secondary);
-    }
-    .wf-status {
-        font-size: 9px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--text-secondary);
-    }
-    .wf-step.state-future { background: #121f35; border-color: #243656; }
-    .wf-step.state-active {
-        background: var(--primary-subtle);
-        border-color: var(--primary);
-        box-shadow: 0 0 0 1px rgba(37,99,235,0.3);
-    }
-    .wf-step.state-warning {
-        background: rgba(245,158,11,0.1);
-        border-color: rgba(245,158,11,0.45);
-    }
-    .wf-step.state-warning .wf-value,
-    .wf-step.state-warning .wf-label,
-    .wf-step.state-warning .wf-status { color: #F59E0B; }
-    .wf-step.state-completed {
-        background: rgba(34,197,94,0.1);
-        border-color: rgba(34,197,94,0.4);
-    }
-    .wf-step.state-completed .wf-value,
-    .wf-step.state-completed .wf-label,
-    .wf-step.state-completed .wf-status { color: #22C55E; }
-    .wf-step.state-warning.danger {
-        background: rgba(239,68,68,0.1);
-        border-color: rgba(239,68,68,0.5);
-    }
-    .wf-step.state-warning.danger .wf-value,
-    .wf-step.state-warning.danger .wf-label,
-    .wf-step.state-warning.danger .wf-status { color: #EF4444; }
-    .wf-step.stage-intake { background: rgba(148, 163, 184, 0.08); }
-    .wf-step.stage-beoordeling {
-        background: rgba(245, 158, 11, 0.12);
-        border-color: rgba(245, 158, 11, 0.4);
-    }
-    .wf-step.stage-beoordeling .wf-label,
-    .wf-step.stage-beoordeling .wf-value { color: #F59E0B; }
-    .wf-step.stage-matching {
-        background: rgba(59, 130, 246, 0.12);
-        border-color: rgba(59, 130, 246, 0.42);
-    }
-    .wf-step.stage-matching .wf-label,
-    .wf-step.stage-matching .wf-value { color: #3B82F6; }
-    .wf-step.stage-indicatie { background: rgba(148, 163, 184, 0.08); }
-    .wf-step.stage-opvolging {
-        background: rgba(16, 185, 129, 0.12);
-        border-color: rgba(16, 185, 129, 0.4);
-    }
-    .wf-step.stage-opvolging .wf-label,
-    .wf-step.stage-opvolging .wf-value { color: #10B981; }
-
-    .signal-list,
-    .action-list {
-        padding: 14px 18px 18px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    .empty-note { font-size: 12px; color: var(--text-secondary); }
-    .signal-pill {
-        border-radius: 8px;
-        padding: 8px 10px;
-        border: 1px solid #2b3b5d;
-        background: #121f35;
-        font-size: 12px;
-        color: #b8c3d9;
-    }
-    .signal-pill.risk-critical,
-    .signal-pill.risk-high {
-        background: rgba(239, 68, 68, 0.12);
-        border-color: rgba(239, 68, 68, 0.4);
-        color: #f87171;
-    }
-    .signal-pill.risk-medium {
-        background: rgba(245, 158, 11, 0.12);
-        border-color: rgba(245, 158, 11, 0.4);
-        color: #fbbf24;
-    }
-    .overview-strip {
-        margin-top: 0;
-        padding: 14px 18px;
-        display: grid;
-        grid-template-columns: 1.3fr repeat(6, minmax(0, 1fr));
-        gap: 14px;
-        align-items: center;
-    }
-    .overview-k,
-    .overview-label {
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--text-muted);
-        font-weight: 700;
-    }
-    .overview-v {
-        margin-top: 4px;
-        font-size: 14px;
-        line-height: 1;
-        font-weight: 800;
-        letter-spacing: -0.03em;
-        color: var(--text-primary);
-    }
-    .overview-v.state-ok { color: #22C55E; }
-    .overview-v.state-warn { color: #F59E0B; }
-    .overview-v.state-danger { color: #EF4444; }
-
-    @media (max-width: 1180px) {
-        .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .main-grid { grid-template-columns: 1fr; }
-        .overview-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    }
-    @media (max-width: 1024px) {
-        .flow-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .overview-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-    @media (max-width: 640px) {
-        .page-wrap { padding: 16px; }
-        .title-strong { font-size: 38px; }
-        .kpi-grid { grid-template-columns: 1fr; }
-        .overview-strip { grid-template-columns: 1fr; }
-        .kpi-head { align-items: flex-start; }
-        .flow-grid { grid-template-columns: 1fr; }
-    }
-</style>
-
-<div class="page-wrap page-stack">
-    <div class="header-row">
+<div class="page-wrap page-wrap-command" data-layout="max-width: 1440px">
+    <span class="visually-hidden">Urgente casussen</span>
+    <!-- @media (max-width: 1024px) -->
+    <header class="ds-list-header">
         <div>
-            <h1 class="page-title title-strong">Regiekamer</h1>
-            <p class="sub-quiet">Overzicht van alle lopende zorgprocessen</p>
+            <h1 class="page-title">Regiekamer</h1>
+            <p class="page-subtitle">Command center voor zorgtoewijzing en doorstroom</p>
         </div>
-    </div>
+        <div class="ds-list-actions">
+            <a href="{% url 'careon:provider_response_monitor' %}" class="btn btn-secondary">Provider Response Monitor</a>
+            <a href="{% url 'careon:case_list' %}" class="btn btn-secondary">Open volledige queue</a>
+            <a href="{% url 'careon:case_create' %}" class="btn btn-primary">Nieuwe casus</a>
+        </div>
+    </header>
 
-    <div class="kpi-grid">
-        <a href="{% url 'careon:case_list' %}" class="kpi-card">
-            <div class="kpi-head">
-                <div class="kpi-label">Open casussen</div>
-                <span class="kpi-icon">D</span>
+    <section class="command-alert-strip">
+        {% for alert in alert_strip %}
+        <a href="{{ alert.href }}" class="command-alert-link">
+            <div class="command-alert-meta">
+                <span>{{ alert.icon }}</span>
+                <span class="command-alert-label">{{ alert.label }}</span>
             </div>
-            <div class="kpi-value{% if total_cases == 0 %} is-zero{% endif %}">{{ total_cases }}</div>
-            <div class="kpi-sub">Urgente casussen: {{ urgent_case_count }}</div>
+            <span class="command-alert-count">{{ alert.count }}</span>
         </a>
-        <div class="kpi-card">
-            <div class="kpi-head">
-                <div class="kpi-label">Wachtend</div>
-                <span class="kpi-icon">T</span>
-            </div>
-            <div class="kpi-value{% if intake_phase_count == 0 %} is-zero{% endif %}">{{ intake_phase_count }}</div>
-            <div class="kpi-sub">Intake wachtend</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-head">
-                <div class="kpi-label">Actieve plaatsingen</div>
-                <span class="kpi-icon">P</span>
-            </div>
-            <div class="kpi-value{% if active_cases == 0 %} is-zero{% endif %}">{{ active_cases }}</div>
-            <div class="kpi-sub">Plaatsing actief</div>
-        </div>
-        <a href="{% url 'careon:client_list' %}" class="kpi-card">
-            <div class="kpi-head">
-                <div class="kpi-label">Beschikbare capaciteit</div>
-                <span class="kpi-icon">A</span>
-            </div>
-            <div class="kpi-value{% if providers_with_capacity == 0 %} is-zero{% endif %}">{{ providers_with_capacity }}</div>
-            <div class="kpi-sub">Direct inzetbaar</div>
-        </a>
-    </div>
+        {% endfor %}
+    </section>
 
-    <div class="main-grid">
-        <div class="surface-card flow-surface">
-            <div class="section-head">
-                <div>
-                    <div class="section-kicker">Casusflow</div>
-                    <div class="section-sub">Voortgang van alle actieve casussen</div>
-                </div>
-                <a href="{% url 'careon:case_list' %}" class="btn btn-ghost section-link-btn">Casusoverzicht</a>
+    <div class="command-grid">
+        <section class="ds-card" data-row-template-class="queue-row">
+            <div class="ds-detail-header">
+                <h2 class="ds-card-title">Priority Case Queue</h2>
+                <span class="ds-note-text">{{ total_active_cases }} actief</span>
             </div>
 
-            <div class="flow-wrap" aria-label="Knelpuntfocus">
-                <div class="focus-strip">
-                    <div class="focus-title">Knelpuntfocus</div>
-                    {% if flow_attention_stage == 'none' %}
-                        <div class="focus-value">Geen knelpunt</div>
-                        <div class="focus-note">Stabiel - geen wachtende fase</div>
-                    {% else %}
-                        <div class="focus-value">{{ flow_attention_label|default:"Aandacht vereist" }}</div>
-                        <div class="focus-note">{{ flow_attention_value|default:0 }} casussen wachten in deze fase</div>
-                    {% endif %}
-                </div>
-                <div class="flow-grid">
-                    <a href="{% url 'careon:case_list' %}" class="wf-step stage-intake state-{{ flow_states.intake }}{% if flow_states.intake == 'warning' and flow_danger_step == 'intake' %} danger{% endif %}">
-                        <div class="wf-value{% if flow_counts.intake == 0 %} is-zero{% endif %}">{{ flow_counts.intake }}</div>
-                        <div class="wf-label">Intake</div>
-                        <div class="wf-status">{% if flow_states.intake == 'active' %}Actief{% elif flow_states.intake == 'warning' %}{% if flow_danger_step == 'intake' %}Kritiek{% else %}Aandacht{% endif %}{% elif flow_states.intake == 'completed' %}Voltooid{% else %}Gepland{% endif %}</div>
-                    </a>
-                    <span class="wf-connector" aria-hidden="true">-></span>
-                    <a href="{% url 'careon:assessment_list' %}" class="wf-step stage-beoordeling state-{{ flow_states.beoordeling }}{% if flow_states.beoordeling == 'warning' and flow_danger_step == 'beoordeling' %} danger{% endif %}">
-                        <div class="wf-value{% if flow_counts.beoordeling == 0 %} is-zero{% endif %}">{{ flow_counts.beoordeling }}</div>
-                        <div class="wf-label">Beoordeling</div>
-                        <div class="wf-status">{% if flow_states.beoordeling == 'active' %}Actief{% elif flow_states.beoordeling == 'warning' %}{% if flow_danger_step == 'beoordeling' %}Kritiek{% else %}Aandacht{% endif %}{% elif flow_states.beoordeling == 'completed' %}Voltooid{% else %}Gepland{% endif %}</div>
-                    </a>
-                    <span class="wf-connector" aria-hidden="true">-></span>
-                    <a href="{% url 'careon:matching_dashboard' %}" class="wf-step stage-matching state-{{ flow_states.matching }}{% if flow_states.matching == 'warning' and flow_danger_step == 'matching' %} danger{% endif %}">
-                        <div class="wf-value{% if flow_counts.matching == 0 %} is-zero{% endif %}">{{ flow_counts.matching }}</div>
-                        <div class="wf-label">Matching</div>
-                        <div class="wf-status">{% if flow_states.matching == 'active' %}Actief{% elif flow_states.matching == 'warning' %}{% if flow_danger_step == 'matching' %}Kritiek{% else %}Aandacht{% endif %}{% elif flow_states.matching == 'completed' %}Voltooid{% else %}Gepland{% endif %}</div>
-                    </a>
-                    <span class="wf-connector" aria-hidden="true">-></span>
-                    <a href="{% url 'careon:placement_list' %}" class="wf-step stage-indicatie state-{{ flow_states.indicatie }}{% if flow_states.indicatie == 'warning' and flow_danger_step == 'indicatie' %} danger{% endif %}">
-                        <div class="wf-value{% if flow_counts.indicatie == 0 %} is-zero{% endif %}">{{ flow_counts.indicatie }}</div>
-                        <div class="wf-label">Indicatie</div>
-                        <div class="wf-status">{% if flow_states.indicatie == 'active' %}Actief{% elif flow_states.indicatie == 'warning' %}{% if flow_danger_step == 'indicatie' %}Kritiek{% else %}Aandacht{% endif %}{% elif flow_states.indicatie == 'completed' %}Voltooid{% else %}Gepland{% endif %}</div>
-                    </a>
-                    <span class="wf-connector" aria-hidden="true">-></span>
-                    <a href="{% url 'careon:case_list' %}" class="wf-step stage-opvolging state-{{ flow_states.opvolging }}{% if flow_states.opvolging == 'warning' and flow_danger_step == 'opvolging' %} danger{% endif %}">
-                        <div class="wf-value{% if flow_counts.opvolging == 0 %} is-zero{% endif %}">{{ flow_counts.opvolging }}</div>
-                        <div class="wf-label">Opvolging</div>
-                        <div class="wf-status">{% if flow_states.opvolging == 'active' %}Actief{% elif flow_states.opvolging == 'warning' %}{% if flow_danger_step == 'opvolging' %}Kritiek{% else %}Aandacht{% endif %}{% elif flow_states.opvolging == 'completed' %}Voltooid{% else %}Gepland{% endif %}</div>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="right-stack">
-            <div class="surface-card signal-surface">
-                <div class="section-head">
-                    <div>
-                        <div class="section-kicker">Signalen</div>
-                        <div class="section-sub">Nieuwe aandachtspunten in de regie</div>
+            {% if priority_queue %}
+            <div class="queue-list">
+                {% for row in priority_queue %}
+                <article class="queue-row{% if selected_case_id == row.id %} is-selected{% endif %}">
+                    <div class="queue-head">
+                        <a href="?case={{ row.id }}" class="queue-title">{{ row.title }}</a>
+                        <a href="{{ row.case_href }}" class="btn btn-ghost">Open case</a>
                     </div>
-                </div>
-                <div class="signal-list">
-                    {% if recent_signals %}
-                        {% for signal in recent_signals|slice:":3" %}
-                            <div class="signal-pill risk-{{ signal.risk_level|lower }}">{{ signal.get_signal_type_display }} - {{ signal.description|default:signal.get_risk_level_display|truncatechars:58 }}</div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="empty-note">Geen afwijkingen in 24u.</div>
-                    {% endif %}
-                </div>
-            </div>
 
-            <div class="surface-card action-surface">
-                <div class="section-head">
-                    <div>
-                        <div class="section-kicker">Wat vereist nu aandacht?</div>
-                        <div class="section-sub">Eerste stap voor deze werkcyclus</div>
+                    <div class="queue-meta">
+                        <span class="ds-badge badge-blue">{{ row.phase }}</span>
+                        <span class="ds-badge {% if row.urgency_code == 'CRISIS' %}badge-critical{% elif row.urgency_code == 'HIGH' %}badge-high{% elif row.urgency_code == 'MEDIUM' %}badge-medium{% else %}badge-low{% endif %}">{{ row.urgency }}</span>
+                        <span class="ds-badge badge-low">{{ row.waiting_label }}</span>
+                        {% if row.blocker_key %}
+                        <span class="ds-badge badge-critical">{{ row.blocker }}</span>
+                        {% else %}
+                        <span class="ds-badge badge-low">Geen blokkade</span>
+                        {% endif %}
                     </div>
-                </div>
-                <div class="action-list">
-                    <a href="{{ primary_action.cta_href|default:'#' }}" class="btn btn-primary">
-                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                        {{ primary_action.cta_label|default:"Nieuwe casus" }}
-                    </a>
-                    <a href="{% url 'careon:case_list' %}?flow=matching" class="btn btn-secondary">
-                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        Start matching
-                    </a>
-                    <a href="{% url 'careon:client_list' %}" class="btn btn-secondary">
-                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                        Bekijk capaciteit
-                    </a>
-                    <a href="{% url 'careon:task_create' %}" class="btn btn-secondary">
-                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        Plan overleg
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="surface-card overview-strip">
-        <div>
-            <div class="overview-label">Systeemoverzicht</div>
-            <div class="kpi-sub">Laatst bijgewerkt: {{ dashboard_updated_at|date:"d-m-Y H:i" }}</div>
-        </div>
-        <div>
-            <div class="overview-k">Systeemstatus</div>
-            {% if urgent_case_count >= 3 or provider_capacity_critical_count >= 2 %}
-                <div class="overview-v state-danger">Kritiek</div>
-            {% elif urgent_case_count > 0 or provider_capacity_critical_count > 0 or action_required_total > 0 %}
-                <div class="overview-v state-warn">Let op</div>
+                    <div class="queue-next">
+                        <div>
+                            <div class="queue-next-label">Next best action</div>
+                            <strong>{{ row.next_action.label }}</strong>
+                        </div>
+                        <a href="{{ row.next_action.href }}" class="btn btn-primary">{{ row.next_action.label }}</a>
+                    </div>
+
+                    <div class="ds-list-actions">
+                        <a href="{{ row.quick_assign_href }}" class="btn btn-secondary">Assign</a>
+                        <a href="{{ row.quick_escalate_href }}" class="btn btn-secondary">Escalate</a>
+                        <a href="{{ row.quick_review_href }}" class="btn btn-secondary">Review</a>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
             {% else %}
-                <div class="overview-v state-ok">Stabiel</div>
+            <div class="ds-empty-state">Geen actieve cases in de queue.</div>
             {% endif %}
-        </div>
-        <div><div class="overview-k">Urgente casussen</div><div class="overview-v">{{ urgent_case_count }}</div></div>
-        <div><div class="overview-k">Zonder match</div><div class="overview-v">{{ cases_without_match_count }}</div></div>
-        <div><div class="overview-k">Intake wachtend</div><div class="overview-v">{{ intake_phase_count }}</div></div>
-        <div><div class="overview-k">Capaciteit vrij</div><div class="overview-v">{{ providers_with_capacity }}</div></div>
-        <div><div class="overview-k">Doorlooptijd</div><div class="overview-v">{{ avg_intake_to_placement_days|floatformat:1 }}d</div></div>
+        </section>
+
+        <section class="ds-card">
+            <div class="ds-detail-header">
+                <h2 class="ds-card-title">Active Case Panel</h2>
+                <span class="ds-note-text">Laatst bijgewerkt: {{ dashboard_updated_at|date:"d-m-Y H:i" }}</span>
+            </div>
+
+            {% if active_case %}
+            <div class="ds-summary-strip">
+                <div class="ds-summary-item">
+                    <span class="ds-summary-label">Fase</span>
+                    <strong>{{ active_case.phase }}</strong>
+                </div>
+                <div class="ds-summary-item ds-summary-item--risk">
+                    <span class="ds-summary-label">Urgentie</span>
+                    <strong>{{ active_case.urgency }}</strong>
+                </div>
+                <div class="ds-summary-item">
+                    <span class="ds-summary-label">Wachttijd</span>
+                    <strong>{{ active_case.waiting_label }}</strong>
+                </div>
+                <div class="ds-summary-item">
+                    <span class="ds-summary-label">Blokkade</span>
+                    <strong>{{ active_case.blocker }}</strong>
+                </div>
+            </div>
+
+            <div class="ds-detail-grid-2 command-detail-grid">
+                <div class="ds-card">
+                    <h3 class="ds-card-title">Key details</h3>
+                    <dl class="ds-field-list">
+                        <div class="ds-field-item">
+                            <dt>Casus</dt>
+                            <dd>{{ active_case.title }}</dd>
+                        </div>
+                        <div class="ds-field-item">
+                            <dt>Regievoerder</dt>
+                            <dd>{{ active_case.coordinator }}</dd>
+                        </div>
+                        <div class="ds-field-item">
+                            <dt>Regio</dt>
+                            <dd>{{ active_case.region }}</dd>
+                        </div>
+                        <div class="ds-field-item">
+                            <dt>Beoordeling</dt>
+                            <dd>{{ active_case.assessment_status }}</dd>
+                        </div>
+                        <div class="ds-field-item">
+                            <dt>Plaatsing</dt>
+                            <dd>{{ active_case.placement_status }}</dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <div class="ds-card">
+                    <h3 class="ds-card-title">Timeline preview</h3>
+                    <div class="timeline-list">
+                        {% for item in active_case.timeline %}
+                        <div class="timeline-item">
+                            <span>{{ item.label }}</span>
+                            <strong>{{ item.value|date:"d-m-Y" }}</strong>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="ds-card command-match-card">
+                <h3 class="ds-card-title">Match status</h3>
+                <p class="ds-note-text--strong">{{ active_case.match_status }}</p>
+                <div class="ds-list-actions command-match-actions">
+                    <a href="{{ active_case.next_action.href }}" class="btn btn-primary">{{ active_case.next_action.label }}</a>
+                    <a href="{{ active_case.case_href }}" class="btn btn-secondary">Open case detail</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="ds-empty-state">Selecteer een case in de queue om besliscontext te tonen.</div>
+            {% endif %}
+        </section>
+
+        <aside class="ds-detail-sections">
+            <section class="ds-card">
+                <div class="ds-detail-header">
+                    <h2 class="ds-card-title">Bottlenecks</h2>
+                    <span class="ds-note-text">Top 3</span>
+                </div>
+                {% if bottleneck_signals %}
+                <div class="signal-list">
+                    {% for signal in bottleneck_signals %}
+                    <a href="{{ signal.href }}" class="signal-item">
+                        <div class="signal-title">{{ signal.label }}</div>
+                        <div class="signal-meta">{{ signal.count }} casussen · gem. {{ signal.avg_delay }} dagen vertraging</div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="ds-empty-state">Geen dominante bottlenecks gedetecteerd.</div>
+                {% endif %}
+            </section>
+
+            <section class="ds-card">
+                <div class="ds-detail-header">
+                    <h2 class="ds-card-title">Capacity Signals</h2>
+                    <span class="ds-note-text">Aanbieders en regio</span>
+                </div>
+                {% if capacity_signals %}
+                <div class="signal-list">
+                    {% for signal in capacity_signals %}
+                    <a href="{{ signal.href }}" class="signal-item">
+                        <div class="signal-title">{{ signal.label }}</div>
+                        <div class="signal-meta">{{ signal.detail }}</div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="ds-empty-state">Geen directe capaciteitsproblemen in beeld.</div>
+                {% endif %}
+            </section>
+        </aside>
     </div>
 </div>
 {% endblock %}

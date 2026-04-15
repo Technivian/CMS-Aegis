@@ -167,7 +167,7 @@ class RolePermissionAlignmentTests(TestCase):
 
         placement_list_response = self.client.get(reverse('careon:placement_list'))
         self.assertEqual(placement_list_response.status_code, 200)
-        self.assertContains(placement_list_response, 'Alleen-lezen')
+        self.assertContains(placement_list_response, 'Open casus')
 
         signal_list_response = self.client.get(reverse('careon:signal_list'))
         self.assertEqual(signal_list_response.status_code, 200)
@@ -198,7 +198,7 @@ class RolePermissionAlignmentTests(TestCase):
 
             matching_response = self.client.get(reverse('careon:matching_dashboard'))
             self.assertEqual(matching_response.status_code, 200)
-            self.assertContains(matching_response, 'Wijs toe')
+            self.assertContains(matching_response, 'Open casus voor')
 
             assessment_detail_response = self.client.get(reverse('careon:assessment_detail', kwargs={'pk': self.assessment.pk}))
             self.assertEqual(assessment_detail_response.status_code, 200)
@@ -221,6 +221,27 @@ class RolePermissionAlignmentTests(TestCase):
         )
         self.assertEqual(
             self.client.get(reverse('careon:document_update', kwargs={'pk': self.document.pk})).status_code,
+            403,
+        )
+        self.assertEqual(
+            self.client.post(
+                reverse('careon:signal_status_update', kwargs={'pk': self.signal.pk}),
+                {'status': CareSignal.SignalStatus.IN_PROGRESS},
+            ).status_code,
+            403,
+        )
+        self.assertEqual(
+            self.client.post(
+                reverse('careon:case_matching_action', kwargs={'pk': self.intake.pk}),
+                {'action': 'reject', 'provider_id': str(self.provider.pk)},
+            ).status_code,
+            403,
+        )
+        self.assertEqual(
+            self.client.post(
+                reverse('careon:case_placement_action', kwargs={'pk': self.intake.pk}),
+                {'status': PlacementRequest.Status.APPROVED},
+            ).status_code,
             403,
         )
 

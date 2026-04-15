@@ -1,60 +1,83 @@
 {% extends "base.html" %}
 {% block title %}Rapportages & Regie - Careon{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
+<div class="page-wrap">
+<div class="ds-analytics-shell dash-grid">
 
-    <div class="page-header">
+    <div class="ds-analytics-hero">
         <div>
-            <h1 class="page-title title-strong">Rapportages & Regie</h1>
-            <p class="sub-quiet">Waar knelpunten zitten, waar druk oploopt en welke actie nu logisch is</p>
-        </div>
-        <div class="reports-page-actions">
+            <h1 class="ds-analytics-headline">Rapportages & Regie</h1>
+            </div>
+        <div class="ds-list-actions">
+            <a href="{% url 'careon:provider_response_monitor' %}" class="btn btn-secondary">Provider Response Monitor</a>
             <a href="?attention=capacity" class="btn btn-secondary">Capaciteitsdruk</a>
             <a href="{% url 'careon:matching_dashboard' %}" class="btn btn-primary">Stuur op matching</a>
         </div>
     </div>
 
-    <div class="panel panel-attention">
-        <div class="panel-head">
-            <div class="panel-head-inner">
+    <form method="get" class="ds-list-filters">
+        <div>
+            <label for="report-region-type" class="ds-list-filter-label">Regiotype</label>
+            <select id="report-region-type" name="region_type" onchange="this.form.submit()">
+                <option value="">Alle typen</option>
+                {% for value, label in region_type_choices %}
+                <option value="{{ value }}" {% if region_type_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="report-region" class="ds-list-filter-label">Regio</label>
+            <select id="report-region" name="region" onchange="this.form.submit()">
+                <option value="">Alle regio's</option>
+                {% for region in region_choices %}
+                <option value="{{ region.pk }}" {% if region_filter == region.pk|stringformat:"s" %}selected{% endif %}>{{ region.region_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <input type="hidden" name="attention" value="{{ attention_filter }}">
+    </form>
+
+    <div class="ds-analytics-section">
+        <div class="ds-analytics-section-head">
+            <div class="ds-analytics-section-title">
                 <div class="dot dot-red"></div>
                 <span class="panel-title">Bestuurlijke samenvatting</span>
             </div>
         </div>
-        <div class="panel-inner">
-            <div class="dash-grid reports-kpi-grid dash-grid-4">
-                <div class="kpi-card summary-kpi">
-                    <div class="kpi-value">{{ attention_rows|length }}</div>
-                    <div class="kpi-label">Actiepunten nu</div>
-                    <div class="kpi-sub kpi-sub-red">Direct bestuurlijk overzicht</div>
+        <div class="ds-analytics-section-inner">
+            <div class="ds-analytics-kpi-grid">
+                <div class="ds-analytics-kpi-card">
+                    <div class="ds-analytics-kpi-value">{{ attention_rows|length }}</div>
+                    <div class="ds-analytics-kpi-label">Actiepunten nu</div>
+                    <div class="ds-analytics-kpi-trend">Direct bestuurlijk overzicht</div>
                 </div>
-                <div class="kpi-card summary-kpi">
-                    <div class="kpi-value">{{ bottleneck_value }}</div>
-                    <div class="kpi-label">Grootste bottleneck</div>
-                    <div class="kpi-sub kpi-sub-amber">{{ bottleneck_label }}</div>
+                <div class="ds-analytics-kpi-card">
+                    <div class="ds-analytics-kpi-value">{{ bottleneck_value }}</div>
+                    <div class="ds-analytics-kpi-label">Grootste bottleneck</div>
+                    <div class="ds-analytics-kpi-trend">{{ bottleneck_label }}</div>
                 </div>
-                <div class="kpi-card summary-kpi">
-                    <div class="kpi-value">{{ cases_without_match_count }}</div>
-                    <div class="kpi-label">Vraag zonder match</div>
-                    <div class="kpi-sub kpi-sub-purple">Wachten op aanbiederkeuze</div>
+                <div class="ds-analytics-kpi-card">
+                    <div class="ds-analytics-kpi-value">{{ cases_without_match_count }}</div>
+                    <div class="ds-analytics-kpi-label">Vraag zonder match</div>
+                    <div class="ds-analytics-kpi-trend">Wachten op aanbiederkeuze</div>
                 </div>
-                <div class="kpi-card summary-kpi">
-                    <div class="kpi-value">{{ avg_wait_days|floatformat:1 }}</div>
-                    <div class="kpi-label">Gem. wachttijd</div>
-                    <div class="kpi-sub kpi-sub-blue">Dagen tot plaatsing</div>
+                <div class="ds-analytics-kpi-card">
+                    <div class="ds-analytics-kpi-value">{{ avg_wait_days|floatformat:1 }}</div>
+                    <div class="ds-analytics-kpi-label">Gem. wachttijd</div>
+                    <div class="ds-analytics-kpi-trend">Dagen tot plaatsing</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="panel panel-attention">
-        <div class="panel-head">
-            <div class="panel-head-inner">
+    <div class="ds-analytics-section">
+        <div class="ds-analytics-section-head">
+            <div class="ds-analytics-section-title">
                 <div class="dot dot-red"></div>
                 <span class="panel-title">Knelpunten en drukregio's</span>
-                <span class="item-meta">Aandacht vereist</span>
+                <span class="ds-analytics-list-item-meta">Aandacht vereist</span>
                 {% if attention_filter != 'all' %}
-                <span class="ds-badge badge-critical" style="margin-left:8px;">
+                <span class="ds-badge badge-critical ds-i-1snbm56">
                     {% if attention_filter == 'unmatched' %}Geen match{% elif attention_filter == 'stagnation' %}Stagnatie{% elif attention_filter == 'capacity' %}Capaciteit{% elif attention_filter == 'escalation' %}Escalatie{% endif %}
                 </span>
                 {% endif %}
@@ -68,12 +91,12 @@
         <div>
             {% for row in attention_rows %}
             {% if row.kind == 'capacity' or row.kind == 'escalation' %}
-            <a href="{{ row.href }}" class="list-row" {% if forloop.first %}style="background: color-mix(in srgb, var(--danger) 9%, transparent);"{% endif %}>
-                <div class="item-row">
+            <a href="{{ row.href }}" class="ds-analytics-list-item {% if forloop.first %}is-attention{% endif %}">
+                <div class="ds-analytics-list-item-title">
                     <div>
                         <span class="ds-badge badge-sm {% if row.kind == 'escalation' %}badge-critical{% else %}badge-high{% endif %} badge-inline">{{ row.kind_label }}</span>
-                        <div class="item-title">{{ row.title|truncatechars:52 }}</div>
-                        <div class="item-meta">{{ row.meta|truncatechars:84 }}</div>
+                        <div class="ds-analytics-list-item-title">{{ row.title|truncatechars:52 }}</div>
+                        <div class="ds-analytics-list-item-meta">{{ row.meta|truncatechars:84 }}</div>
                     </div>
                 </div>
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ic-sm ic-faded"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -82,12 +105,12 @@
             {% endfor %}
             {% for row in attention_rows %}
             {% if row.kind == 'stagnation' %}
-            <a href="{{ row.href }}" class="list-row">
-                <div class="item-row">
+            <a href="{{ row.href }}" class="ds-analytics-list-item">
+                <div class="ds-analytics-list-item-title">
                     <div>
                         <span class="ds-badge badge-sm badge-high badge-inline">{{ row.kind_label }}</span>
-                        <div class="item-title">{{ row.title|truncatechars:52 }}</div>
-                        <div class="item-meta">{{ row.meta|truncatechars:84 }}</div>
+                        <div class="ds-analytics-list-item-title">{{ row.title|truncatechars:52 }}</div>
+                        <div class="ds-analytics-list-item-meta">{{ row.meta|truncatechars:84 }}</div>
                     </div>
                 </div>
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ic-sm ic-faded"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -96,12 +119,12 @@
             {% endfor %}
             {% for row in attention_rows %}
             {% if row.kind == 'unmatched' %}
-            <a href="{{ row.href }}" class="list-row">
-                <div class="item-row">
+            <a href="{{ row.href }}" class="ds-analytics-list-item">
+                <div class="ds-analytics-list-item-title">
                     <div>
                         <span class="ds-badge badge-sm badge-medium badge-inline">{{ row.kind_label }}</span>
-                        <div class="item-title">{{ row.title|truncatechars:52 }}</div>
-                        <div class="item-meta">{{ row.meta|truncatechars:84 }}</div>
+                        <div class="ds-analytics-list-item-title">{{ row.title|truncatechars:52 }}</div>
+                        <div class="ds-analytics-list-item-meta">{{ row.meta|truncatechars:84 }}</div>
                     </div>
                 </div>
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ic-sm ic-faded"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -117,52 +140,52 @@
         {% endif %}
     </div>
 
-    <div class="dash-grid dash-grid-4">
-        <a href="?attention=escalation" class="kpi-card kpi-card-link kpi-card-regular">
+    <div class="ds-analytics-kpi-grid">
+        <a href="?attention=escalation" class="ds-analytics-kpi-card">
             <div class="kpi-glow kpi-glow-amber"></div>
             <div class="kpi-icon kpi-icon-amber">
                 <svg class="ic-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             </div>
-            <div class="kpi-value">{{ escalation_count }}</div>
-            <div class="kpi-label">Escalaties</div>
-            <div class="kpi-sub kpi-sub-amber">Hoog risico</div>
+            <div class="ds-analytics-kpi-value">{{ escalation_count }}</div>
+            <div class="ds-analytics-kpi-label">Escalaties</div>
+            <div class="ds-analytics-kpi-trend">Hoog risico</div>
         </a>
 
-        <a href="?attention=capacity" class="kpi-card kpi-card-link kpi-card-regular">
+        <a href="?attention=capacity" class="ds-analytics-kpi-card">
             <div class="kpi-glow kpi-glow-blue"></div>
             <div class="kpi-icon kpi-icon-blue">
                 <svg class="ic-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
-            <div class="kpi-value">{{ avg_wait_days|floatformat:1 }}</div>
-            <div class="kpi-label">Gem. wachttijd</div>
-            <div class="kpi-sub kpi-sub-blue">Dagen</div>
+            <div class="ds-analytics-kpi-value">{{ avg_wait_days|floatformat:1 }}</div>
+            <div class="ds-analytics-kpi-label">Gem. wachttijd</div>
+            <div class="ds-analytics-kpi-trend">Dagen</div>
         </a>
 
-        <a href="?attention=stagnation" class="kpi-card kpi-card-link kpi-card-tight">
+        <a href="?attention=stagnation" class="ds-analytics-kpi-card">
             <div class="kpi-glow kpi-glow-amber"></div>
             <div class="kpi-icon kpi-icon-amber">
                 <svg class="ic-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
-            <div class="kpi-value">{{ stagnation_count }}</div>
-            <div class="kpi-label">Stagnatie ({{ stagnation_days }}+)</div>
-            <div class="kpi-sub kpi-sub-amber">Dagen zonder voortgang</div>
+            <div class="ds-analytics-kpi-value">{{ stagnation_count }}</div>
+            <div class="ds-analytics-kpi-label">Stagnatie ({{ stagnation_days }}+)</div>
+            <div class="ds-analytics-kpi-trend">Dagen zonder voortgang</div>
         </a>
 
-        <a href="?attention=unmatched" class="kpi-card kpi-card-link kpi-card-tight">
+        <a href="?attention=unmatched" class="ds-analytics-kpi-card">
             <div class="kpi-glow kpi-glow-purple"></div>
             <div class="kpi-icon kpi-icon-purple">
                 <svg class="ic-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             </div>
-            <div class="kpi-value">{{ cases_without_match_count }}</div>
-            <div class="kpi-label">Zonder match</div>
-            <div class="kpi-sub kpi-sub-purple">Open vraag</div>
+            <div class="ds-analytics-kpi-value">{{ cases_without_match_count }}</div>
+            <div class="ds-analytics-kpi-label">Zonder match</div>
+            <div class="ds-analytics-kpi-trend">Open vraag</div>
         </a>
     </div>
 
-    <div class="dash-grid dash-grid-2">
+    <div class="ds-analytics-section ds-analytics-section--split">
         <div class="panel">
-            <div class="panel-head">
-                <div class="panel-head-inner">
+            <div class="ds-analytics-section-head">
+                <div class="ds-analytics-section-title">
                     <div class="dot dot-blue"></div>
                     <span class="panel-title">Casusflow analyse</span>
                 </div>
@@ -171,7 +194,7 @@
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
-            <div class="panel-inner">
+            <div class="ds-analytics-section-inner">
                 <div class="space-y-4">
                     {% for stage in flow_stages %}
                     <div>
@@ -179,13 +202,13 @@
                             <span class="text-sm font-600 text-gray-900">{{ stage.label }}</span>
                             <span class="text-sm font-700 text-gray-900">{{ stage.count }}</span>
                         </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill pf-active" style="width: {{ stage.width }}%"></div>
+                        <div class="ds-analytics-progress-bar">
+                            <div class="ds-analytics-progress-fill progress-width" data-width="{{ stage.width }}"></div>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
-                <div class="panel-divider">
+                <div class="ds-analytics-section-inner">
                     <div class="metric-label">Grootste bottleneck</div>
                     <div class="metric-md c-red">{{ bottleneck_label }}: {{ bottleneck_value }}</div>
                 </div>
@@ -193,8 +216,8 @@
         </div>
 
         <div class="panel">
-            <div class="panel-head">
-                <div class="panel-head-inner">
+            <div class="ds-analytics-section-head">
+                <div class="ds-analytics-section-title">
                     <div class="dot dot-green"></div>
                     <span class="panel-title">Capaciteit versus vraag</span>
                 </div>
@@ -203,7 +226,7 @@
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
-            <div class="panel-inner">
+            <div class="ds-analytics-section-inner">
                 <div class="item-meta mb-3">Vraagdruk op basis van aandeel actieve configuraties per domein</div>
                 <div class="space-y-2">
                     {% for pa in practice_areas %}
@@ -217,8 +240,8 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill pf-review" style="width: {{ pa.width }}%"></div>
+                        <div class="ds-analytics-progress-bar">
+                            <div class="progress-bar-fill pf-review progress-width" data-width="{{ pa.width }}"></div>
                         </div>
                     </div>
                     {% empty %}
@@ -231,18 +254,18 @@
 
     {% if recommendations %}
     <div class="panel">
-        <div class="panel-head">
-            <div class="panel-head-inner">
+        <div class="ds-analytics-section-head">
+            <div class="ds-analytics-section-title">
                 <div class="dot dot-blue"></div>
                 <span class="panel-title">Aanbevelingen</span>
             </div>
         </div>
         <div>
             {% for rec in recommendations %}
-            <a href="{{ rec.href }}" class="list-row">
-                <div class="item-row">
-                    <div class="item-title">{{ rec.title|truncatechars:66 }}</div>
-                    <div class="item-meta">{{ rec.detail|truncatechars:90 }}</div>
+            <a href="{{ rec.href }}" class="ds-analytics-list-item">
+                <div class="ds-analytics-list-item-title">
+                    <div class="ds-analytics-list-item-title">{{ rec.title|truncatechars:66 }}</div>
+                    <div class="ds-analytics-list-item-meta">{{ rec.detail|truncatechars:90 }}</div>
                 </div>
                 <div class="recommendation-action">
                     <span class="btn btn-ghost">{{ rec.action }}</span>
@@ -253,6 +276,55 @@
     </div>
     {% endif %}
 
+    <div class="panel">
+        <div class="ds-analytics-section-head">
+            <div class="ds-analytics-section-title">
+                <div class="dot dot-blue"></div>
+                <span class="panel-title">Regio-overzicht</span>
+            </div>
+        </div>
+        <div class="ds-table-wrap">
+            <table class="ds-table">
+                <thead>
+                    <tr>
+                        <th>Regio</th>
+                        <th>Type</th>
+                        <th>Totaal casussen</th>
+                        <th>In matching</th>
+                        <th>Zonder match</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in region_rows %}
+                    <tr>
+                        <td>{{ row.name }}</td>
+                        <td>{{ row.region_type }}</td>
+                        <td>{{ row.total }}</td>
+                        <td>{{ row.matching }}</td>
+                        <td>{{ row.unmatched }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="td-empty">Geen regiodata beschikbaar voor huidige selectie.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.progress-width[data-width]').forEach(function(el) {
+        var width = Number(el.getAttribute('data-width'));
+        if (!Number.isNaN(width)) {
+            el.style.width = Math.max(0, Math.min(100, width)) + '%';
+        }
+    });
+</script>
 {% endblock %}

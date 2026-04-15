@@ -1,46 +1,39 @@
 {% extends "base.html" %}
 {% block title %}{% if form.instance.pk %}Bewerk{% else %}Nieuwe{% endif %} opvolgtaak - Careon{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack" style="max-width: 980px;">
-    <div class="page-header">
-        <div>
-            <h1 class="page-title">{% if form.instance.pk %}Taak bewerken{% else %}Nieuwe taak{% endif %}</h1>
-            <p class="page-subtitle">Taken zijn altijd gekoppeld aan een casus en sturen de flow vooruit.</p>
-        </div>
+<div class="ds-detail-shell">
+    <nav class="ds-i-10k60uh"><a class="ds-i-1iadm4s" href="{% url 'dashboard' %}">Regiekamer</a><span class="ds-muted-label"> / </span><span class="ds-i-1vkpsqq">Formulier</span></nav>
+    <div class="ds-detail-header">
+        <div class="ds-detail-meta">
+            <span class="ds-detail-indicator">Formulier</span>
+            <h1 class="page-title ds-section-title">{% if form.instance.pk %}Taak bewerken{% else %}Nieuwe taak{% endif %}</h1>
+            </div>
     </div>
-    <form method="post" class="ds-card action-card page-stack">
+    <form method="post" class="ds-detail-sections">
         {% csrf_token %}
-        <div class="form-grid-2">
+        <div class="ds-detail-card">
+            <div class="ds-detail-card-head">
+                <h2 class="ds-detail-card-title">Taakgegevens</h2>
+                <p class="ds-helper-text">Vul de taakgegevens in.</p>
+            </div>
+            <div class="ds-detail-card-inner">
+                <div class="ds-detail-grid-2 form-grid-2">
             {% for field in form %}
-            <div{% if field.name == 'title' or field.name == 'description' or field.name == 'due_diligence_process' %} style="grid-column:1 / -1;"{% endif %}>
-                <label class="field-label">{{ field.label }}</label>
+            <div class="ds-detail-row ds-i-1uxxfx9"{% if field.name == 'title' or field.name == 'description' or field.name == 'due_diligence_process' %}{% endif %}>
+                <label class="ds-detail-label field-label">{{ field.label }}</label>
                 {{ field }}
-                {% if field.errors %}<p style="color:#f87171;font-size:12px;margin-top:4px;">{{ field.errors.0 }}</p>{% endif %}
+                {% if field.errors %}<p class="ds-i-1ynt37i ds-helper-text">{{ field.errors.0 }}</p>{% endif %}
             </div>
             {% endfor %}
+                </div>
+            </div>
         </div>
-        <div class="form-actions">
+        <div class="ds-list-actions">
             <button type="submit" class="btn btn-primary">{% if form.instance.pk %}Bijwerken{% else %}Opslaan{% endif %}</button>
             <a href="{% url 'careon:task_list' %}" class="btn btn-secondary">Annuleren</a>
         </div>
     </form>
 </div>
 
-<style>
-    .form-grid-2 {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-    }
-    .form-actions {
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-    @media (max-width: 820px) {
-        .form-grid-2 { grid-template-columns: 1fr; }
-    }
-</style>
+
 {% endblock %}

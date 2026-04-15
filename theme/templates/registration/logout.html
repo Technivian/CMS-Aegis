@@ -4,20 +4,21 @@
 {% block title %}Uitgelogd - Careon{% endblock %}
 
 {% block body %}
-<div class="min-h-screen flex items-center justify-center p-4" style="background: var(--bg);">
-    <div class="w-full max-w-md text-center">
-        <div class="absolute top-4 right-4">
-            <button onclick="toggleTheme()" class="theme-toggle" title="Wissel thema">
+<div class="min-h-screen flex items-center justify-center p-4 ds-i-1h8zv4t ds-page-shell ds-detail-sections ds-detail-shell ds-list-shell ds-analytics-shell ds-analytics-section ds-list-container ds-detail-metrics ds-detail-grid-2 ds-muted-panel ds-summary-strip ds-contact-list ds-mini-list ds-signal-list ds-meta-grid ds-info-grid ds-detail-card-inner">
+    <div class="w-full max-w-md text-center ds-detail-card ds-card">
+        <div class="absolute top-4 right-4 ds-detail-card-actions">
+            <button onclick="toggleTheme()" class="theme-toggle ds-list-row-action-btn ds-detail-card-actions" title="Wissel thema">
                 <svg class="w-4 h-4 icon-sun" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                 <svg class="w-4 h-4 icon-moon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                <svg class="w-4 h-4 icon-premium" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3l2.09 4.24 4.68.68-3.39 3.31.8 4.67L12 13.9l-4.18 2.2.8-4.67-3.39-3.31 4.68-.68L12 3z"/></svg>
             </button>
         </div>
-        <div class="w-16 h-16 rounded-2xl mx-auto mb-6 flex items-center justify-center" style="background: var(--primary-bg);">
-            <svg class="w-8 h-8" style="color: var(--primary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        <div class="w-16 h-16 rounded-2xl mx-auto mb-6 flex items-center justify-center ds-i-h6e4w4 ds-detail-head">
+            <svg class="w-8 h-8 ds-i-19irvnf" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
         </div>
-        <h1 class="text-2xl font-bold mb-2" style="color: var(--text-primary);">Je bent uitgelogd</h1>
-        <p class="text-sm mb-8" style="color: var(--text-secondary);">Bedankt voor het gebruik van Careon. Tot de volgende keer.</p>
-        <a href="{% url 'login' %}" class="inline-flex items-center gap-2 px-8 py-3 text-white rounded-xl font-semibold text-sm transition shadow-lg" style="background: var(--primary); box-shadow: 0 8px 24px var(--primary-glow);">
+        <h1 class="text-2xl font-bold mb-2 ds-i-13x0q7v ds-page-title ds-detail-card-title">Je bent uitgelogd</h1>
+        <p class="text-sm mb-8 ds-i-61w4mv ds-helper-text ds-status-copy">Bedankt voor het gebruik van Careon. Tot de volgende keer.</p>
+        <a href="{% url 'login' %}" class="inline-flex items-center gap-2 px-8 py-3 text-white rounded-xl font-semibold text-sm transition shadow-lg ds-i-5ngwd ds-hero-actions ds-list-actions ds-supporting-actions ds-zero-state-actions ds-detail-card-actions ds-tabs-nav">
             Opnieuw inloggen
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
         </a>

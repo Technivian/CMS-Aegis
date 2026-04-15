@@ -1,21 +1,20 @@
 {% extends "base.html" %}
 {% block title %}Plaatsingen - Zorgregie{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
+<div class="ds-list-shell ds-page-shell">
 
-<div class="page-header">
-    <div style="flex:1;">
-        <h1 class="page-title">Plaatsingen</h1>
-        <span class="page-subtitle">{{ total_count }} totaal &middot; {{ approved_count }} bevestigd &middot; {{ in_review_count }} in beoordeling</span>
-    </div>
+<div class="ds-list-header ds-page-header">
+    <div>
+        <h1 class="page-title ds-section-title">Plaatsingen</h1>
+        </div>
     <a href="{% url 'careon:matching_dashboard' %}" class="action-chip">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
         Naar matching
     </a>
 </div>
 
-<form method="get" class="ds-card action-card" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-    <input type="text" name="q" value="{{ search_query }}" placeholder="Zoek op casus of aanbieder..." style="flex:1;min-width:200px;">
+<form method="get" class="ds-list-filters">
+    <input type="text" name="q" value="{{ search_query }}" placeholder="Zoek op casus of aanbieder...">
     <select name="status" onchange="this.form.submit()">
         <option value="">Alle statussen</option>
         {% for val, label in status_choices %}
@@ -25,8 +24,8 @@
     <button type="submit" class="btn btn-secondary">Zoeken</button>
 </form>
 
-<div class="ds-card table-card">
-    <div class="ds-table-wrap">
+<div class="ds-list-table">
+    <div class="ds-table-wrap ds-list-container">
         <table class="ds-table">
             <thead><tr>
                 <th>Casus</th>
@@ -41,32 +40,32 @@
                 {% with placement=row.placement %}
                 <tr>
                     <td>
-                        <a href="{% url 'careon:placement_detail' placement.pk %}" style="font-weight:600;color:var(--primary);">
+                        <a href="{% url 'careon:placement_detail' placement.pk %}">
                             {% if placement.intake %}{{ placement.intake.title }}{% else %}Plaatsing #{{ placement.pk }}{% endif %}
                         </a>
-                        {% if placement.intake %}<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">{{ placement.intake.get_urgency_display }}</div>{% endif %}
+                        {% if placement.intake %}<div class="item-meta">{{ placement.intake.get_urgency_display }}</div>{% endif %}
                     </td>
                     <td>{{ placement.selected_provider.name|default:placement.proposed_provider.name|default:"—" }}</td>
                     <td>{{ placement.get_care_form_display|default:"—" }}</td>
                     <td>{{ placement.start_date|date:"d-m-Y"|default:"—" }}</td>
                     <td>
-                        <span class="badge-sm {% if placement.status == 'APPROVED' %}badge-green{% elif placement.status == 'IN_REVIEW' %}badge-yellow{% elif placement.status == 'REJECTED' %}badge-red{% else %}badge-gray{% endif %}">{{ placement.get_status_display }}</span>
-                        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Fase: {{ row.phase_label }}</div>
+                        <span class="badge-sm {% if placement.status == 'APPROVED' %}ds-stage-placement{% elif placement.status == 'IN_REVIEW' %}ds-stage-assessment{% elif placement.status == 'REJECTED' %}badge-red{% else %}badge-gray{% endif %}">{{ placement.get_status_display }}</span>
+                        <div class="item-meta">Fase: {{ row.phase_label }}</div>
                     </td>
-                    <td style="text-align:right;">
-                        <a href="{% url 'careon:placement_detail' placement.pk %}" class="btn btn-ghost">Bekijken</a>
-                        {% if placement.pk in editable_placement_ids %}
-                        <a href="{% url 'careon:placement_update' placement.pk %}" class="btn btn-ghost">Bewerken</a>
+                    <td class="ds-cell-right">
+                        <a href="{% url 'careon:placement_detail' placement.pk %}" class="btn btn-ghost">Openen</a>
+                        {% if placement.intake %}
+                        <a href="{% url 'careon:case_detail' placement.intake.pk %}?tab=plaatsing" class="btn btn-ghost">Open casus</a>
                         {% else %}
-                        <span class="c-secondary" style="font-size:11px;">Alleen-lezen</span>
+                        <span class="c-secondary">Inspectie</span>
                         {% endif %}
                     </td>
                 </tr>
                 {% endwith %}
                 {% empty %}
-                <tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-muted);">
-                    <p style="margin-bottom:8px;">Nog geen plaatsingen aangemaakt.</p>
-                    <p style="font-size:12px;margin-bottom:12px;">Plaatsingen worden aangemaakt via het matching dashboard.</p>
+                <tr><td colspan="6" class="empty-state">
+                    <p>Nog geen plaatsingen aangemaakt.</p>
+                    <p class="ds-note-text">Plaatsingen worden aangemaakt via het matching dashboard.</p>
                     <a href="{% url 'careon:matching_dashboard' %}" class="btn btn-primary">→ Naar matching</a>
                 </td></tr>
                 {% endfor %}
@@ -76,11 +75,11 @@
 </div>
 
 {% if is_paginated %}
-<div style="display:flex;justify-content:center;gap:8px;margin-top:16px;">
+<div class="ds-list-pagination"><div class="ds-list-pagination-buttons">
     {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn btn-ghost">Vorige</a>{% endif %}
-    <span style="padding:8px 12px;font-size:13px;color:var(--text-muted);">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
+    <span class="ds-note-text">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
     {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn btn-ghost">Volgende</a>{% endif %}
-</div>
+</div></div>
 {% endif %}
 
 </div>

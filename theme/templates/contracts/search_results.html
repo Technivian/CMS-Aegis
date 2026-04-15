@@ -6,76 +6,75 @@
 <div class="page-header">
     <div>
         <h1 class="page-title">Zoeken</h1>
-        <span class="page-subtitle">Zoek in casussen, aanbieders, configuraties en dossierdocumenten</span>
-    </div>
+        </div>
 </div>
 
-<form method="get" class="ds-card action-card" style="display:flex;gap:8px;">
-    <input type="text" name="q" value="{{ q }}" placeholder="Zoek casussen, aanbieders, configuraties..." autofocus style="flex:1;">
+<form method="get" class="ds-card action-card ds-i-1pxrn5i">
+    <input class="ds-i-g2rnps" type="text" name="q" value="{{ q }}" placeholder="Zoek casussen, aanbieders, configuraties..." autofocus>
     <button type="submit" class="btn btn-primary">Zoeken</button>
 </form>
 
 {% if q %}
 
 {% if results.case_records %}
-<div class="ds-card action-card" style="padding:0;">
+<div class="ds-card action-card ds-i-157vyf9">
     <div class="panel-head"><h2 class="panel-title">Casussen ({{ results.case_records|length }})</h2></div>
     {% for c in results.case_records %}
-    <a href="{% url 'careon:case_detail' c.pk %}" style="display:block;padding:12px 20px;border-bottom:1px solid var(--border);text-decoration:none;">
-        <div style="font-size:14px;font-weight:600;color:var(--primary);">{{ c.title }}</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">{{ c.get_case_phase_display|default:c.get_status_display }} &middot; {{ c.preferred_provider|default:"Geen voorkeursaanbieder" }}</div>
+    <a class="ds-i-1yjji66" href="{% url 'careon:case_detail' c.pk %}">
+        <div class="ds-i-bwp16z">{{ c.title }}</div>
+        <div class="ds-i-yfpftq">{{ c.get_case_phase_display|default:c.get_status_display }} &middot; {{ c.preferred_provider|default:"Geen voorkeursaanbieder" }}</div>
     </a>
     {% endfor %}
 </div>
 {% endif %}
 
 {% if results.clients %}
-<div class="ds-card action-card" style="padding:0;">
+<div class="ds-card action-card ds-i-157vyf9">
     <div class="panel-head"><h2 class="panel-title">Aanbieders ({{ results.clients|length }})</h2></div>
     {% for c in results.clients %}
-    <a href="{% url 'careon:client_detail' c.pk %}" style="display:block;padding:12px 20px;border-bottom:1px solid var(--border);text-decoration:none;">
-        <div style="font-size:14px;font-weight:600;color:var(--primary);">{{ c.name }}</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">{{ c.get_client_type_display }} &middot; {{ c.industry|default:"" }}</div>
+    <a class="ds-i-1yjji66" href="{% url 'careon:client_detail' c.pk %}">
+        <div class="ds-i-bwp16z">{{ c.name }}</div>
+        <div class="ds-i-yfpftq">{{ c.get_client_type_display }} &middot; {{ c.industry|default:"" }}</div>
     </a>
     {% endfor %}
 </div>
 {% endif %}
 
 {% if results.configurations %}
-<div class="ds-card action-card" style="padding:0;">
+<div class="ds-card action-card ds-i-157vyf9">
     <div class="panel-head"><h2 class="panel-title">Configuraties ({{ results.configurations|length }})</h2></div>
     {% for m in results.configurations %}
-    <a href="{% url 'careon:configuration_detail' m.pk %}" style="display:block;padding:12px 20px;border-bottom:1px solid var(--border);text-decoration:none;">
-        <div style="font-size:14px;font-weight:600;color:var(--primary);">{{ m.configuration_id }} - {{ m.title }}</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">{{ m.care_domains_display }} &middot; {{ m.get_status_display }}</div>
+    <a class="ds-i-1yjji66" href="{% url 'careon:configuration_detail' m.pk %}">
+        <div class="ds-i-bwp16z">{{ m.configuration_id }} - {{ m.title }}</div>
+        <div class="ds-i-yfpftq">{{ m.care_domains_display }} &middot; {{ m.get_status_display }}</div>
     </a>
     {% endfor %}
 </div>
 {% endif %}
 
 {% if results.documents %}
-<div class="ds-card action-card" style="padding:0;">
+<div class="ds-card action-card ds-i-157vyf9">
     <div class="panel-head"><h2 class="panel-title">Documenten ({{ results.documents|length }})</h2></div>
     {% for d in results.documents %}
-    <a href="{% url 'careon:document_detail' d.pk %}" style="display:block;padding:12px 20px;border-bottom:1px solid var(--border);text-decoration:none;">
-        <div style="font-size:14px;font-weight:600;color:var(--primary);">{{ d.title }}</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">{{ d.get_document_type_display }} &middot; {{ d.get_status_display }}</div>
+    <a class="ds-i-1yjji66" href="{% url 'careon:document_detail' d.pk %}">
+        <div class="ds-i-bwp16z">{{ d.title }}</div>
+        <div class="ds-i-yfpftq">{{ d.get_document_type_display }} &middot; {{ d.get_status_display }}</div>
     </a>
     {% endfor %}
 </div>
 {% endif %}
 
 {% if not results.case_records and not results.clients and not results.configurations and not results.documents %}
-<div class="ds-card action-card" style="text-align:center;padding:48px;">
-    <svg style="width:40px;height:40px;margin:0 auto 12px;color:var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-    <p style="font-size:14px;color:var(--text-muted);">Geen resultaten gevonden voor "{{ q }}"</p>
+<div class="ds-card action-card ds-i-1mjv3d8">
+    <svg class="ds-i-hbnm1e" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    <p class="ds-i-qces2p">Geen resultaten gevonden voor "{{ q }}"</p>
 </div>
 {% endif %}
 
 {% else %}
-<div class="ds-card action-card" style="text-align:center;padding:48px;">
-    <svg style="width:40px;height:40px;margin:0 auto 12px;color:var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-    <p style="font-size:14px;color:var(--text-muted);">Voer een zoekterm in om te beginnen</p>
+<div class="ds-card action-card ds-i-1mjv3d8">
+    <svg class="ds-i-hbnm1e" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    <p class="ds-i-qces2p">Voer een zoekterm in om te beginnen</p>
 </div>
 {% endif %}
 

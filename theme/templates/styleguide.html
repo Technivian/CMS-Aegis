@@ -4,16 +4,16 @@
 {% block title %}Careon Styleguide{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-6 py-8">
-    <div class="card-section mb-8">
-        <h1 class="text-3xl font-bold text-primary-700 mb-2">Careon Button Styleguide</h1>
+<div class="page-wrap page-stack ds-list-shell">
+    <div class="ds-card action-card page-stack">
+        <h1 class="page-title">Careon Button Styleguide</h1>
         <p class="text-muted">Visual verification of all button variants and states</p>
     </div>
 
     <!-- Primary Buttons -->
-    <div class="card-section mb-8">
-        <h2 class="text-xl font-semibold text-primary-700 mb-4">Primary Buttons</h2>
-        <div class="flex flex-wrap gap-4 items-center">
+    <div class="ds-card action-card page-stack">
+        <h2 class="ds-card-title">Primary Buttons</h2>
+        <div class="ds-list-actions">
             <button class="btn-primary btn-sm">Small Primary</button>
             <button class="btn-primary btn-md">Medium Primary</button>
             <button class="btn-primary btn-lg">Large Primary</button>
@@ -23,9 +23,9 @@
     </div>
 
     <!-- Accent Buttons -->
-    <div class="card-section mb-8">
-        <h2 class="text-xl font-semibold text-primary-700 mb-4">Accent Buttons (Careon Blue)</h2>
-        <div class="flex flex-wrap gap-4 items-center">
+    <div class="ds-card action-card page-stack">
+        <h2 class="ds-card-title">Accent Buttons (Careon Blue)</h2>
+        <div class="ds-list-actions">
             <button class="btn-accent btn-sm">Small Accent</button>
             <button class="btn-accent btn-md">Medium Accent</button>
             <button class="btn-accent btn-lg">Large Accent</button>
@@ -35,9 +35,9 @@
     </div>
 
     <!-- Outline Buttons -->
-    <div class="card-section mb-8">
-        <h2 class="text-xl font-semibold text-primary-700 mb-4">Outline Buttons</h2>
-        <div class="flex flex-wrap gap-4 items-center">
+    <div class="ds-card action-card page-stack">
+        <h2 class="ds-card-title">Outline Buttons</h2>
+        <div class="ds-list-actions">
             <button class="btn-outline btn-sm">Small Outline</button>
             <button class="btn-outline btn-md">Medium Outline</button>
             <button class="btn-outline btn-lg">Large Outline</button>
@@ -47,9 +47,9 @@
     </div>
 
     <!-- Ghost Buttons -->
-    <div class="card-section mb-8">
-        <h2 class="text-xl font-semibold text-primary-700 mb-4">Ghost Buttons</h2>
-        <div class="flex flex-wrap gap-4 items-center">
+    <div class="ds-card action-card page-stack">
+        <h2 class="ds-card-title">Ghost Buttons</h2>
+        <div class="ds-list-actions">
             <button class="btn-ghost btn-sm">Small Ghost</button>
             <button class="btn-ghost btn-md">Medium Ghost</button>
             <button class="btn-ghost btn-lg">Large Ghost</button>
@@ -59,9 +59,9 @@
     </div>
 
     <!-- Buttons with Icons -->
-    <div class="card-section mb-8">
-        <h2 class="text-xl font-semibold text-primary-700 mb-4">Buttons with Icons</h2>
-        <div class="flex flex-wrap gap-4 items-center">
+    <div class="ds-card action-card page-stack">
+        <h2 class="ds-card-title">Buttons with Icons</h2>
+        <div class="ds-list-actions">
             <button class="btn-primary btn-lg flex items-center space-x-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -84,10 +84,10 @@
     </div>
 
     <!-- Interactive State Demo -->
-    <div class="card-section mb-8">
-        <h2 class="text-xl font-semibold text-primary-700 mb-4">Interactive States</h2>
-        <p class="text-sm text-muted mb-4">Hover and focus on the buttons below to see state changes</p>
-        <div class="flex flex-wrap gap-4 items-center">
+    <div class="ds-card action-card page-stack">
+        <h2 class="ds-card-title">Interactive States</h2>
+        <p class="text-muted">Hover and focus on the buttons below to see state changes</p>
+        <div class="ds-list-actions">
             <button class="btn-primary btn-lg" onclick="alert('Primary button clicked!')">Click Me (Primary)</button>
             <button class="btn-accent btn-lg" onclick="alert('Accent button clicked!')">Click Me (Accent)</button>
             <button class="btn-outline btn-lg" onclick="alert('Outline button clicked!')">Click Me (Outline)</button>
@@ -95,7 +95,7 @@
     </div>
 
     <!-- Back to Dashboard -->
-    <div class="card-section">
+    <div class="ds-card action-card">
         <a href="{% url 'dashboard' %}" class="btn-ghost">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>

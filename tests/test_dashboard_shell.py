@@ -25,14 +25,13 @@ class DashboardShellTestCase(TestCase):
         self.client.login(username='testuser', password='testpass123')
         os.environ['FEATURE_REDESIGN'] = 'true'
 
-    def test_dashboard_kpi_cards(self):
+    def test_dashboard_alert_strip(self):
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Urgente casussen')
-        self.assertContains(response, 'Zonder match')
-        self.assertContains(response, 'Intake wachtend')
-        self.assertContains(response, 'Systeemoverzicht')
-        self.assertContains(response, 'Systeemstatus')
+        self.assertContains(response, 'Cases without match')
+        self.assertContains(response, 'Cases waiting too long')
+        self.assertContains(response, 'Missing beoordeling')
+        self.assertContains(response, 'Urgent cases')
 
     def test_dashboard_container_constraint(self):
         response = self.client.get(reverse('dashboard'))
@@ -51,9 +50,10 @@ class DashboardShellTestCase(TestCase):
     def test_dashboard_panels(self):
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Stabiel')
-        self.assertContains(response, 'Knelpuntfocus')
-        self.assertContains(response, 'Signalen')
+        self.assertContains(response, 'Priority Case Queue')
+        self.assertContains(response, 'Active Case Panel')
+        self.assertContains(response, 'Bottlenecks')
+        self.assertContains(response, 'Capacity Signals')
         self.assertContains(response, 'Laatst bijgewerkt')
 
     def test_case_list_alias_uses_configuration_shell(self):
@@ -86,9 +86,9 @@ class DashboardShellTestCase(TestCase):
     def test_typography_and_spacing(self):
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "font-family: 'Inter'")
-        self.assertContains(response, 'dash-grid')
-        self.assertContains(response, 'gap: 20px')
+        self.assertContains(response, 'command-grid')
+        self.assertContains(response, 'command-alert-strip')
+        self.assertContains(response, 'queue-row')
 
     def tearDown(self):
         if 'FEATURE_REDESIGN' in os.environ:

@@ -2,148 +2,215 @@
 {% block title %}{{ intake.title }} - Careon{% endblock %}
 {% block content %}
 
-<div class="page-wrap page-stack">
-    <div class="mb-4 text-sm">
-        <a href="{% url 'dashboard' %}" class="text-blue-600 hover:text-blue-800">Dashboard</a>
-        <span class="text-gray-400 mx-1">/</span>
-        <a href="{% url 'careon:case_list' %}" class="text-blue-600 hover:text-blue-800">Casussen</a>
-        <span class="text-gray-400 mx-1">/</span>
-        <span class="text-gray-600">{{ anonymized_title }}</span>
-    </div>
+<div class="page-wrap ds-detail-shell" data-shell="case-workspace">
+    <header data-shell-slot="case-header">
+        <nav class="ds-breadcrumb">
+            <a href="{% url 'dashboard' %}" class="ds-breadcrumb-link">Regiekamer</a>
+            <span class="mx-1">/</span>
+            <a href="{% url 'careon:case_list' %}" class="ds-breadcrumb-link">Casussen</a>
+            <span class="mx-1">/</span>
+            <span class="ds-breadcrumb-current">{{ anonymized_title }}</span>
+        </nav>
 
-    <section class="ds-card mb-4 intake-identity-card">
-        <div class="flex flex-wrap items-start justify-between gap-4">
+        <section class="ds-card ds-detail-head intake-identity-card" data-shell-slot="case-header-card">
+        <div class="ds-detail-card-body">
             <div class="min-w-0 space-y-2">
-                <div class="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                    <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1">Casus {{ intake.pk }}</span>
-                    <span class="inline-flex items-center rounded-full px-2.5 py-1 {% if intake.urgency == 'CRISIS' %}bg-red-100 text-red-700{% elif intake.urgency == 'HIGH' %}bg-orange-100 text-orange-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">{{ intake.get_urgency_display }}</span>
-                    <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-blue-700">{{ intake.get_status_display }}</span>
+                <div class="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-wide ds-text-muted">
+                    <span class="ds-badge badge-gray">Casus {{ intake.pk }}</span>
+                    <span class="ds-badge {% if intake.urgency == 'CRISIS' %}badge-critical{% elif intake.urgency == 'HIGH' %}badge-high{% else %}badge-low{% endif %}">{{ intake.get_urgency_display }}</span>
+                    <span class="ds-badge ds-stage-intake">{{ intake.get_status_display }}</span>
                 </div>
-                <h1 class="truncate text-2xl font-semibold leading-tight text-gray-900">{{ anonymized_title }}</h1>
-                <dl class="grid gap-x-5 gap-y-1 text-xs sm:grid-cols-3">
+                <h1 class="ds-page-title truncate text-2xl font-semibold leading-tight ds-text-strong">{{ anonymized_title }}</h1>
+                <dl class="ds-meta-grid text-xs sm:grid-cols-3">
                     <div>
-                        <dt class="uppercase tracking-wide text-gray-500">Regio/Gemeente</dt>
-                        <dd class="font-semibold text-gray-900">{{ region_municipality_label }}</dd>
+                        <dt class="ds-meta-label">Regio/Gemeente</dt>
+                        <dd class="ds-meta-value">{{ region_municipality_label }}</dd>
                     </div>
                     <div>
-                        <dt class="uppercase tracking-wide text-gray-500">Laatste update</dt>
-                        <dd class="font-semibold text-gray-900">{{ intake.updated_at|date:"d-m-Y H:i" }}</dd>
+                        <dt class="ds-meta-label">Laatste update</dt>
+                        <dd class="ds-meta-value">{{ intake.updated_at|date:"d-m-Y H:i" }}</dd>
                     </div>
                     <div>
-                        <dt class="uppercase tracking-wide text-gray-500">Regie</dt>
-                        <dd class="font-semibold text-gray-900">{{ intake.case_coordinator.get_full_name|default:"-" }}</dd>
+                        <dt class="ds-meta-label">Regie</dt>
+                        <dd class="ds-meta-value">{{ intake.case_coordinator.get_full_name|default:"-" }}</dd>
                     </div>
                 </dl>
             </div>
 
             <div class="flex flex-col items-stretch gap-2 sm:items-end">
                 <a href="{{ next_action.href }}" class="btn btn-secondary">{{ next_action.label }}</a>
-                <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-xs font-medium text-gray-600">
-                    <a href="{{ assessment_href }}" class="hover:text-gray-900">{{ assessment_action_label }}</a>
-                    <a href="{{ matching_href }}" class="hover:text-gray-900">Matching</a>
-                    <a href="{{ placement_href }}" class="hover:text-gray-900">{{ placement_action_label }}</a>
+                {% if can_edit_case %}
+                <a href="{% url 'careon:case_update' intake.pk %}" class="btn btn-ghost">Bewerken</a>
+                {% endif %}
+                <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-xs font-medium ds-text-secondary">
+                    <a href="{{ assessment_href }}" class="ds-link">{{ assessment_action_label }}</a>
+                    <a href="{{ matching_href }}" class="ds-link">Matching</a>
+                    <a href="{{ placement_href }}" class="ds-link">{{ placement_action_label }}</a>
                 </div>
             </div>
         </div>
+        </section>
+    </header>
+
+    <section class="ds-summary-strip" data-shell-slot="phase-summary">
+        <div class="ds-summary-item">
+            <p class="ds-summary-label">Huidige staat</p>
+            <p class="mt-1 text-base font-semibold ds-text-strong">{{ case_record.get_case_phase_display|default:intake.get_status_display }}</p>
+        </div>
+        <div class="ds-summary-item ds-summary-item--risk">
+            <p class="ds-summary-label">Blokkade</p>
+            <p class="mt-1 text-sm font-semibold ds-text-strong">{{ blocker_label }}</p>
+            <p class="text-xs font-medium ds-text-secondary">{{ progress_label }}</p>
+        </div>
+        <div class="ds-summary-item">
+            <p class="ds-summary-label">Volgende actie</p>
+            <a href="{{ next_action.href }}" class="mt-1 inline-flex text-sm font-semibold ds-link">{{ next_action.label }}</a>
+            {% if next_action_state_label %}
+            <span class="mt-1 inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold {% if next_action_severity == 'critical' %}bg-red-100 text-red-700{% elif next_action_severity == 'warning' %}bg-amber-100 text-amber-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">{{ next_action_state_label }}</span>
+            {% endif %}
+            {% if next_action.help %}
+            <p class="text-xs font-medium ds-text-secondary">{{ next_action.help }}</p>
+            {% endif %}
+        </div>
+        <div class="ds-summary-item">
+            <p class="ds-summary-label">Beslisregel</p>
+            <p class="mt-1 text-sm font-semibold ds-text-strong">Systeem adviseert</p>
+            <p class="text-xs font-medium ds-text-secondary">Regie beslist en bevestigt</p>
+        </div>
     </section>
 
-    <section class="mb-5 intake-summary-strip">
-        <div class="summary-item">
-                <p class="summary-label">Huidige staat</p>
-                <p class="mt-1 text-base font-semibold text-gray-900">{{ case_record.get_case_phase_display|default:intake.get_status_display }}</p>
-            </div>
-            <div class="summary-item summary-risk">
-                <p class="summary-label">Blokkade</p>
-                <p class="mt-1 text-sm font-semibold text-gray-900">{{ blocker_label }}</p>
-                <p class="text-xs font-medium text-gray-700">{{ progress_label }}</p>
-            </div>
-            <div class="summary-item">
-                <p class="summary-label">Volgende actie</p>
-                <a href="{{ next_action.href }}" class="mt-1 inline-flex text-sm font-semibold text-blue-800 hover:text-blue-900">{{ next_action.label }}</a>
-            </div>
-            <div class="summary-item">
-                <p class="summary-label">Beslisregel</p>
-                <p class="mt-1 text-sm font-semibold text-gray-900">Systeem adviseert</p>
-                <p class="text-xs font-medium text-gray-700">Regie beslist en bevestigt</p>
-            </div>
+    {% if not safe_to_proceed %}
+    <section class="ds-card border-red-200 bg-red-50" data-shell-slot="stop-banner">
+        <div class="ds-detail-header">
+            <h2 class="ds-card-title text-red-800">Acties tijdelijk geblokkeerd</h2>
+            <span class="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">Corrigeer eerst</span>
+        </div>
+        {% if stop_reasons %}
+        <ul class="space-y-1 text-sm text-red-900">
+            {% for reason in stop_reasons %}
+            <li>• {{ reason }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <a href="{{ next_action.href }}" class="btn btn-secondary mt-3">{{ next_action.label }}</a>
     </section>
+    {% endif %}
 
-    <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
-        <div class="space-y-6 xl:col-span-8">
-            <section class="rounded-xl border border-gray-200 bg-white p-4">
-                <h2 class="mb-3 text-base font-semibold text-gray-900">Casussamenvatting</h2>
-                <dl class="divide-y divide-gray-100 rounded-lg border border-gray-100 text-sm">
-                    <div class="grid grid-cols-2 gap-3 px-3 py-2">
-                        <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Hoofdcategorie</dt>
-                        <dd class="text-right font-medium text-gray-900">{{ intake.care_category_main.name|default:"-" }}</dd>
+    {% if missing_information_alerts or system_signals %}
+    <section class="ds-card" data-shell-slot="system-intelligence">
+        <div class="ds-detail-header">
+            <h2 class="ds-card-title">Systeemintelligentie</h2>
+            <span class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold ds-text-secondary">
+                {{ system_signals|length }} signalen · {{ missing_information_alerts|length }} ontbrekende gegevens
+            </span>
+        </div>
+
+        {% if missing_information_alerts %}
+        <div class="space-y-2">
+            {% for item in missing_information_alerts %}
+            <div class="ds-list-row ds-list-row--compact">
+                <div>
+                    <div class="ds-row-title">Ontbreekt: {{ item.label }}</div>
+                    <div class="ds-row-meta">{{ item.message }}</div>
+                    <div class="mt-1 text-xs ds-text-secondary">Actie: {{ item.action }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if system_signals %}
+        <div class="mt-3 space-y-2">
+            {% for signal in system_signals %}
+            <div class="ds-list-row ds-list-row--compact">
+                <div>
+                    <div class="ds-row-title">Signaal: {{ signal.label }}</div>
+                    <div class="ds-row-meta">{{ signal.message }}</div>
+                    <div class="mt-1 text-xs ds-text-secondary">Aanbevolen actie: {{ signal.action }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    <div class="ds-workspace-grid" data-shell-slot="workspace-layout">
+        <main class="space-y-6 ds-workspace-main" data-shell-slot="primary-work-area">
+            <section class="ds-card">
+                <h2 class="ds-card-title">Casussamenvatting</h2>
+                <dl class="ds-field-list">
+                    <div class="ds-field-item">
+                        <dt>Hoofdcategorie</dt>
+                        <dd>{{ intake.care_category_main.name|default:"-" }}</dd>
                     </div>
-                    <div class="grid grid-cols-2 gap-3 px-3 py-2">
-                        <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Subcategorie</dt>
-                        <dd class="text-right font-medium text-gray-900">{{ intake.care_category_sub.name|default:"-" }}</dd>
+                    <div class="ds-field-item">
+                        <dt>Subcategorie</dt>
+                        <dd>{{ intake.care_category_sub.name|default:"-" }}</dd>
                     </div>
-                    <div class="grid grid-cols-2 gap-3 px-3 py-2">
-                        <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Zorgvorm</dt>
-                        <dd class="text-right font-medium text-gray-900">{{ intake.get_preferred_care_form_display }}</dd>
+                    <div class="ds-field-item">
+                        <dt>Zorgvorm</dt>
+                        <dd>{{ intake.get_preferred_care_form_display }}</dd>
                     </div>
-                    <div class="grid grid-cols-2 gap-3 px-3 py-2">
-                        <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Leeftijd</dt>
-                        <dd class="text-right font-medium text-gray-900">{{ intake.get_client_age_category_display|default:"-" }}</dd>
+                    <div class="ds-field-item">
+                        <dt>Leeftijd</dt>
+                        <dd>{{ intake.get_client_age_category_display|default:"-" }}</dd>
                     </div>
-                    <div class="grid grid-cols-2 gap-3 px-3 py-2">
-                        <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Gezinssituatie</dt>
-                        <dd class="text-right font-medium text-gray-900">{{ intake.get_family_situation_display|default:"-" }}</dd>
+                    <div class="ds-field-item">
+                        <dt>Gezinssituatie</dt>
+                        <dd>{{ intake.get_family_situation_display|default:"-" }}</dd>
                     </div>
                 </dl>
             </section>
 
-            <section class="rounded-xl border border-gray-200 bg-white p-4">
-                <div class="mb-3 flex items-center justify-between gap-3">
-                    <h2 class="text-base font-semibold text-gray-900">Flow voortgang</h2>
-                    <span class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">{{ progress_label }}</span>
+            <section class="ds-card">
+                <div class="ds-detail-header">
+                    <h2 class="ds-card-title">Flow voortgang</h2>
+                    <span class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold ds-text-secondary">{{ progress_label }}</span>
                 </div>
                 <div class="space-y-2">
                     {% for stage in flow_rail %}
                     <div class="flex items-center gap-3 rounded-lg border px-3 py-2 {% if stage.active %}border-blue-300 bg-blue-50{% elif stage.completed %}border-emerald-200 bg-emerald-50{% else %}border-gray-200 bg-gray-50{% endif %}">
-                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold {% if stage.active %}bg-blue-600 text-white{% elif stage.completed %}bg-emerald-600 text-white{% else %}bg-gray-200 text-gray-700{% endif %}">{{ forloop.counter }}</span>
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold {% if stage.active %}bg-blue-600 text-white{% elif stage.completed %}bg-emerald-600 text-white{% else %}bg-gray-200 ds-text-secondary{% endif %}">{{ forloop.counter }}</span>
                         <div class="flex-1 min-w-0">
-                            <p class="truncate text-sm font-semibold text-gray-900">{{ stage.label }}</p>
+                            <p class="truncate text-sm font-semibold ds-text-strong">{{ stage.label }}</p>
                         </div>
-                        <span class="text-[11px] font-semibold uppercase tracking-wide {% if stage.active %}text-blue-700{% elif stage.completed %}text-emerald-700{% else %}text-gray-500{% endif %}">
+                        <span class="text-[11px] font-semibold uppercase tracking-wide {% if stage.active %}text-blue-700{% elif stage.completed %}text-emerald-700{% else %}ds-text-muted{% endif %}">
                             {% if stage.active %}Actief{% elif stage.completed %}Klaar{% else %}Wacht{% endif %}
                         </span>
-                        </div>
+                    </div>
                     {% endfor %}
                 </div>
             </section>
 
-            <section class="rounded-xl border border-gray-200 bg-white p-4">
-                <h2 class="mb-3 text-base font-semibold text-gray-900">Beoordeling</h2>
-                <div class="grid gap-2 sm:grid-cols-3">
-                    <div class="rounded-lg border border-gray-200 px-3 py-2">
-                        <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Complexiteit</p>
-                        <p class="mt-1 text-sm font-semibold text-gray-900">{{ intake.get_complexity_display }}</p>
+            <section class="ds-card">
+                <h2 class="ds-card-title">Beoordeling</h2>
+                <div class="ds-metric-grid">
+                    <div class="ds-metric-card">
+                        <span class="ds-metric-label">Complexiteit</span>
+                        <strong class="ds-metric-value">{{ intake.get_complexity_display }}</strong>
                     </div>
-                    <div class="rounded-lg border border-gray-200 px-3 py-2">
-                        <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Risico</p>
-                        <p class="mt-1 text-sm font-semibold text-gray-900">{{ intake.get_urgency_display }}</p>
+                    <div class="ds-metric-card">
+                        <span class="ds-metric-label">Risico</span>
+                        <strong class="ds-metric-value">{{ intake.get_urgency_display }}</strong>
                     </div>
-                    <div class="rounded-lg border border-gray-200 px-3 py-2">
-                        <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Matching</p>
-                        <p class="mt-1 text-sm font-semibold text-gray-900">{% if ready_for_matching %}Klaar{% else %}Niet klaar{% endif %}</p>
+                    <div class="ds-metric-card">
+                        <span class="ds-metric-label">Matching</span>
+                        <strong class="ds-metric-value">{% if ready_for_matching %}Klaar{% else %}Niet klaar{% endif %}</strong>
                     </div>
                 </div>
-                <p class="mt-2 text-xs text-gray-700">{{ assessment_interpretation }}</p>
+                <p class="ds-note-text">{{ assessment_interpretation }}</p>
             </section>
 
-            <section class="rounded-xl border border-gray-200 bg-white p-4">
-                <div class="mb-3 flex items-center justify-between gap-3">
-                    <h2 class="text-base font-semibold text-gray-900">Matching preview</h2>
+            <section class="ds-card">
+                <div class="ds-detail-header">
+                    <h2 class="ds-card-title">Matching preview</h2>
                     <a href="{{ matching_href }}" class="btn btn-ghost">Open matching</a>
                 </div>
                 {% if not ready_for_matching %}
-                <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3">
-                    <p class="text-sm font-medium text-gray-800">Beoordeling eerst afronden</p>
-                    <a href="{{ assessment_href }}" class="btn btn-secondary" style="margin-top:10px;">{{ assessment_action_label }}</a>
+                <div class="ds-empty-state">
+                    <p class="text-sm font-medium ds-text-strong">Beoordeling eerst afronden</p>
+                    <a href="{{ assessment_href }}" class="btn btn-secondary inline-cta-top">{{ assessment_action_label }}</a>
                 </div>
                 {% elif matching_preview_candidates %}
                 <div class="space-y-2">
@@ -151,10 +218,20 @@
                     <div class="rounded-lg border border-gray-200 px-3 py-2">
                         <div class="flex flex-wrap items-center justify-between gap-3">
                             <div class="min-w-0">
-                                <p class="text-sm font-semibold text-gray-900">{{ candidate.provider_name }}</p>
-                                <p class="truncate text-xs text-gray-600">{{ candidate.reason }} · {{ candidate.capacity }}</p>
+                                <p class="text-sm font-semibold ds-text-strong">{{ candidate.provider_name }}</p>
+                                <p class="truncate text-xs ds-text-secondary">{{ candidate.explanation.fit_summary }}</p>
+                                {% if candidate.decision_hint %}
+                                <p class="truncate text-xs ds-text-secondary">Advies: {{ candidate.decision_hint }}</p>
+                                {% endif %}
                             </div>
                             <div class="flex items-center gap-2">
+                                {% if candidate.explanation.confidence == 'high' %}
+                                <span class="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">Sterke match</span>
+                                {% elif candidate.explanation.confidence == 'medium' %}
+                                <span class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">Redelijk fit</span>
+                                {% else %}
+                                <span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">Zwak match</span>
+                                {% endif %}
                                 <span class="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">Fitscore {{ candidate.fit_score }}%</span>
                                 <a href="{{ candidate.cta_href }}" class="btn btn-ghost">{{ candidate.cta_label }}</a>
                             </div>
@@ -163,202 +240,760 @@
                     {% endfor %}
                 </div>
                 {% else %}
-                <p class="text-sm text-gray-600">Nog geen kandidaat-aanbieders.</p>
+                <p class="ds-note-text">Nog geen kandidaat-aanbieders.</p>
                 {% endif %}
             </section>
 
-            <section class="rounded-xl border border-gray-200 bg-white p-4">
-                <div class="mb-3 flex flex-wrap gap-2">
-                    <a href="?tab=tijdlijn" class="tab-chip {% if selected_tab == 'tijdlijn' %}tab-chip-active{% endif %}">Tijdlijn</a>
-                    <a href="?tab=documenten" class="tab-chip {% if selected_tab == 'documenten' %}tab-chip-active{% endif %}">Documenten</a>
-                    <a href="?tab=taken" class="tab-chip {% if selected_tab == 'taken' %}tab-chip-active{% endif %}">Taken</a>
-                    <a href="?tab=signalen" class="tab-chip {% if selected_tab == 'signalen' %}tab-chip-active{% endif %}">Signalen</a>
-                    <a href="?tab=plaatsing" class="tab-chip {% if selected_tab == 'plaatsing' %}tab-chip-active{% endif %}">Plaatsing</a>
+            <section class="ds-card ds-tabs-container" data-workspace-panel="primary-workstream">
+                <!-- Integration anchors only: detailed inline workflows remain unchanged in this step. -->
+                <!-- TODO(case-embedding-next-phase): move all signal/document/task create-edit flows into inline drawers in this case detail shell. -->
+                <div class="ds-tabs-nav">
+                    <a href="?tab=tijdlijn" class="ds-tab-item {% if selected_tab == 'tijdlijn' %}ds-tab-item--active{% endif %}">Tijdlijn</a>
+                    <a href="?tab=documenten" class="ds-tab-item {% if selected_tab == 'documenten' %}ds-tab-item--active{% endif %}">Documenten ({{ documents_count }})</a>
+                    <a href="?tab=taken" class="ds-tab-item {% if selected_tab == 'taken' %}ds-tab-item--active{% endif %}">Taken ({{ open_tasks_count }})</a>
+                    <a href="?tab=signalen" class="ds-tab-item {% if selected_tab == 'signalen' %}ds-tab-item--active{% endif %}">Signalen ({{ open_signals_count }})</a>
+                    <a href="?tab=matching" class="ds-tab-item {% if selected_tab == 'matching' %}ds-tab-item--active{% endif %}">Matching ({% if matching_preview_candidates %}{{ matching_preview_candidates|length }}{% else %}0{% endif %})</a>
+                    <a href="?tab=plaatsing" class="ds-tab-item {% if selected_tab == 'plaatsing' %}ds-tab-item--active{% endif %}">Plaatsing</a>
                 </div>
 
                 {% if selected_tab == 'tijdlijn' %}
-                <div class="space-y-3 text-sm">
-                    <div class="rounded-lg border border-gray-200 p-3">
-                        <p class="font-semibold text-gray-900">Intake gestart</p>
-                        <p class="text-gray-600">{{ intake.start_date|date:"d-m-Y" }}</p>
+                <div class="ds-info-grid sm:grid-cols-3">
+                    <div class="ds-info-card">
+                        <span class="ds-info-label">Intake gestart</span>
+                        <strong>{{ intake.start_date|date:"d-m-Y" }}</strong>
                     </div>
-                    <div class="rounded-lg border border-gray-200 p-3">
-                        <p class="font-semibold text-gray-900">Doeldatum matchbesluit</p>
-                        <p class="text-gray-600">{{ intake.target_completion_date|date:"d-m-Y" }}</p>
+                    <div class="ds-info-card">
+                        <span class="ds-info-label">Doeldatum matchbesluit</span>
+                        <strong>{{ intake.target_completion_date|date:"d-m-Y" }}</strong>
                     </div>
-                    <div class="rounded-lg border border-gray-200 p-3">
-                        <p class="font-semibold text-gray-900">Laatste wijziging</p>
-                        <p class="text-gray-600">{{ intake.updated_at|date:"d-m-Y H:i" }}</p>
+                    <div class="ds-info-card">
+                        <span class="ds-info-label">Laatste wijziging</span>
+                        <strong>{{ intake.updated_at|date:"d-m-Y H:i" }}</strong>
                     </div>
                 </div>
-                {% elif selected_tab == 'documenten' %}
-                <div class="mb-3 flex items-center justify-between gap-3">
-                    <p class="text-sm font-semibold text-gray-900">Documenten ({{ documents_count }})</p>
-                    <a href="{{ case_document_href }}" class="btn btn-secondary">{{ case_document_action_label }}</a>
+                <div class="ds-detail-header mt-4">
+                    <p class="ds-note-text--strong">Uitkomstgebeurtenissen</p>
                 </div>
-                {% if documents %}
-                <div class="space-y-2">
-                    {% for document in documents %}
-                    <div class="rounded-lg border border-gray-200 p-3">
-                        <div class="flex items-center justify-between gap-2">
-                            <div>
-                                <p class="text-sm font-medium text-gray-900">{{ document.title }}</p>
-                                <p class="text-xs text-gray-500">{{ document.get_status_display }} · {{ document.created_at|date:"d-m-Y" }}</p>
+                {% if outcome_timeline_events %}
+                <div class="ds-list-container">
+                    {% for event in outcome_timeline_events %}
+                    <div class="ds-list-row ds-list-row--compact">
+                        <div>
+                            <div class="ds-row-title">{{ event.title }}</div>
+                            <div class="ds-row-meta">
+                                {{ event.status_label }}
+                                {% if event.reason_label %} · {{ event.reason_label }}{% endif %}
+                                · {{ event.timestamp|date:"d-m-Y H:i" }}
+                                {% if event.user %} · {{ event.user.get_full_name|default:event.user.username }}{% endif %}
                             </div>
-                            <a href="{% url 'careon:document_detail' document.pk %}" class="btn btn-ghost">Open</a>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <p class="text-sm text-gray-600">Nog geen documenten gekoppeld aan deze casus.</p>
-                {% endif %}
-                {% elif selected_tab == 'taken' %}
-                <div class="mb-3 flex items-center justify-between gap-3">
-                    <p class="text-sm font-semibold text-gray-900">Open taken ({{ open_tasks_count }})</p>
-                    {% if can_create_case_task %}
-                    <a href="{% url 'careon:case_task_create' intake.pk %}" class="btn btn-secondary">+ Taak toevoegen</a>
-                    {% endif %}
-                </div>
-                {% if open_tasks %}
-                <div class="space-y-2">
-                    {% for task in open_tasks %}
-                    <div class="rounded-lg border border-gray-200 p-3">
-                        <div class="flex items-center justify-between gap-2">
-                            <div>
-                                <p class="text-sm font-medium text-gray-900">{{ task.title }}</p>
-                                <p class="text-xs text-gray-500">Deadline: {{ task.due_date|date:"d-m-Y" }}</p>
-                            </div>
-                            {% if can_edit_case %}
-                            <a href="{% url 'careon:task_update' task.pk %}" class="btn btn-ghost">Open</a>
+                            {% if event.note %}
+                            <div class="mt-1 text-xs ds-text-secondary">{{ event.note }}</div>
                             {% endif %}
                         </div>
                     </div>
                     {% endfor %}
                 </div>
                 {% else %}
-                <p class="text-sm text-gray-600">Geen open taken voor deze casus.</p>
+                <p class="ds-note-text">Nog geen uitkomstgebeurtenissen vastgelegd.</p>
+                {% endif %}
+                {% elif selected_tab == 'documenten' %}
+                <div class="ds-detail-header">
+                    <p class="ds-note-text--strong">Documenten ({{ documents_count }})</p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a href="{{ overview_links.documents }}" class="btn btn-ghost">Alle documenten</a>
+                        <a href="{{ case_document_context_href }}" class="btn btn-secondary">{{ case_document_action_label }}</a>
+                    </div>
+                </div>
+                <p class="ds-note-text">Upload documenten vanuit deze casus; de globale documentenpagina is voor archief en zoeken.</p>
+                {% if documents %}
+                <div class="ds-list-container">
+                    {% for row in case_document_rows %}
+                    <a href="{% url 'careon:document_detail' row.document.pk %}" class="ds-list-row ds-list-row--compact">
+                        <div>
+                            <div class="ds-row-title">{{ row.document.title }}</div>
+                            <div class="ds-row-meta">{{ row.document.get_status_display }} · {{ row.document.created_at|date:"d-m-Y" }}</div>
+                            {% if row.linked_phase or row.linked_event %}
+                            <div class="mt-1 text-xs ds-text-secondary">
+                                {% if row.linked_phase %}Fase: {{ row.linked_phase }}{% endif %}
+                                {% if row.linked_phase and row.linked_event %} · {% endif %}
+                                {% if row.linked_event %}Event: {{ row.linked_event }}{% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <span class="btn btn-ghost">Open</span>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="ds-empty-state">Nog geen documenten gekoppeld aan deze casus.</div>
+                {% endif %}
+                {% elif selected_tab == 'taken' %}
+                <div class="ds-detail-header">
+                    <p class="ds-note-text--strong">Open taken ({{ open_tasks_count }})</p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a href="{{ overview_links.tasks }}" class="btn btn-ghost">Takenoverzicht</a>
+                        {% if can_create_case_task %}
+                        <a href="{% url 'careon:case_task_create' intake.pk %}" class="btn btn-secondary">+ Taak toevoegen</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="ds-note-text">Werk taken primair in deze casus; overzicht is bedoeld voor casus-overstijgende sturing.</p>
+                {% if open_tasks %}
+                <div class="ds-list-container">
+                    {% for task in open_tasks %}
+                    <div class="ds-list-row ds-list-row--compact" data-case-id="{{ intake.pk }}" data-phase="{{ active_flow_stage }}">
+                        <div>
+                            <div class="ds-row-title">{{ task.title }}</div>
+                            <div class="ds-row-meta">Deadline: {{ task.due_date|date:"d-m-Y" }}</div>
+                        </div>
+                        {% if can_edit_case %}
+                        <div class="flex items-center gap-2">
+                            <a href="{% url 'careon:task_update' task.pk %}" class="btn btn-ghost">Open</a>
+                            <form method="post" action="{% url 'careon:deadline_complete' task.pk %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{% url 'careon:case_detail' intake.pk %}?tab=taken&amp;phase={{ active_flow_stage }}">
+                                <button type="submit" class="btn btn-secondary">Afronden</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="ds-empty-state">Geen open taken voor deze casus.</div>
                 {% endif %}
                 {% elif selected_tab == 'signalen' %}
-                <div class="mb-3 flex items-center justify-between gap-3">
-                    <p class="text-sm font-semibold text-gray-900">Open signalen ({{ open_signals_count }})</p>
-                    {% if can_create_case_signal %}
-                    <a href="{% url 'careon:case_signal_create' intake.pk %}" class="btn btn-secondary">+ Signaal toevoegen</a>
-                    {% endif %}
+                <div class="ds-detail-header">
+                    <p class="ds-note-text--strong">Open signalen ({{ open_signals_count }})</p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a href="{{ overview_links.signals }}" class="btn btn-ghost">Signalenoverzicht</a>
+                        {% if can_create_case_signal %}
+                        <a href="{% url 'careon:case_signal_create' intake.pk %}" class="btn btn-secondary">+ Signaal toevoegen</a>
+                        {% endif %}
+                    </div>
                 </div>
+                <p class="ds-note-text">Werk signalen primair in deze casus; overzicht is bedoeld voor monitoring over meerdere casussen.</p>
                 {% if open_signals %}
-                <div class="space-y-2">
+                <div class="ds-list-container">
                     {% for signal in open_signals %}
-                    <div class="rounded-lg border border-gray-200 p-3">
-                        <div class="flex items-center justify-between gap-2">
-                            <div>
-                                <p class="text-sm font-medium text-gray-900">{{ signal.title|default:signal.get_signal_type_display }}</p>
-                                <p class="text-xs text-gray-500">{{ signal.get_status_display }} · {{ signal.get_risk_level_display }}</p>
-                            </div>
-                            <a href="{% url 'careon:signal_detail' signal.pk %}" class="btn btn-ghost">Open</a>
+                    <div class="ds-list-row ds-list-row--compact" data-case-id="{{ intake.pk }}" data-phase="{{ active_flow_stage }}">
+                        <div>
+                            <div class="ds-row-title">{{ signal.title|default:signal.get_signal_type_display }}</div>
+                            <div class="ds-row-meta">{{ signal.get_status_display }} · {{ signal.get_risk_level_display }}</div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a href="{% url 'careon:signal_detail' signal.pk %}" class="btn btn-ghost">Detail</a>
+                            {% if can_edit_case %}
+                            {% if signal.status == 'OPEN' %}
+                            <form method="post" action="{% url 'careon:signal_status_update' signal.pk %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="IN_PROGRESS">
+                                <input type="hidden" name="next" value="{% url 'careon:case_detail' intake.pk %}?tab=signalen&amp;phase={{ active_flow_stage }}">
+                                <button type="submit" class="btn btn-secondary">Start opvolging</button>
+                            </form>
+                            {% else %}
+                            <form method="post" action="{% url 'careon:signal_status_update' signal.pk %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="RESOLVED">
+                                <input type="hidden" name="next" value="{% url 'careon:case_detail' intake.pk %}?tab=signalen&amp;phase={{ active_flow_stage }}">
+                                <button type="submit" class="btn btn-secondary">Afronden</button>
+                            </form>
+                            {% endif %}
+                            <a href="{% url 'careon:signal_update' signal.pk %}" class="btn btn-secondary">Bewerken</a>
+                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}
                 </div>
                 {% else %}
-                <p class="text-sm text-gray-600">Geen open signalen voor deze casus.</p>
+                <div class="ds-empty-state">Geen open signalen voor deze casus.</div>
                 {% endif %}
                 {% else %}
-                <div class="space-y-3 text-sm">
-                    <div class="rounded-lg border border-gray-200 p-3">
-                        <p class="font-semibold text-gray-900">Status</p>
-                        <p class="text-gray-600">{{ placement_status_label }}</p>
+                {% if selected_tab == 'matching' %}
+                <div class="ds-detail-header">
+                    <p class="ds-note-text--strong">Matching in deze casus</p>
+                    <a href="{{ matching_archive_href }}" class="btn btn-ghost">Matchingoverzicht</a>
+                </div>
+                <p class="ds-note-text">Werk matching primair in deze casus. Het matchingoverzicht blijft beschikbaar voor cross-casus monitoring.</p>
+
+                {% if latest_assignment %}
+                <div class="ds-info-card mb-3">
+                    <span class="ds-info-label">Laatste matchresultaat</span>
+                    <strong>{{ latest_assignment.selected_provider.name }}</strong>
+                    <p class="text-xs ds-text-secondary">Status: {{ latest_assignment.get_status_display }} · Bijgewerkt: {{ latest_assignment.updated_at|date:"d-m-Y H:i" }}</p>
+                    {% if latest_assignment.pk %}
+                    <a href="{% url 'careon:placement_detail' latest_assignment.pk %}" class="btn btn-ghost inline-cta-top">Open plaatsing</a>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="ds-empty-state">Nog geen aanbieder toegewezen voor deze casus.</div>
+                {% endif %}
+
+                {% if matching_preview_candidates %}
+                <div class="space-y-4">
+                    {% for candidate in matching_preview_candidates %}
+                    <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
+                        <!-- Provider header with confidence badge -->
+                        <div class="border-b border-gray-100 px-4 py-3">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0 flex-1">
+                                    <h3 class="text-base font-semibold ds-text-strong">{{ candidate.provider_name }}</h3>
+                                    <p class="mt-1 text-sm ds-text-secondary">{{ candidate.explanation.fit_summary }}</p>
+                                    {% if candidate.decision_hint %}
+                                    <p class="mt-1 text-xs ds-text-secondary">Advies: {{ candidate.decision_hint }}</p>
+                                    {% endif %}
+                                    {% if candidate.decision_comparison_to_top %}
+                                    <p class="mt-1 text-xs ds-text-secondary">{{ candidate.decision_comparison_to_top }}</p>
+                                    {% endif %}
+                                    {% if candidate.outcome_context %}
+                                    <div class="mt-2 rounded-md border border-gray-100 bg-gray-50 px-2 py-2">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <p class="text-xs font-semibold ds-text-strong">Historische uitkomstcontext</p>
+                                            {% if candidate.outcome_context.evidence_level == 'sufficient' %}
+                                            <span class="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-700">{{ candidate.outcome_context.evidence_label }}</span>
+                                            {% elif candidate.outcome_context.evidence_level == 'limited' %}
+                                            <span class="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">{{ candidate.outcome_context.evidence_label }}</span>
+                                            {% else %}
+                                            <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-700">{{ candidate.outcome_context.evidence_label }}</span>
+                                            {% endif %}
+                                        </div>
+                                        <p class="mt-1 text-xs ds-text-secondary">{{ candidate.outcome_context.summary }}</p>
+                                        <div class="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                                            {% if candidate.outcome_context.acceptance_label %}
+                                            <p class="text-[11px] text-gray-700">{{ candidate.outcome_context.acceptance_label }}</p>
+                                            {% endif %}
+                                            {% if candidate.outcome_context.quality_label %}
+                                            <p class="text-[11px] text-gray-700">{{ candidate.outcome_context.quality_label }}</p>
+                                            {% endif %}
+                                        </div>
+                                        {% if candidate.outcome_context.warning %}
+                                        <p class="mt-1 text-[11px] font-medium text-amber-800">{{ candidate.outcome_context.warning }}</p>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    {% if candidate.decision_hint_code == 'top_recommended' %}
+                                    <span class="inline-flex rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">Top aanbevolen</span>
+                                    {% elif candidate.decision_hint_code == 'top_tradeoff' %}
+                                    <span class="inline-flex rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">Top met afweging</span>
+                                    {% endif %}
+                                    {% if candidate.explanation.confidence == 'high' %}
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1.5 text-xs font-semibold text-green-700">
+                                        ✓ Sterke match
+                                    </span>
+                                    {% elif candidate.explanation.confidence == 'medium' %}
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-700">
+                                        ○ Redelijk fit
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700">
+                                        ⚠ Zwak match
+                                    </span>
+                                    {% endif %}
+                                    <span class="inline-flex rounded-full bg-blue-100 px-3 py-1.5 text-xs font-semibold text-blue-700">
+                                        Score {{ candidate.fit_score }}%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Factors grid -->
+                        <div class="grid gap-3 px-4 py-3 sm:grid-cols-2">
+                            {% with factors=candidate.explanation.factors %}
+                            <div class="flex items-start gap-2 text-sm">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    {% if factors.specialization.status == 'match' %}
+                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-green-600">✓</span>
+                                    {% else %}
+                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 text-gray-500">−</span>
+                                    {% endif %}
+                                </div>
+                                <div class="min-w-0">
+                                    <dt class="font-medium ds-text-strong">Specialisatie</dt>
+                                    <dd class="text-xs ds-text-secondary">{{ factors.specialization.detail }}</dd>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-2 text-sm">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    {% with urgency_ok=factors.urgency.status %}
+                                    {% if urgency_ok == 'match' %}
+                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-green-600">✓</span>
+                                    {% else %}
+                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 text-gray-500">−</span>
+                                    {% endif %}
+                                    {% endwith %}
+                                </div>
+                                <div class="min-w-0">
+                                    <dt class="font-medium ds-text-strong">Urgentie</dt>
+                                    <dd class="text-xs ds-text-secondary">{{ factors.urgency.detail }}</dd>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-2 text-sm">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    {% if factors.care_form.status == 'match' %}
+                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-green-600">✓</span>
+                                    {% else %}
+                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 text-gray-500">−</span>
+                                    {% endif %}
+                                </div>
+                                <div class="min-w-0">
+                                    <dt class="font-medium ds-text-strong">Zorgvorm</dt>
+                                    <dd class="text-xs ds-text-secondary">{{ factors.care_form.detail }}</dd>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-2 text-sm">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    {% if factors.region.status in 'exact|compatible' %}
+                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-green-600">✓</span>
+                                    {% else %}
+                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 text-gray-500">−</span>
+                                    {% endif %}
+                                </div>
+                                <div class="min-w-0">
+                                    <dt class="font-medium ds-text-strong">Regio/Locatie</dt>
+                                    <dd class="text-xs ds-text-secondary">{{ factors.region.detail }}</dd>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-2 text-sm">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    {% if factors.capacity.status in 'available|limited' %}
+                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-green-600">✓</span>
+                                    {% elif factors.capacity.status == 'limited' %}
+                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-600">~</span>
+                                    {% else %}
+                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-100 text-red-600">✕</span>
+                                    {% endif %}
+                                </div>
+                                <div class="min-w-0">
+                                    <dt class="font-medium ds-text-strong">Capaciteit</dt>
+                                    <dd class="text-xs ds-text-secondary">{{ factors.capacity.detail }}</dd>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-2 text-sm">
+                                <div class="mt-0.5 flex-shrink-0">
+                                    {% if factors.performance.status in 'good|acceptable' %}
+                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-green-600">✓</span>
+                                    {% else %}
+                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-600">~</span>
+                                    {% endif %}
+                                </div>
+                                <div class="min-w-0">
+                                    <dt class="font-medium ds-text-strong">Wachttijd</dt>
+                                    <dd class="text-xs ds-text-secondary">{{ factors.performance.detail }}</dd>
+                                </div>
+                            </div>
+                            {% endwith %}
+                        </div>
+
+                        <!-- Trade-offs section -->
+                        {% if candidate.explanation.trade_offs %}
+                        <div class="border-t border-gray-100 bg-gray-50 px-4 py-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide ds-text-secondary">Afwegingen</p>
+                            <ul class="mt-2 space-y-1">
+                                {% for tradeoff in candidate.explanation.trade_offs %}
+                                <li class="text-sm text-gray-700">• {{ tradeoff }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                                {% if candidate.decision_trade_offs %}
+                                <div class="border-t border-gray-100 bg-amber-50 px-4 py-3">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-amber-700">Beslisafwegingen</p>
+                                    <ul class="mt-2 space-y-1">
+                                        {% for tradeoff in candidate.decision_trade_offs %}
+                                        <li class="text-sm text-amber-900">• {{ tradeoff }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+
+                        <!-- Verify manually section -->
+                        {% if candidate.explanation.verify_manually %}
+                        <div class="border-t border-gray-100 px-4 py-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide ds-text-secondary">Te controleren</p>
+                            <ul class="mt-2 space-y-1">
+                                {% for item in candidate.explanation.verify_manually %}
+                                <li class="flex items-start gap-2 text-xs text-gray-700">
+                                    <input type="checkbox" class="mt-0.5 cursor-pointer rounded" aria-label="Controleer: {{ item }}">
+                                    <span>{{ item }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <!-- Actions -->
+                        <div class="border-t border-gray-100 px-4 py-3">
+                            <div class="flex flex-wrap items-center gap-2">
+                                {% if can_execute_matching_actions %}
+                                <form method="post" action="{{ matching_action_href }}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="assign">
+                                    <input type="hidden" name="provider_id" value="{{ candidate.provider_id }}">
+                                    <input type="hidden" name="phase" value="{{ active_flow_stage }}">
+                                    <input type="hidden" name="next" value="{% url 'careon:case_detail' intake.pk %}?tab=matching&amp;phase={{ active_flow_stage }}">
+                                    <button type="submit" class="btn btn-secondary">Wijs toe</button>
+                                </form>
+                                <form method="post" action="{{ matching_action_href }}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="reject">
+                                    <input type="hidden" name="provider_id" value="{{ candidate.provider_id }}">
+                                    <input type="hidden" name="reason" value="Afgewezen vanuit casusdetail.">
+                                    <input type="hidden" name="phase" value="{{ active_flow_stage }}">
+                                    <input type="hidden" name="next" value="{% url 'careon:case_detail' intake.pk %}?tab=matching&amp;phase={{ active_flow_stage }}">
+                                    <button type="submit" class="btn btn-ghost">Afwijzen</button>
+                                </form>
+                                {% elif can_edit_case and not safe_to_proceed %}
+                                <span class="text-xs font-semibold text-red-700">Toewijzen/afwijzen geblokkeerd tot correctie van kritieke signalen.</span>
+                                {% else %}
+                                <span class="text-xs ds-text-muted">Geen bewerkrechten</span>
+                                {% endif %}
+                                <a href="{% url 'careon:client_detail' candidate.provider_id %}" class="btn btn-ghost">Profiel</a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="rounded-lg border border-gray-200 p-3">
-                        <p class="font-semibold text-gray-900">Fase</p>
-                        <p class="text-gray-600">{{ placement_phase_label }}</p>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="ds-empty-state">
+                    {% if ready_for_matching %}
+                    Nog geen geschikte aanbieders gevonden.
+                    {% else %}
+                    Maak de beoordeling gereed voor matching om aanbevelingen te tonen.
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="ds-detail-header mt-4">
+                    <p class="ds-note-text--strong">Matchgeschiedenis</p>
+                </div>
+                {% if matching_history %}
+                <div class="ds-list-container">
+                    {% for item in matching_history %}
+                    <div class="ds-list-row ds-list-row--compact">
+                        <div>
+                            <div class="ds-row-title">{{ item.get_action_display }} · {{ item.changes.provider_name|default:item.object_repr }}</div>
+                            <div class="ds-row-meta">{{ item.timestamp|date:"d-m-Y H:i" }}{% if item.changes.reason %} · {{ item.changes.reason }}{% endif %}</div>
+                        </div>
                     </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="ds-note-text">Nog geen matchinghistorie voor deze casus.</p>
+                {% endif %}
+
+                <div class="ds-detail-header mt-4">
+                    <p class="ds-note-text--strong">Afgewezen opties</p>
+                </div>
+                {% if rejected_options %}
+                <div class="space-y-2">
+                    {% for item in rejected_options %}
+                    <div class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <p class="text-sm font-medium ds-text-strong">{{ item.changes.provider_name|default:"Onbekend" }}</p>
+                                <p class="mt-0.5 text-xs ds-text-secondary">
+                                    {% if item.changes.reason %}
+                                    {{ item.changes.reason }}
+                                    {% else %}
+                                    Afgewezen op {{ item.timestamp|date:"d-m-Y H:i" }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <span class="inline-flex rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">Afgewezen</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="ds-note-text">Nog geen afgewezen aanbieders geregistreerd.</p>
+                {% endif %}
+
+                {% else %}
+                <div class="ds-info-grid sm:grid-cols-2">
+                    <div class="ds-info-card">
+                        <span class="ds-info-label">Status</span>
+                        <strong>{{ placement_status_label }}</strong>
+                    </div>
+                    <div class="ds-info-card">
+                        <span class="ds-info-label">Fase</span>
+                        <strong>{{ placement_phase_label }}</strong>
+                    </div>
+                </div>
+                <div class="ds-info-card mt-3">
+                    <span class="ds-info-label">Geselecteerde aanbieder</span>
+                    {% if placement_selected_provider %}
+                    <strong>{{ placement_selected_provider.name }}</strong>
+                    <p class="text-xs ds-text-secondary">Deze plaatsing volgt op matching binnen dezelfde casus.</p>
+                    {% else %}
+                    <strong>Nog niet geselecteerd</strong>
+                    <p class="text-xs ds-text-secondary">Start eerst vanuit matching om een aanbieder te koppelen.</p>
+                    {% endif %}
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <a href="{{ overview_links.placements }}" class="btn btn-ghost">Plaatsingenoverzicht</a>
                     <a href="{{ placement_href }}" class="btn btn-secondary">{{ placement_action_label }}</a>
+                    {% if has_placement and can_edit_case %}
+                    <a href="{{ placement_href }}edit/" class="btn btn-ghost">Status bijwerken</a>
+                    {% endif %}
+                </div>
+
+                {% if has_placement and can_edit_case and not safe_to_proceed %}
+                <div class="ds-empty-state mt-3">Statuswijzigingen voor plaatsing zijn tijdelijk geblokkeerd totdat kritieke acties zijn uitgevoerd.</div>
+                {% elif has_placement and can_edit_case and placement_status_actions %}
+                <div class="mt-3 ds-list-container">
+                    {% for action in placement_status_actions %}
+                    <div class="ds-list-row ds-list-row--compact" data-case-id="{{ intake.pk }}" data-phase="{{ active_flow_stage }}">
+                        <div>
+                            <div class="ds-row-title">{{ action.label }}</div>
+                            <div class="ds-row-meta">{{ action.note }}</div>
+                        </div>
+                        <form method="post" action="{{ placement_action_href }}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="{{ action.status }}">
+                            <input type="hidden" name="note" value="{{ action.note }}">
+                            <input type="hidden" name="next" value="{% url 'careon:case_detail' intake.pk %}?tab=plaatsing&amp;phase={{ active_flow_stage }}">
+                            <button type="submit" class="btn btn-secondary">Toepassen</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% elif not has_placement %}
+                <div class="ds-empty-state mt-3">Plaatsing is downstream van matching: koppel eerst een aanbieder in matching.</div>
+                {% endif %}
+
+                <div class="ds-detail-header mt-4">
+                    <p class="ds-note-text--strong">Providerreactie orchestration</p>
+                </div>
+                {% if provider_response_summary %}
+                <div class="rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm">
+                    <div class="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                            <div class="ds-row-title">{{ provider_response_summary.status_label }}</div>
+                            <div class="mt-1 flex flex-wrap items-center gap-2 text-xs ds-text-secondary">
+                                <span>Open sinds {{ provider_response_summary.age_days }} dagen</span>
+                                {% if provider_response_summary.deadline_at %}
+                                <span>Deadline: {{ provider_response_summary.deadline_at|date:"d-m-Y H:i" }}</span>
+                                {% endif %}
+                                {% if provider_response_summary.is_overdue %}
+                                <span class="inline-flex rounded-full bg-red-100 px-2 py-0.5 font-semibold text-red-700">Over tijd</span>
+                                {% endif %}
+                            </div>
+                            {% if provider_response_summary.requested_at %}
+                            <div class="mt-1 text-xs ds-text-secondary">Laatste aanvraag: {{ provider_response_summary.requested_at|date:"d-m-Y H:i" }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if can_edit_case and provider_response_actions %}
+                    <div class="mt-3 ds-list-container">
+                        {% for action in provider_response_actions %}
+                        <div class="ds-list-row ds-list-row--compact">
+                            <div>
+                                <div class="ds-row-title">{{ action.label }}</div>
+                                <div class="ds-row-meta">{{ action.note }}</div>
+                            </div>
+                            <form method="post" action="{{ provider_response_action_href }}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="{{ action.action }}">
+                                <input type="hidden" name="next" value="{% url 'careon:case_detail' intake.pk %}?tab=plaatsing&amp;phase={{ active_flow_stage }}">
+                                <button type="submit" class="btn btn-secondary">Uitvoeren</button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% elif not can_edit_case %}
+                    <p class="mt-2 text-xs ds-text-secondary">Geen bewerkrechten voor providerreactie-acties.</p>
+                    {% else %}
+                    <p class="mt-2 text-xs ds-text-secondary">Geen aanvullende providerreactie-acties nodig.</p>
+                    {% endif %}
+                </div>
+                {% else %}
+                <p class="text-xs ds-text-secondary">Providerreactie wordt zichtbaar zodra een plaatsing aan deze casus is gekoppeld.</p>
+                {% endif %}
+
+                <div class="ds-detail-header mt-4">
+                    <p class="ds-note-text--strong">Uitkomst en opvolging</p>
+                </div>
+                <p class="text-xs ds-text-secondary">Leg uitkomsten direct vast zodat de volgende casusstap en tijdlijn actueel blijven.</p>
+                <div class="space-y-3">
+                    {% for section in outcome_sections %}
+                    <div class="rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm">
+                        <div class="flex flex-wrap items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <div class="ds-row-title">{{ section.title }}</div>
+                                <div class="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                                    <span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 font-semibold ds-text-strong">{{ section.status_label }}</span>
+                                    {% if section.reason_label %}
+                                    <span class="inline-flex rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-800">{{ section.reason_label }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if can_edit_case and section.form %}
+                            <span class="text-[11px] ds-text-secondary">Bijwerken</span>
+                            {% endif %}
+                        </div>
+                        {% if section.notes %}
+                        <div class="mt-2 text-xs ds-text-secondary">{{ section.notes }}</div>
+                        {% endif %}
+                        {% if section.recorded_at %}
+                        <div class="mt-2 text-xs ds-text-secondary">{{ section.recorded_at|date:"d-m-Y H:i" }}{% if section.recorded_by %} · {{ section.recorded_by.get_full_name|default:section.recorded_by.username }}{% endif %}</div>
+                        {% else %}
+                        <div class="mt-2 text-xs ds-text-secondary">Nog niet vastgelegd.</div>
+                        {% endif %}
+                        {% if can_edit_case and section.form %}
+                        <details class="mt-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+                            <summary class="cursor-pointer text-xs font-semibold ds-text-strong">Bewerk {{ section.title|lower }}</summary>
+                            <form method="post" action="{{ outcome_action_href }}" class="mt-2 space-y-2">
+                                {% csrf_token %}
+                                {{ section.form.outcome_type }}
+                                <input type="hidden" name="next" value="{% url 'careon:case_detail' intake.pk %}?tab=plaatsing&amp;phase={{ active_flow_stage }}">
+                                <div class="grid gap-2 sm:grid-cols-2">
+                                    <div>
+                                        <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide ds-text-secondary">Status</label>
+                                        {{ section.form.status }}
+                                    </div>
+                                    <div>
+                                        <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide ds-text-secondary">Reden</label>
+                                        {{ section.form.reason_code }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide ds-text-secondary">Notities</label>
+                                    {{ section.form.notes }}
+                                </div>
+                                <button type="submit" class="btn btn-secondary">Uitkomst opslaan</button>
+                            </form>
+                        </details>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if not has_placement %}
+                <p class="mt-3 text-xs ds-text-secondary">Reactie aanbieder en plaatsingskwaliteit worden beschikbaar zodra een plaatsing is gekoppeld.</p>
+                {% endif %}
+
+                <div class="ds-detail-header mt-4">
+                    <p class="ds-note-text--strong">Overdracht & notificatie</p>
+                </div>
+                <div class="ds-info-grid sm:grid-cols-2">
+                    <div class="ds-info-card">
+                        <span class="ds-info-label">Overdrachtstatus</span>
+                        <strong>{% if placement_handoff_docs_count %}Gedocumenteerd{% else %}Nog niet geregistreerd{% endif %}</strong>
+                        {% if latest_handoff_doc %}
+                        <p class="text-xs ds-text-secondary">Laatste overdrachtsdocument: {{ latest_handoff_doc.title }} ({{ latest_handoff_doc.created_at|date:"d-m-Y" }})</p>
+                        {% else %}
+                        <p class="text-xs ds-text-secondary">Voeg document toe met event provider_handoff voor overdrachtsdossier.</p>
+                        {% endif %}
+                    </div>
+                    <div class="ds-info-card">
+                        <span class="ds-info-label">Notificatiestatus</span>
+                        <strong>{% if placement_notifications_count %}Notificaties aanwezig{% else %}Geen notificatie gevonden{% endif %}</strong>
+                        {% if latest_placement_notification %}
+                        <p class="text-xs ds-text-secondary">Laatste: {{ latest_placement_notification.title }} ({{ latest_placement_notification.created_at|date:"d-m-Y H:i" }})</p>
+                        {% else %}
+                        <p class="text-xs ds-text-secondary">Status blijft zichtbaar zodra notificaties worden geregistreerd.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+            </section>
+        </main>
+
+        <aside class="space-y-4 ds-workspace-rail ds-sidebar-rail" data-shell-slot="secondary-contextual-rail">
+            <section id="next-best-action" class="ds-card ds-sidebar-card ds-sidebar-card--primary" data-shell-slot="persistent-next-best-action">
+                <h3 class="ds-sidebar-title">Beslisactie</h3>
+                <p class="ds-note-text--strong">{{ next_action.label }}</p>
+                {% if next_action_state_label %}
+                <span class="inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold {% if next_action_severity == 'critical' %}bg-red-100 text-red-700{% elif next_action_severity == 'warning' %}bg-amber-100 text-amber-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">{{ next_action_state_label }}</span>
+                {% endif %}
+                <p class="ds-note-text">{{ next_action.help }}</p>
+                <a href="{{ next_action.href }}" class="btn btn-primary inline-cta-block">{{ next_action.label }}</a>
+                {% if can_edit_case %}
+                <div class="mt-2 grid grid-cols-1 gap-2">
+                    <a href="{% url 'careon:case_task_create' intake.pk %}" class="btn btn-secondary">+ Taak toevoegen</a>
+                    <a href="{% url 'careon:case_signal_create' intake.pk %}" class="btn btn-secondary">+ Signaal toevoegen</a>
                 </div>
                 {% endif %}
             </section>
-        </div>
 
-        <aside class="space-y-4 xl:col-span-4">
-            <section class="rounded-xl border border-blue-200 bg-blue-50 p-4">
-                <h3 class="rail-title">Beslisactie</h3>
-                <p class="mt-1 text-sm font-semibold text-gray-900">{{ next_action.label }}</p>
-                <p class="mt-1 text-xs text-gray-700">{{ next_action.help }}</p>
-                <a href="{{ next_action.href }}" class="btn btn-primary" style="margin-top:10px;display:block;text-align:center;">{{ next_action.label }}</a>
-            </section>
-
-            <section class="rounded-xl border border-gray-200 bg-white p-4">
-                <div class="mb-2 flex items-center justify-between gap-2">
-                    <h3 class="rail-title">Taken</h3>
-                    <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">{{ open_tasks_count }}</span>
+            <section class="ds-card ds-sidebar-card" data-context-panel="tasks">
+                <div class="ds-detail-header">
+                    <h3 class="ds-sidebar-title">Taken</h3>
+                    <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold ds-text-secondary">{{ open_tasks_count }}</span>
                 </div>
                 {% if open_tasks %}
-                <div class="space-y-2">
+                <div class="ds-mini-list">
                     {% for task in open_tasks|slice:":3" %}
-                    <div class="rounded-lg border border-gray-200 px-2.5 py-2">
-                        <p class="text-xs font-semibold text-gray-900">{{ task.title }}</p>
-                        <p class="text-xs text-gray-600">{{ task.due_date|date:"d-m-Y" }}</p>
+                    <div>
+                        <div class="ds-row-title">{{ task.title }}</div>
+                        <div class="ds-row-meta">{{ task.due_date|date:"d-m-Y" }}</div>
                     </div>
                     {% endfor %}
                 </div>
                 {% else %}
-                <p class="text-xs text-gray-600">Geen open taken</p>
+                <p class="ds-note-text">Geen open taken</p>
                 {% endif %}
             </section>
 
-            <section class="rounded-xl border border-gray-200 bg-white p-4">
-                <div class="mb-2 flex items-center justify-between gap-2">
-                    <h3 class="rail-title">Signalen</h3>
-                    <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">{{ open_signals_count }}</span>
+            <section class="ds-card ds-sidebar-card" data-context-panel="signals">
+                <div class="ds-detail-header">
+                    <h3 class="ds-sidebar-title">Signalen</h3>
+                    <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold ds-text-secondary">{{ open_signals_count }}</span>
                 </div>
                 {% if open_signals %}
-                <div class="space-y-2">
+                <div class="ds-mini-list">
                     {% for signal in open_signals|slice:":3" %}
-                    <div class="rounded-lg border border-gray-200 px-2.5 py-2">
-                        <p class="text-xs font-semibold text-gray-900">{{ signal.title|default:signal.get_signal_type_display }}</p>
-                        <p class="text-xs text-gray-600">{{ signal.get_risk_level_display }}</p>
+                    <div>
+                        <div class="ds-row-title">{{ signal.title|default:signal.get_signal_type_display }}</div>
+                        <div class="ds-row-meta">{{ signal.get_risk_level_display }}</div>
                     </div>
                     {% endfor %}
                 </div>
                 {% else %}
-                <p class="text-xs text-gray-600">Geen open signalen</p>
+                <p class="ds-note-text">Geen open signalen</p>
                 {% endif %}
             </section>
 
-            <section class="rounded-xl border border-gray-200 bg-white p-4">
-                <div class="mb-2 flex items-center justify-between gap-2">
-                    <h3 class="rail-title">Plaatsing</h3>
-                    <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">{{ placement_phase_label }}</span>
+            <section class="ds-card ds-sidebar-card" data-context-panel="placement">
+                <div class="ds-detail-header">
+                    <h3 class="ds-sidebar-title">Plaatsing</h3>
+                    <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold ds-text-secondary">{{ placement_phase_label }}</span>
                 </div>
-                <p class="text-xs uppercase tracking-wide text-gray-500">Status</p>
-                <p class="text-sm font-semibold text-gray-900">{{ placement_status_label }}</p>
-                <a href="{{ placement_href }}" class="btn btn-ghost" style="margin-top:10px;">{{ placement_action_label }}</a>
+                <p class="ds-sidebar-title">Status</p>
+                <p class="ds-note-text--strong">{{ placement_status_label }}</p>
+                <a href="{{ placement_href }}" class="btn btn-ghost inline-cta-top">{{ placement_action_label }}</a>
             </section>
 
-            <section class="rounded-xl border border-gray-200 bg-white p-4">
-                <div class="mb-2 flex items-center justify-between gap-2">
-                    <h3 class="rail-title">Documenten</h3>
-                    <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">{{ documents_count }}</span>
+            <section class="ds-card ds-sidebar-card" data-context-panel="documents">
+                <div class="ds-detail-header">
+                    <h3 class="ds-sidebar-title">Documenten</h3>
+                    <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold ds-text-secondary">{{ documents_count }}</span>
                 </div>
                 {% if documents %}
-                <div class="space-y-2">
+                <div class="ds-mini-docs">
                     {% for document in documents|slice:":2" %}
-                    <div class="rounded-lg border border-gray-200 px-2.5 py-2">
-                        <p class="text-xs font-semibold text-gray-900">{{ document.title }}</p>
-                        <p class="text-xs text-gray-600">{{ document.get_status_display }}</p>
-                    </div>
+                    <a href="{% url 'careon:document_detail' document.pk %}" class="ds-mini-doc-link">{{ document.title }}</a>
                     {% endfor %}
                 </div>
                 {% else %}
-                <p class="text-xs text-gray-600">Nog geen documenten</p>
+                <p class="ds-note-text">Nog geen documenten</p>
                 {% endif %}
             </section>
         </aside>
     </div>
 
     {% if risk_factors_list %}
-    <section class="mt-5 rounded-xl border border-gray-200 bg-white p-4">
-        <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-600">Risicofactoren</h2>
+    <section class="ds-card">
+        <h2 class="ds-sidebar-title">Risicofactoren</h2>
         <div class="flex flex-wrap gap-2">
             {% for risk in risk_factors_list %}
             <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">{{ risk.name }}</span>

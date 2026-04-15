@@ -3,14 +3,14 @@
 {% block content %}
 <div class="page-wrap page-stack">
 
-<nav class="mb-4" style="font-size: 13px; color: var(--text-secondary);">
-    <a href="{% url 'dashboard' %}" style="color: var(--text-muted); text-decoration: none;">Dashboard</a>
+<nav class="ds-breadcrumb">
+    <a href="{% url 'dashboard' %}" class="ds-breadcrumb-link">Regiekamer</a>
     <span class="mx-2">/</span>
-    <a href="{% url 'careon:case_list' %}" style="color: var(--text-muted); text-decoration: none;">Casussen</a>
+    <a href="{% url 'careon:case_list' %}" class="ds-breadcrumb-link">Casussen</a>
     <span class="mx-2">/</span>
-    <a href="{% url 'careon:case_detail' intake.pk %}" style="color: var(--text-muted); text-decoration: none;">{{ intake.title }}</a>
+    <a href="{% url 'careon:case_detail' intake.pk %}" class="ds-breadcrumb-link">{{ intake.title }}</a>
     <span class="mx-2">/</span>
-    <span style="color: var(--primary);">Beoordeling</span>
+    <span class="ds-breadcrumb-current">Beoordeling</span>
 </nav>
 
 <div class="flex items-center justify-between mb-6">
@@ -29,10 +29,10 @@
         {% if can_edit_assessment %}
         <a href="{% url 'careon:assessment_update' assessment.pk %}" class="action-chip">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-            Bewerken
+            Wijzigen
         </a>
         {% else %}
-        <span class="action-chip" style="opacity:0.6;cursor:not-allowed;">Alleen-lezen</span>
+        <span class="action-chip ds-readonly-chip">Alleen-lezen</span>
         {% endif %}
     </div>
 </div>
@@ -69,18 +69,18 @@
             <div class="panel-inner space-y-4">
                 {% if assessment.reason_not_ready %}
                 <div>
-                    <p class="text-xs font-medium uppercase tracking-wide mb-1" style="color: var(--text-muted);">Reden niet klaar voor matching</p>
+                    <p class="text-xs font-medium uppercase tracking-wide mb-1 ds-text-muted">Reden niet klaar voor matching</p>
                     <p class="text-sm">{{ assessment.reason_not_ready }}</p>
                 </div>
                 {% endif %}
                 {% if assessment.notes %}
                 <div>
-                    <p class="text-xs font-medium uppercase tracking-wide mb-1" style="color: var(--text-muted);">Notities</p>
+                    <p class="text-xs font-medium uppercase tracking-wide mb-1 ds-text-muted">Notities</p>
                     <p class="text-sm whitespace-pre-line">{{ assessment.notes }}</p>
                 </div>
                 {% endif %}
                 {% if not assessment.reason_not_ready and not assessment.notes %}
-                <p class="text-sm" style="color: var(--text-muted);">Geen aanvullende gegevens.</p>
+                <p class="text-sm ds-text-muted">Geen aanvullende gegevens.</p>
                 {% endif %}
             </div>
         </div>
@@ -100,7 +100,7 @@
                             {% endfor %}
                         </div>
                     {% else %}
-                        <p class="text-sm" style="color: var(--text-muted);">Geen signalen geregistreerd.</p>
+                        <p class="text-sm ds-text-muted">Geen signalen geregistreerd.</p>
                     {% endif %}
                 {% endwith %}
             </div>
@@ -114,15 +114,15 @@
             </div>
             <div class="panel-inner space-y-4">
                 <div>
-                    <p class="text-xs font-medium uppercase tracking-wide mb-1" style="color: var(--text-muted);">Casus</p>
-                    <a href="{% url 'careon:case_detail' intake.pk %}" class="text-sm text-blue-600 hover:text-blue-800">{{ intake.title }}</a>
+                    <p class="text-xs font-medium uppercase tracking-wide mb-1 ds-text-muted">Casus</p>
+                    <a href="{% url 'careon:case_detail' intake.pk %}" class="text-sm ds-link">{{ intake.title }}</a>
                 </div>
                 <div>
-                    <p class="text-xs font-medium uppercase tracking-wide mb-1" style="color: var(--text-muted);">Zorgvraag</p>
+                    <p class="text-xs font-medium uppercase tracking-wide mb-1 ds-text-muted">Zorgvraag</p>
                     <p class="text-sm">{{ intake.care_category_main.name|default:"—" }}</p>
                 </div>
                 <div>
-                    <p class="text-xs font-medium uppercase tracking-wide mb-1" style="color: var(--text-muted);">Urgentie</p>
+                    <p class="text-xs font-medium uppercase tracking-wide mb-1 ds-text-muted">Urgentie</p>
                     <p class="text-sm">{{ intake.get_urgency_display }}</p>
                 </div>
             </div>
@@ -130,7 +130,7 @@
     </div>
 
     <div class="space-y-5">
-        <div class="panel" style="border-color: rgba(37,99,235,0.3);">
+        <div class="panel ds-border-brand-soft">
             <div class="panel-inner space-y-3">
                 <p class="panel-title mb-1">Gereedheid voor matching</p>
                 {% for item in matching_requirements %}
@@ -140,22 +140,22 @@
                 </div>
                 {% endfor %}
                 {% if matching_ready %}
-                <a href="{{ matching_href }}" class="btn btn-primary" style="display:block;text-align:center;">
+                <a href="{{ matching_href }}" class="btn btn-primary ds-btn-block">
                     Naar matching
                 </a>
                 {% else %}
-                <a href="{{ matching_href }}" aria-disabled="true" class="btn btn-secondary" style="display:block;width:100%;text-align:center;opacity:0.6;pointer-events:none;cursor:not-allowed;">
+                <a href="{{ matching_href }}" aria-disabled="true" class="btn btn-secondary ds-readonly-btn">
                     Naar matching
                 </a>
-                <p class="text-xs" style="color: var(--text-muted);">Nog niet gereed: {{ matching_missing|join:", " }}.</p>
+                <p class="text-xs ds-text-muted">Nog niet gereed: {{ matching_missing|join:", " }}.</p>
                 {% if can_edit_assessment %}
-                <a href="{% url 'careon:assessment_update' assessment.pk %}" class="btn btn-ghost" style="display:block;text-align:center;">Beoordeling bijwerken</a>
+                <a href="{% url 'careon:assessment_update' assessment.pk %}" class="btn btn-ghost ds-btn-block">Beoordeling bijwerken</a>
                 {% endif %}
                 {% endif %}
             </div>
         </div>
 
-        <div class="panel panel-inner text-xs space-y-1" style="color: var(--text-muted);">
+        <div class="panel panel-inner text-xs space-y-1 ds-text-muted">
             <p>Aangemaakt: {{ assessment.created_at|date:"d-m-Y H:i"|default:"—" }}</p>
             <p>Gewijzigd: {{ assessment.updated_at|date:"d-m-Y H:i" }}</p>
         </div>

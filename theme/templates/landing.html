@@ -4,69 +4,16 @@
 {% block title %}CareOn - Zorgregieplatform{% endblock %}
 
 {% block body %}
-<style>
-    .landing-page {
-        --landing-section-end: #111827;
-        --landing-panel-bg: rgba(17,24,39,0.72);
-        --landing-outline-bg: rgba(17,24,39,0.6);
-        --landing-outline-bg-hover: rgba(17,24,39,0.9);
-        --landing-outline-border: #1F2937;
-        --landing-muted-strong: #6B7280;
-        --landing-muted-soft: #4B5563;
-    }
-    [data-theme="light"] .landing-page {
-        --landing-section-end: #EEF2FF;
-        --landing-panel-bg: rgba(255,255,255,0.92);
-        --landing-outline-bg: rgba(255,255,255,0.88);
-        --landing-outline-bg-hover: rgba(255,255,255,0.98);
-        --landing-outline-border: #CBD5E1;
-        --landing-muted-strong: #475569;
-        --landing-muted-soft: #64748B;
-    }
 
-    .brand-text { color: var(--text-primary); }
-    .landing-link { color: var(--text-secondary); transition: color 0.2s ease; }
-    .landing-link:hover { color: var(--text-primary); }
-    .landing-muted { color: var(--text-secondary); }
-    .landing-muted-strong { color: var(--landing-muted-strong); }
-    .landing-muted-soft { color: var(--landing-muted-soft); }
-    .landing-title { color: var(--text-primary); }
-    .landing-surface { background: var(--surface); border: 1px solid var(--border); }
-    .landing-panel { background: var(--landing-panel-bg); border: 1px solid var(--border); backdrop-filter: blur(8px); }
-    .landing-outline-btn {
-        color: var(--text-primary);
-        border: 1px solid var(--landing-outline-border);
-        background: var(--landing-outline-bg);
-        backdrop-filter: blur(8px);
-        transition: border-color 0.2s ease, background 0.2s ease;
-    }
-    .landing-outline-btn:hover {
-        border-color: var(--primary);
-        background: var(--landing-outline-bg-hover);
-    }
 
-    .glow-btn { position: relative; overflow: hidden; }
-    .glow-btn::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%); pointer-events: none; }
-    .glow-btn:hover { transform: translateY(-1px); }
-    .card-premium { position: relative; overflow: hidden; transition: all 0.3s ease; }
-    .card-premium::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
-    .card-premium:hover { border-color: rgba(37,99,235,0.3); }
-    .section-fade { position: relative; }
-    .section-fade::before { content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
-    .stat-glow { position: relative; overflow: hidden; }
-    .stat-glow::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(37,99,235,0.04) 0%, transparent 70%); pointer-events: none; }
-    .module-card { transition: all 0.25s ease; }
-    .module-card:hover { transform: translateY(-2px); border-color: rgba(37,99,235,0.25) !important; box-shadow: 0 8px 24px rgba(0,0,0,0.15), 0 0 0 1px rgba(37,99,235,0.1); }
-</style>
+<div class="landing-page min-h-screen ds-i-18lm8zt">
 
-<div class="landing-page min-h-screen" style="background: var(--bg); color: var(--text-primary);">
-
-    <nav class="fixed top-0 left-0 right-0 z-50" style="background: var(--nav-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);">
-        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent);"></div>
+    <nav class="fixed top-0 left-0 right-0 z-50 ds-i-i9tkjj">
+        <div class="ds-i-p3dbtb"></div>
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
             <div class="flex items-center justify-between h-16">
                 <a href="/" class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: #2563EB; box-shadow: 0 2px 8px rgba(37,99,235,0.4);">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center ds-i-e49ymc">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                     </div>
                     <span class="brand-text text-lg font-extrabold tracking-tight">CareOn</span>
@@ -80,31 +27,32 @@
                     <button onclick="toggleTheme()" class="theme-toggle" title="Toggle theme">
                         <svg class="w-4 h-4 icon-sun" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                         <svg class="w-4 h-4 icon-moon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                        <svg class="w-4 h-4 icon-premium" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3l2.09 4.24 4.68.68-3.39 3.31.8 4.67L12 13.9l-4.18 2.2.8-4.67-3.39-3.31 4.68-.68L12 3z"/></svg>
                     </button>
                     <a href="{% url 'login' %}" class="landing-link text-sm px-3 py-2 font-medium">Sign in</a>
-                    <a href="{% url 'register' %}" class="glow-btn text-sm text-white px-5 py-2 rounded-lg font-semibold transition-all duration-200" style="background: #2563EB; box-shadow: 0 4px 16px rgba(37,99,235,0.4);">Get Started</a>
+                    <a href="{% url 'register' %}" class="glow-btn text-sm text-white px-5 py-2 rounded-lg font-semibold transition-all duration-200 ds-i-1dtbdjb">Get Started</a>
                 </div>
             </div>
         </div>
     </nav>
 
     <section class="pt-32 sm:pt-40 pb-24 px-5 sm:px-8 relative overflow-hidden">
-        <div class="absolute top-20 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full -z-10" style="background: radial-gradient(circle, rgba(37,99,235,0.12) 0%, rgba(37,99,235,0.03) 40%, transparent 70%);"></div>
-        <div class="absolute top-40 left-1/4 w-[300px] h-[300px] rounded-full -z-10" style="background: radial-gradient(circle, rgba(34,197,94,0.05) 0%, transparent 70%);"></div>
+        <div class="absolute top-20 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full -z-10 ds-i-qijkp3"></div>
+        <div class="absolute top-40 left-1/4 w-[300px] h-[300px] rounded-full -z-10 ds-i-1nltelb"></div>
         <div class="max-w-3xl mx-auto text-center">
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold tracking-widest uppercase mb-8" style="background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.15); color: #60A5FA;">
-                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 6px rgba(34,197,94,0.6);"></span>
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold tracking-widest uppercase mb-8 ds-i-j96dyf">
+                <span class="ds-i-1bekpbl"></span>
                 Zorgregieplatform
             </div>
             <h1 class="landing-title text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] mb-6">
                 Het regiecentrum voor
-                <span class="block" style="background: linear-gradient(135deg, #2563EB, #60A5FA); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">zorgregie-organisaties</span>
+                <span class="block ds-i-190kyy0">zorgregie-organisaties</span>
             </h1>
             <p class="landing-muted text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed">
                 Beheer casussen, beoordelingen, matching, plaatsingen en regie-inzichten vanuit een centraal CareOn-platform.
             </p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a href="{% url 'register' %}" class="glow-btn w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 text-white rounded-xl font-semibold text-[15px] transition-all duration-200" style="background: #2563EB; box-shadow: 0 8px 32px rgba(37,99,235,0.4), 0 2px 4px rgba(0,0,0,0.2);">
+                <a href="{% url 'register' %}" class="glow-btn w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 text-white rounded-xl font-semibold text-[15px] transition-all duration-200 ds-i-1whqsmk">
                     Start met CareOn
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                 </a>
@@ -118,27 +66,27 @@
     <section class="section-fade py-20 px-5 sm:px-8" id="features">
         <div class="max-w-5xl mx-auto">
             <div class="text-center mb-12">
-                <p class="text-xs font-bold tracking-widest uppercase mb-3" style="color: #2563EB;">Kernfunctionaliteit</p>
+                <p class="text-xs font-bold tracking-widest uppercase mb-3 ds-i-1w6sttr">Kernfunctionaliteit</p>
                 <h2 class="landing-title text-2xl sm:text-3xl font-extrabold tracking-tight">Gebouwd voor zorgregie</h2>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div class="card-premium landing-surface rounded-2xl p-7">
-                    <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-5" style="background: rgba(37,99,235,0.1); border: 1px solid rgba(37,99,235,0.15);">
-                        <svg class="w-5 h-5" style="color: #2563EB;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-5 ds-i-3t367q">
+                        <svg class="w-5 h-5 ds-i-1w6sttr" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
                     <h3 class="landing-title text-[15px] font-bold mb-2">Aanbieders en casussen</h3>
                     <p class="landing-muted-strong text-sm leading-relaxed">Houd zorgaanbieders, gemeenten en casussen centraal beheersbaar met een volledig regieoverzicht.</p>
                 </div>
                 <div class="card-premium landing-surface rounded-2xl p-7">
-                    <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-5" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.15);">
-                        <svg class="w-5 h-5" style="color: #F59E0B;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-5 ds-i-833f4d">
+                        <svg class="w-5 h-5 ds-i-1re0jx3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                     <h3 class="landing-title text-[15px] font-bold mb-2">Matching en plaatsing</h3>
                     <p class="landing-muted-strong text-sm leading-relaxed">Ondersteun intake, beoordeling, matching en plaatsing in een doorlopende zorgketenflow.</p>
                 </div>
                 <div class="card-premium landing-surface rounded-2xl p-7">
-                    <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-5" style="background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.15);">
-                        <svg class="w-5 h-5" style="color: #22C55E;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-5 ds-i-er0ri3">
+                        <svg class="w-5 h-5 ds-i-dooobi" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                     </div>
                     <h3 class="landing-title text-[15px] font-bold mb-2">Sturing en signalen</h3>
                     <p class="landing-muted-strong text-sm leading-relaxed">Bewaak deadlines, capaciteit, signalen en audittrail voor tijdige bijsturing.</p>
@@ -147,66 +95,66 @@
         </div>
     </section>
 
-    <section class="section-fade py-20 px-5 sm:px-8" style="background: linear-gradient(180deg, var(--bg) 0%, var(--landing-section-end) 100%);" id="modules">
+    <section class="section-fade py-20 px-5 sm:px-8 ds-i-3d5mez" id="modules">
         <div class="max-w-5xl mx-auto">
             <div class="text-center mb-12">
-                <p class="text-xs font-bold tracking-widest uppercase mb-3" style="color: #22C55E;">Complete Suite</p>
+                <p class="text-xs font-bold tracking-widest uppercase mb-3 ds-i-dooobi">Complete Suite</p>
                 <h2 class="landing-title text-2xl sm:text-3xl font-extrabold tracking-tight mb-3">Alles voor de CareOn-regieflow</h2>
                 <p class="landing-muted-strong text-sm max-w-md mx-auto">Geintegreerde modules voor casussen, intake, beoordeling, matching, plaatsing en regie.</p>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
-                        <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3 ds-i-7jnd82">
+                        <svg class="w-[18px] h-[18px] ds-i-j9u8vn" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     </div>
                     <p class="landing-title text-[13px] font-bold">Casussen</p>
                     <p class="landing-muted-soft text-[11px] mt-0.5">Volledig overzicht</p>
                 </div>
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
-                        <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3 ds-i-7jnd82">
+                        <svg class="w-[18px] h-[18px] ds-i-j9u8vn" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                     </div>
                     <p class="landing-title text-[13px] font-bold">Documenten</p>
                     <p class="landing-muted-soft text-[11px] mt-0.5">Dossier en context</p>
                 </div>
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
-                        <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3 ds-i-7jnd82">
+                        <svg class="w-[18px] h-[18px] ds-i-j9u8vn" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                     </div>
                     <p class="landing-title text-[13px] font-bold">Matching</p>
                     <p class="landing-muted-soft text-[11px] mt-0.5">Passende aanbieder</p>
                 </div>
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
-                        <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3 ds-i-7jnd82">
+                        <svg class="w-[18px] h-[18px] ds-i-j9u8vn" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
                     <p class="landing-title text-[13px] font-bold">Taken</p>
                     <p class="landing-muted-soft text-[11px] mt-0.5">Tijdige opvolging</p>
                 </div>
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
-                        <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3 ds-i-7jnd82">
+                        <svg class="w-[18px] h-[18px] ds-i-j9u8vn" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
                     </div>
                     <p class="landing-title text-[13px] font-bold">Beoordelingen</p>
                     <p class="landing-muted-soft text-[11px] mt-0.5">Onderbouwde keuzes</p>
                 </div>
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
-                        <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3 ds-i-7jnd82">
+                        <svg class="w-[18px] h-[18px] ds-i-j9u8vn" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
                     <p class="landing-title text-[13px] font-bold">Plaatsingen</p>
                     <p class="landing-muted-soft text-[11px] mt-0.5">Doorlopende flow</p>
                 </div>
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
-                        <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3 ds-i-7jnd82">
+                        <svg class="w-[18px] h-[18px] ds-i-j9u8vn" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     </div>
                     <p class="landing-title text-[13px] font-bold">Rapportages</p>
                     <p class="landing-muted-soft text-[11px] mt-0.5">Realtime inzicht</p>
                 </div>
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: rgba(37,99,235,0.1);">
-                        <svg class="w-[18px] h-[18px]" style="color: #60A5FA;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3 ds-i-7jnd82">
+                        <svg class="w-[18px] h-[18px] ds-i-j9u8vn" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                     </div>
                     <p class="landing-title text-[13px] font-bold">Audittrail</p>
                     <p class="landing-muted-soft text-[11px] mt-0.5">Volledige historie</p>
@@ -215,28 +163,28 @@
         </div>
     </section>
 
-    <section class="section-fade py-20 px-5 sm:px-8" style="background: var(--landing-section-end);" id="security">
+    <section class="section-fade py-20 px-5 sm:px-8 ds-i-8gqx2v" id="security">
         <div class="max-w-4xl mx-auto">
-            <div class="rounded-2xl p-8 sm:p-12 text-center relative overflow-hidden" style="background: linear-gradient(135deg, rgba(37,99,235,0.08), rgba(34,197,94,0.04)); border: 1px solid rgba(37,99,235,0.15);">
-                <div class="absolute top-0 right-0 w-64 h-64 rounded-full -z-0" style="background: radial-gradient(circle, rgba(37,99,235,0.08) 0%, transparent 70%); transform: translate(30%, -30%);"></div>
-                <div class="absolute bottom-0 left-0 w-48 h-48 rounded-full -z-0" style="background: radial-gradient(circle, rgba(34,197,94,0.06) 0%, transparent 70%); transform: translate(-30%, 30%);"></div>
+            <div class="rounded-2xl p-8 sm:p-12 text-center relative overflow-hidden ds-i-lfzkph">
+                <div class="absolute top-0 right-0 w-64 h-64 rounded-full -z-0 ds-i-hp4k5i"></div>
+                <div class="absolute bottom-0 left-0 w-48 h-48 rounded-full -z-0 ds-i-i5rie3"></div>
                 <div class="relative z-10">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6" style="background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.2);">
-                        <svg class="w-7 h-7" style="color: #2563EB;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 ds-i-1u7b58s">
+                        <svg class="w-7 h-7 ds-i-1w6sttr" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                     </div>
                     <h2 class="landing-title text-2xl sm:text-3xl font-extrabold mb-3">Veiligheid en regie ingebouwd</h2>
                     <p class="landing-muted max-w-lg mx-auto mb-10 text-sm sm:text-base leading-relaxed">Rolgebaseerde toegang, auditlogging en organisatiegrenzen beschermen het CareOn-regieproces.</p>
                     <div class="grid grid-cols-3 gap-4 max-w-lg mx-auto">
                         <div class="stat-glow landing-panel rounded-xl p-5">
-                            <p class="text-xl sm:text-2xl font-extrabold" style="color: #2563EB;">RBAC</p>
+                            <p class="text-xl sm:text-2xl font-extrabold ds-i-1w6sttr">RBAC</p>
                             <p class="landing-muted-strong text-[11px] mt-1.5 font-medium">Rolgebaseerde toegang</p>
                         </div>
                         <div class="stat-glow landing-panel rounded-xl p-5">
-                            <p class="text-xl sm:text-2xl font-extrabold" style="color: #22C55E;">100%</p>
+                            <p class="text-xl sm:text-2xl font-extrabold ds-i-dooobi">100%</p>
                             <p class="landing-muted-strong text-[11px] mt-1.5 font-medium">Auditdekking</p>
                         </div>
                         <div class="stat-glow landing-panel rounded-xl p-5">
-                            <p class="text-xl sm:text-2xl font-extrabold" style="color: #2563EB;">24/7</p>
+                            <p class="text-xl sm:text-2xl font-extrabold ds-i-1w6sttr">24/7</p>
                             <p class="landing-muted-strong text-[11px] mt-1.5 font-medium">Regie-inzicht</p>
                         </div>
                     </div>
@@ -245,26 +193,26 @@
         </div>
     </section>
 
-    <section class="py-20 px-5 sm:px-8 relative" style="background: linear-gradient(180deg, var(--landing-section-end) 0%, var(--bg) 100%);">
-        <div style="position: absolute; top: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, #1F2937, transparent);"></div>
+    <section class="py-20 px-5 sm:px-8 relative ds-i-136dxx7">
+        <div class="ds-i-8zb9ta"></div>
         <div class="max-w-2xl mx-auto text-center">
             <h2 class="landing-title text-2xl sm:text-3xl font-extrabold tracking-tight mb-3">Klaar om je zorgregie te versterken?</h2>
             <p class="landing-muted-strong text-base mb-10">Werk vanuit een centrale CareOn-omgeving voor casussen, intake, matching en plaatsing.</p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a href="{% url 'register' %}" class="glow-btn w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 text-white rounded-xl font-semibold text-[15px] transition-all duration-200" style="background: #2563EB; box-shadow: 0 8px 32px rgba(37,99,235,0.4), 0 2px 4px rgba(0,0,0,0.2);">
+                <a href="{% url 'register' %}" class="glow-btn w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 text-white rounded-xl font-semibold text-[15px] transition-all duration-200 ds-i-1whqsmk">
                     Start direct
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                 </a>
-                <a href="{% url 'login' %}" class="landing-link text-sm font-medium px-4 py-3">Heb je al een account? <span style="color: #2563EB;">Log in</span></a>
+                <a href="{% url 'login' %}" class="landing-link text-sm font-medium px-4 py-3">Heb je al een account? <span class="ds-i-1w6sttr">Log in</span></a>
             </div>
         </div>
     </section>
 
-    <footer class="py-8 px-5 sm:px-8" style="background: var(--bg);">
-        <div style="position: absolute; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, #1F2937, transparent);"></div>
+    <footer class="py-8 px-5 sm:px-8 ds-i-1h8zv4t">
+        <div class="ds-i-hnsbcq"></div>
         <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 pt-6">
             <div class="flex items-center gap-2.5">
-                <div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: #2563EB;">
+                <div class="w-6 h-6 rounded-md flex items-center justify-center ds-i-4h1gie">
                     <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 </div>
                 <span class="landing-muted-soft text-xs font-bold">CareOn</span>

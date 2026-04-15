@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Audit en activiteitenlog - Careon{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
+<div class="ds-list-shell">
 
-<div class="page-header">
+<div class="ds-list-header">
     <div>
-        <h1 class="page-title">Audit en activiteitenlog</h1>
-        <span class="page-subtitle">Volledige geschiedenis van acties binnen zorgregie, privacy en dossierbeheer.</span>
-    </div>
+        <h1 class="page-title ds-section-title">Audit en activiteitenlog</h1>
+        </div>
 </div>
 
-<form method="get" class="ds-card action-card" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+<form method="get" class="ds-list-filters">
+    <div class="ds-list-filter-row">
+    <div class="ds-list-filter-group">
     <select name="action" onchange="this.form.submit()">
         <option value="">Alle acties</option>
         <option value="CREATE" {% if request.GET.action == 'CREATE' %}selected{% endif %}>Aangemaakt</option>
@@ -18,6 +19,8 @@
         <option value="DELETE" {% if request.GET.action == 'DELETE' %}selected{% endif %}>Verwijderd</option>
         <option value="APPROVE" {% if request.GET.action == 'APPROVE' %}selected{% endif %}>Goedgekeurd</option>
     </select>
+    </div>
+    <div class="ds-list-filter-group">
     <select name="model" onchange="this.form.submit()">
         <option value="">Alle typen</option>
         <option value="Contract" {% if request.GET.model == 'Contract' %}selected{% endif %}>Casus</option>
@@ -25,10 +28,14 @@
         <option value="Matter" {% if request.GET.model == 'Matter' %}selected{% endif %}>Configuratie</option>
         <option value="Document" {% if request.GET.model == 'Document' %}selected{% endif %}>Document</option>
     </select>
+    </div>
+    <div class="ds-list-actions">
     <button type="submit" class="btn btn-secondary">Filteren</button>
+    </div>
+    </div>
 </form>
 
-<div class="ds-card table-card">
+<div class="ds-list-table">
     <div class="ds-table-wrap">
         <table class="ds-table">
             <thead><tr>
@@ -42,17 +49,17 @@
             <tbody>
                 {% for log in logs %}
                 <tr>
-                    <td style="white-space:nowrap;">{{ log.timestamp|date:"d M Y H:i" }}</td>
+                    <td class="ds-i-6oi7h7">{{ log.timestamp|date:"d M Y H:i" }}</td>
                     <td>{{ log.user.get_full_name|default:log.user.username }}</td>
                     <td>
                         <span class="badge-sm {% if log.action == 'CREATE' %}badge-green{% elif log.action == 'UPDATE' %}badge-blue{% elif log.action == 'DELETE' %}badge-red{% else %}badge-gray{% endif %}">{{ log.get_action_display }}</span>
                     </td>
                     <td>{{ log.model_name }}</td>
                     <td>{{ log.object_repr|truncatechars:50 }}</td>
-                    <td style="font-family:monospace;font-size:11px;color:var(--text-muted);">{{ log.ip_address|default:"—" }}</td>
+                    <td class="ds-i-a7g9rm">{{ log.ip_address|default:"—" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-muted);">Geen activiteiten gevonden.</td></tr>
+                <tr><td colspan="6" class="ds-list-empty"><span class="ds-list-empty-title">Geen activiteiten gevonden.</span></td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -60,12 +67,12 @@
 </div>
 
 {% if is_paginated %}
-<div style="display:flex;justify-content:center;gap:8px;margin-top:16px;">
-    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn btn-ghost">Vorige</a>{% endif %}
-    <span style="padding:8px 12px;font-size:13px;color:var(--text-muted);">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn btn-ghost">Volgende</a>{% endif %}
+<div class="ds-list-pagination"><div class="ds-list-pagination-buttons">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="ds-list-pagination-btn btn btn-ghost">Vorige</a>{% endif %}
+    <span class="ds-i-1p8k879">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="ds-list-pagination-btn btn btn-ghost">Volgende</a>{% endif %}
 </div>
 {% endif %}
-
+</div>
 </div>
 {% endblock %}

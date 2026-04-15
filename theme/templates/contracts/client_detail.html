@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block title %}{{ client.name }} - Careon{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
+<div class="ds-detail-shell">
     {% with active_tab=request.GET.tab|default:'documenten' %}
-    <section class="ds-card provider-identity-card">
-        <div class="provider-identity-wrap">
+    <section class="ds-detail-card ds-detail-head">
+        <div class="ds-detail-card-body">
             <div class="provider-identity-main">
                 <div class="provider-id-line">
                     <span class="ds-badge {{ provider_capacity_status_badge }}">{{ provider_capacity_status_label }}</span>
@@ -13,19 +13,19 @@
                     <span class="ds-badge badge-blue">Casus {{ selected_intake.pk }}</span>
                     {% endif %}
                 </div>
-                <h1 class="page-title provider-title">{{ client.name }}</h1>
-                <div class="provider-meta-grid">
+                <h1 class="ds-page-title">{{ client.name }}</h1>
+                <div class="ds-meta-grid">
                     <div>
-                        <span class="meta-label">Specialisatie</span>
-                        <div class="meta-value">{{ client.industry|default:"Algemene zorgondersteuning" }}</div>
+                        <span class="ds-meta-label">Specialisatie</span>
+                        <div class="ds-meta-value">{{ client.industry|default:"Algemene zorgondersteuning" }}</div>
                     </div>
                     <div>
-                        <span class="meta-label">Regio</span>
-                        <div class="meta-value">{{ provider_profile.service_area|default:client.city|default:"Niet gespecificeerd" }}</div>
+                        <span class="ds-meta-label">Regio</span>
+                        <div class="ds-meta-value">{{ provider_profile.service_area|default:client.city|default:"Niet gespecificeerd" }}</div>
                     </div>
                     <div>
-                        <span class="meta-label">Type</span>
-                        <div class="meta-value">{{ client.get_client_type_display }}</div>
+                        <span class="ds-meta-label">Type</span>
+                        <div class="ds-meta-value">{{ client.get_client_type_display }}</div>
                     </div>
                 </div>
             </div>
@@ -47,37 +47,37 @@
         </div>
     </section>
 
-    <section class="provider-capacity-strip matching-summary-strip">
-        <div class="summary-item">
-            <span class="summary-label">Beschikbaarheid</span>
-            <strong class="summary-value">{{ provider_free_slots }} vrij</strong>
+    <section class="ds-summary-strip">
+        <div class="ds-summary-item">
+            <span class="ds-summary-label">Beschikbaarheid</span>
+            <strong class="ds-summary-value">{{ provider_free_slots }} vrij</strong>
         </div>
-        <div class="summary-item summary-risk">
-            <span class="summary-label">Wachttijd</span>
-            <strong class="summary-value">{{ provider_wait_days }} dagen</strong>
+        <div class="ds-summary-item ds-summary-item--risk">
+            <span class="ds-summary-label">Wachttijd</span>
+            <strong class="ds-summary-value">{{ provider_wait_days }} dagen</strong>
         </div>
-        <div class="summary-item">
-            <span class="summary-label">Intake</span>
-            <strong class="summary-value">{{ provider_intake_timing_label }}</strong>
+        <div class="ds-summary-item">
+            <span class="ds-summary-label">Intake</span>
+            <strong class="ds-summary-value">{{ provider_intake_timing_label }}</strong>
         </div>
-        <div class="summary-item">
-            <span class="summary-label">Operationele status</span>
-            <strong class="summary-value">{{ provider_operational_status_line }}</strong>
+        <div class="ds-summary-item">
+            <span class="ds-summary-label">Operationele status</span>
+            <strong class="ds-summary-value">{{ provider_operational_status_line }}</strong>
         </div>
     </section>
 
-    <div class="provider-grid">
-        <section class="provider-main-col">
-            <section class="ds-card provider-panel">
-                <h2 class="panel-title">Profielsamenvatting</h2>
-                <dl class="field-rows">
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
+        <div class="space-y-6 xl:col-span-8">
+            <section class="ds-card">
+                <h2 class="ds-card-title">Profielsamenvatting</h2>
+                <dl class="ds-field-list">
                     {% for item in provider_capability_rows %}
-                    <div class="field-row">
+                    <div class="ds-field-item">
                         <dt>{{ item.0 }}</dt>
                         <dd>{{ item.1 }}</dd>
                     </div>
                     {% empty %}
-                    <div class="field-row">
+                    <div class="ds-field-item">
                         <dt>Profiel</dt>
                         <dd>Nog geen profieldata beschikbaar</dd>
                     </div>
@@ -85,9 +85,9 @@
                 </dl>
             </section>
 
-            <section class="ds-card provider-panel">
-                <h2 class="panel-title">Waarom passend</h2>
-                <ul class="signal-list">
+            <section class="ds-card">
+                <h2 class="ds-card-title">Waarom passend</h2>
+                <ul class="ds-signal-list">
                     {% for point in provider_why_passing %}
                     <li>{{ point }}</li>
                     {% empty %}
@@ -96,9 +96,9 @@
                 </ul>
             </section>
 
-            <section class="ds-card provider-panel">
-                <h2 class="panel-title">Constraints / contra-indicaties</h2>
-                <ul class="signal-list">
+            <section class="ds-card">
+                <h2 class="ds-card-title">Constraints / contra-indicaties</h2>
+                <ul class="ds-signal-list">
                     {% for item in provider_constraints %}
                     <li>{{ item }}</li>
                     {% empty %}
@@ -107,29 +107,29 @@
                 </ul>
             </section>
 
-            <section class="ds-card provider-panel">
-                <h2 class="panel-title">Trackrecord en belasting</h2>
-                <div class="track-grid">
-                    <div class="track-card">
-                        <span class="track-label">Actieve casussen</span>
-                        <strong class="track-value">{{ provider_track_record.active_cases }}</strong>
+            <section class="ds-card">
+                <h2 class="ds-card-title">Trackrecord en belasting</h2>
+                <div class="ds-metric-grid">
+                    <div class="ds-metric-card">
+                        <span class="ds-metric-label">Actieve casussen</span>
+                        <strong class="ds-metric-value">{{ provider_track_record.active_cases }}</strong>
                     </div>
-                    <div class="track-card">
-                        <span class="track-label">Open casussen</span>
-                        <strong class="track-value">{{ provider_track_record.open_cases }}</strong>
+                    <div class="ds-metric-card">
+                        <span class="ds-metric-label">Open casussen</span>
+                        <strong class="ds-metric-value">{{ provider_track_record.open_cases }}</strong>
                     </div>
-                    <div class="track-card">
-                        <span class="track-label">Actieve configuraties</span>
-                        <strong class="track-value">{{ provider_track_record.active_configurations }}</strong>
+                    <div class="ds-metric-card">
+                        <span class="ds-metric-label">Actieve configuraties</span>
+                        <strong class="ds-metric-value">{{ provider_track_record.active_configurations }}</strong>
                     </div>
                 </div>
             </section>
         </section>
 
-        <aside class="provider-side-col">
-            <section class="ds-card side-card side-card-primary">
-                <h3 class="rail-title">Beslisactie</h3>
-                <p class="side-note">Systeem adviseert, regie beslist.</p>
+        <aside class="space-y-6 xl:col-span-4">
+            <section class="ds-card ds-sidebar-card ds-sidebar-card--primary">
+                <h3 class="ds-sidebar-title">Beslisactie</h3>
+                <p class="ds-note-text">Systeem adviseert, regie beslist.</p>
                 {% if selected_intake %}
                 <a href="{% url 'careon:matching_dashboard' %}?intake={{ selected_intake.pk }}" class="btn btn-primary">Wijs toe</a>
                 {% else %}
@@ -137,22 +137,22 @@
                 {% endif %}
             </section>
 
-            <section class="ds-card side-card">
-                <h3 class="rail-title">Casus-fit samenvatting</h3>
-                <p class="side-note strong">{{ case_fit_summary.label }}</p>
+            <section class="ds-card ds-sidebar-card">
+                <h3 class="ds-sidebar-title">Casus-fit samenvatting</h3>
+                <p class="ds-note-text ds-note-text--strong">{{ case_fit_summary.label }}</p>
                 {% if case_fit_summary.score != None %}
-                <p class="side-score">Fitscore {{ case_fit_summary.score }}%</p>
+                <p class="ds-note-text">Fitscore {{ case_fit_summary.score }}%</p>
                 {% endif %}
-                <ul class="mini-list">
+                <ul class="ds-mini-list">
                     {% for detail in case_fit_summary.details %}
                     <li>{{ detail }}</li>
                     {% endfor %}
                 </ul>
             </section>
 
-            <section class="ds-card side-card">
-                <h3 class="rail-title">Risico's / signalen</h3>
-                <ul class="mini-list">
+            <section class="ds-card ds-sidebar-card">
+                <h3 class="ds-sidebar-title">Risico's / signalen</h3>
+                <ul class="ds-mini-list">
                     {% for risk in provider_risk_signals %}
                     <li>{{ risk }}</li>
                     {% empty %}
@@ -161,9 +161,9 @@
                 </ul>
             </section>
 
-            <section class="ds-card side-card">
-                <h3 class="rail-title">Contact</h3>
-                <div class="contact-list">
+            <section class="ds-card ds-sidebar-card">
+                <h3 class="ds-sidebar-title">Contact</h3>
+                <div class="ds-contact-list">
                     {% if client.primary_contact %}<div>{{ client.primary_contact }}</div>{% endif %}
                     {% if client.primary_contact_email %}<div>{{ client.primary_contact_email }}</div>{% endif %}
                     {% if client.primary_contact_phone %}<div>{{ client.primary_contact_phone }}</div>{% endif %}
@@ -172,11 +172,11 @@
                 </div>
             </section>
 
-            <section class="ds-card side-card">
-                <h3 class="rail-title">Document preview</h3>
-                <div class="mini-docs">
+            <section class="ds-card ds-sidebar-card">
+                <h3 class="ds-sidebar-title">Document preview</h3>
+                <div class="ds-mini-docs">
                     {% for document in documents|slice:":2" %}
-                    <a href="{% url 'careon:document_detail' document.pk %}" class="mini-doc-link">{{ document.title }}</a>
+                    <a href="{% url 'careon:document_detail' document.pk %}" class="ds-mini-doc-link">{{ document.title }}</a>
                     {% empty %}
                     <span class="text-muted">Nog geen documenten</span>
                     {% endfor %}
@@ -186,68 +186,68 @@
     </div>
 
     <section class="ds-card provider-detail-tabs">
-        <div class="tab-row">
-            <a href="?tab=documenten" class="tab-chip {% if active_tab == 'documenten' %}tab-chip-active{% endif %}">Documenten</a>
-            <a href="?tab=plaatsingen" class="tab-chip {% if active_tab == 'plaatsingen' %}tab-chip-active{% endif %}">Plaatsingen</a>
-            <a href="?tab=historie" class="tab-chip {% if active_tab == 'historie' %}tab-chip-active{% endif %}">Historie</a>
-            <a href="?tab=contactmomenten" class="tab-chip {% if active_tab == 'contactmomenten' %}tab-chip-active{% endif %}">Contactmomenten</a>
+        <div class="ds-tabs-nav">
+            <a href="?tab=documenten" class="ds-tab-item {% if active_tab == 'documenten' %}ds-tab-item--active{% endif %}">Documenten</a>
+            <a href="?tab=plaatsingen" class="ds-tab-item {% if active_tab == 'plaatsingen' %}ds-tab-item--active{% endif %}">Plaatsingen</a>
+            <a href="?tab=historie" class="ds-tab-item {% if active_tab == 'historie' %}ds-tab-item--active{% endif %}">Historie</a>
+            <a href="?tab=contactmomenten" class="ds-tab-item {% if active_tab == 'contactmomenten' %}ds-tab-item--active{% endif %}">Contactmomenten</a>
         </div>
 
         {% if active_tab == 'documenten' %}
-        <div class="tab-content-list">
+        <div class="ds-list-container">
             {% for document in documents %}
-            <a href="{% url 'careon:document_detail' document.pk %}" class="list-row compact-row">
+            <a href="{% url 'careon:document_detail' document.pk %}" class="ds-list-row ds-list-row--compact">
                 <div>
-                    <div class="row-title">{{ document.title }}</div>
-                    <div class="row-meta">{{ document.get_status_display }} · {{ document.created_at|date:"d-m-Y" }}</div>
+                    <div class="ds-row-title">{{ document.title }}</div>
+                    <div class="ds-row-meta">{{ document.get_status_display }} · {{ document.created_at|date:"d-m-Y" }}</div>
                 </div>
                 <span class="btn btn-ghost">Open</span>
             </a>
             {% empty %}
-            <div class="empty-state">Geen documenten voor deze aanbieder.</div>
+            <div class="ds-empty-state">Geen documenti voor deze aanbieder.</div>
             {% endfor %}
         </div>
         {% elif active_tab == 'plaatsingen' %}
-        <div class="tab-content-list">
+        <div class="ds-list-container">
             {% for case_record in case_records %}
-            <a href="{% url 'careon:case_detail' case_record.pk %}" class="list-row compact-row">
+            <a href="{% url 'careon:case_detail' case_record.pk %}" class="ds-list-row ds-list-row--compact">
                 <div>
-                    <div class="row-title">{{ case_record.title }}</div>
-                    <div class="row-meta">Status: {{ case_record.get_status_display }}</div>
+                    <div class="ds-row-title">{{ case_record.title }}</div>
+                    <div class="ds-row-meta">Status: {{ case_record.get_status_display }}</div>
                 </div>
                 <span class="ds-badge badge-status">Casus</span>
             </a>
             {% empty %}
-            <div class="empty-state">Geen actieve plaatsingsgerelateerde casussen.</div>
+            <div class="ds-empty-state">Geen actieve plaatsingsgerelateerde casussen.</div>
             {% endfor %}
         </div>
         {% elif active_tab == 'historie' %}
         <div class="history-grid">
-            <div class="history-card">
-                <span class="history-label">Aangemaakt</span>
+            <div class="ds-info-card">
+                <span class="ds-info-label">Aangemaakt</span>
                 <strong>{{ client.created_at|date:"d-m-Y H:i" }}</strong>
             </div>
-            <div class="history-card">
-                <span class="history-label">Bijgewerkt</span>
+            <div class="ds-info-card">
+                <span class="ds-info-label">Bijgewerkt</span>
                 <strong>{{ client.updated_at|date:"d-m-Y H:i" }}</strong>
             </div>
-            <div class="history-card">
-                <span class="history-label">Configuraties</span>
+            <div class="ds-info-card">
+                <span class="ds-info-label">Configuraties</span>
                 <strong>{{ configurations|length }}</strong>
             </div>
         </div>
         {% else %}
         <div class="history-grid">
-            <div class="history-card">
-                <span class="history-label">Primair contact</span>
+            <div class="ds-info-card">
+                <span class="ds-info-label">Primair contact</span>
                 <strong>{{ client.primary_contact|default:"Niet ingesteld" }}</strong>
             </div>
-            <div class="history-card">
-                <span class="history-label">Contact e-mail</span>
+            <div class="ds-info-card">
+                <span class="ds-info-label">Contact e-mail</span>
                 <strong>{{ client.primary_contact_email|default:client.email|default:"-" }}</strong>
             </div>
-            <div class="history-card">
-                <span class="history-label">Contact telefoon</span>
+            <div class="ds-info-card">
+                <span class="ds-info-label">Contact telefoon</span>
                 <strong>{{ client.primary_contact_phone|default:client.phone|default:"-" }}</strong>
             </div>
         </div>
@@ -255,115 +255,13 @@
     </section>
 
     {% if client.notes %}
-    <section class="ds-card provider-panel">
-        <h2 class="panel-title">Notities</h2>
-        <p class="side-note">{{ client.notes }}</p>
+    <section class="ds-card">
+        <h2 class="ds-card-title">Notities</h2>
+        <p class="ds-note-text">{{ client.notes }}</p>
     </section>
     {% endif %}
     {% endwith %}
 </div>
 
-<style>
-    .provider-identity-card { padding: 16px; }
-    .provider-identity-wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-    .provider-id-line { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-    .provider-title { margin-bottom: 4px; }
-    .provider-meta-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-    .meta-label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
-    .meta-value { margin-top: 2px; font-size: 13px; font-weight: 600; color: var(--text-primary); }
-    .provider-identity-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; }
 
-    .matching-summary-strip {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 10px;
-    }
-    .summary-item {
-        background: rgba(59, 130, 246, 0.08);
-        border: 1px solid rgba(59, 130, 246, 0.22);
-        border-radius: 12px;
-        padding: 10px 12px;
-    }
-    .summary-item.summary-risk {
-        background: rgba(245, 158, 11, 0.12);
-        border-color: rgba(245, 158, 11, 0.35);
-    }
-    .summary-label {
-        display: block;
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--text-secondary);
-        font-weight: 700;
-    }
-    .summary-value {
-        display: block;
-        margin-top: 4px;
-        font-size: 14px;
-        color: var(--text-primary);
-        font-weight: 700;
-    }
-
-    .provider-grid { display: grid; grid-template-columns: 7fr 3fr; gap: 14px; }
-    .provider-main-col, .provider-side-col { display: grid; gap: 12px; align-content: start; }
-    .provider-panel { padding: 14px; }
-
-    .field-rows { display: grid; gap: 8px; margin: 0; }
-    .field-row { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
-    .field-row:last-child { border-bottom: none; padding-bottom: 0; }
-    .field-row dt { font-size: 12px; color: var(--text-muted); }
-    .field-row dd { margin: 0; font-size: 12px; font-weight: 600; color: var(--text-primary); text-align: right; }
-
-    .signal-list { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--text-primary); font-size: 13px; }
-
-    .track-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-    .track-card { border: 1px solid var(--card-border); border-radius: 10px; padding: 10px; }
-    .track-label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
-    .track-value { display: block; margin-top: 4px; font-size: 18px; color: var(--text-primary); }
-
-    .side-card { padding: 12px; }
-    .side-card-primary { border-color: color-mix(in srgb, var(--primary) 35%, var(--card-border) 65%); background: var(--primary-subtle); }
-    .rail-title { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); }
-    .side-note { margin: 0 0 8px; font-size: 13px; color: var(--text-primary); line-height: 1.4; }
-    .side-note.strong { font-weight: 600; }
-    .side-score { margin: 0 0 8px; font-size: 14px; font-weight: 700; color: var(--text-primary); }
-    .mini-list { margin: 0; padding-left: 16px; display: grid; gap: 5px; font-size: 12px; color: var(--text-primary); }
-    .contact-list { display: grid; gap: 4px; font-size: 12px; color: var(--text-primary); }
-    .mini-docs { display: grid; gap: 6px; }
-    .mini-doc-link { font-size: 12px; color: var(--primary-light); text-decoration: none; }
-    .mini-doc-link:hover { color: var(--primary-hover); }
-    .text-muted { font-size: 12px; color: var(--text-muted); }
-
-    .provider-detail-tabs { padding: 12px; }
-    .tab-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-    .tab-chip {
-        text-decoration: none;
-        border: 1px solid var(--card-border);
-        background: var(--surface);
-        color: var(--text-secondary);
-        border-radius: 999px;
-        padding: 6px 11px;
-        font-size: 12px;
-        font-weight: 700;
-    }
-    .tab-chip-active { background: var(--card-bg); color: var(--text-primary); border-color: color-mix(in srgb, var(--primary) 26%, var(--card-border) 74%); }
-    .compact-row { padding: 10px 12px; }
-    .row-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
-    .row-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-    .history-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-    .history-card { border: 1px solid var(--card-border); border-radius: 10px; padding: 10px; }
-    .history-label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
-    .history-card strong { display: block; margin-top: 4px; font-size: 13px; color: var(--text-primary); }
-
-    @media (max-width: 1100px) {
-        .provider-meta-grid { grid-template-columns: 1fr; }
-        .matching-summary-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .provider-grid { grid-template-columns: 1fr; }
-        .track-grid, .history-grid { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 720px) {
-        .matching-summary-strip { grid-template-columns: 1fr; }
-    }
-</style>
 {% endblock %}

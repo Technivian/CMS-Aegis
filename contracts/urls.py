@@ -51,7 +51,7 @@ urlpatterns = [
     path('taken/new/', views.DeadlineCreateView.as_view(), name='task_create'),
     path('taken/<int:pk>/edit/', views.DeadlineUpdateView.as_view(), name='task_update'),
     path('tasks/', views.CareTaskKanbanView.as_view(), name='care_task_kanban'),
-    path('tasks/board/', views.CareTaskKanbanView.as_view(), name='task_kanban'),
+    path('tasks/board/', views.task_board_redirect, name='task_kanban'),
     path('tasks/new/', views.CareTaskCreateView.as_view(), name='care_task_create'),
     path('tasks/<int:pk>/edit/', views.CareTaskUpdateView.as_view(), name='care_task_update'),
 
@@ -72,6 +72,7 @@ urlpatterns = [
     path('organizations/activity/export/', views.organization_activity_export, name='organization_activity_export'),
 
     path('reports/', views.reports_dashboard, name='reports_dashboard'),
+    path('regiekamer/provider-responses/', views.provider_response_monitor, name='provider_response_monitor'),
     path('search/', views.global_search, name='global_search'),
 
     path('wachttijden/', views.WaitTimeListView.as_view(), name='waittime_list'),
@@ -79,6 +80,7 @@ urlpatterns = [
     path('wachttijden/<int:pk>/', views.WaitTimeDetailView.as_view(), name='waittime_detail'),
     path('wachttijden/<int:pk>/edit/', views.WaitTimeUpdateView.as_view(), name='waittime_update'),
 
+    # Legacy intake aliases retained as redirects for compatibility.
     path('intakes/', views.case_flow_list_redirect, {'step': 'intake'}, name='intake_list'),
     path('intakes/new/', views.case_flow_create_redirect, {'step': 'intake'}, name='intake_create'),
     path('intakes/<int:pk>/', views.case_flow_detail_redirect, name='intake_detail'),
@@ -94,11 +96,13 @@ urlpatterns = [
     path('plaatsingen/new/', RedirectView.as_view(pattern_name='careon:matching_dashboard', permanent=False), name='placement_create'),
     path('plaatsingen/<int:pk>/', views.PlacementRequestDetailView.as_view(), name='placement_detail'),
     path('plaatsingen/<int:pk>/edit/', views.PlacementRequestUpdateView.as_view(), name='placement_update'),
+    path('intake-overdracht/', views.PlacementRequestListView.as_view(), name='intake_handoff_list'),
 
     path('signalen/', views.CareSignalListView.as_view(), name='signal_list'),
     path('signalen/new/', views.CareSignalCreateView.as_view(), name='signal_create'),
     path('signalen/<int:pk>/', views.CareSignalDetailView.as_view(), name='signal_detail'),
     path('signalen/<int:pk>/edit/', views.CareSignalUpdateView.as_view(), name='signal_update'),
+    path('signalen/<int:pk>/status/', views.signal_update_status, name='signal_status_update'),
     path('risks/', views.CareSignalListView.as_view(), name='risk_log_list'),
     path('risks/<int:pk>/edit/', views.CareSignalUpdateView.as_view(), name='risk_log_update'),
 
@@ -106,6 +110,10 @@ urlpatterns = [
     path('casussen/new/', views.CaseIntakeCreateView.as_view(), name='case_create'),
     path('casussen/<int:pk>/', views.CaseIntakeDetailView.as_view(), name='case_detail'),
     path('casussen/<int:pk>/edit/', views.CaseIntakeUpdateView.as_view(), name='case_update'),
+    path('casussen/<int:pk>/matching/action/', views.case_matching_action, name='case_matching_action'),
+    path('casussen/<int:pk>/placement/action/', views.case_placement_action, name='case_placement_action'),
+    path('casussen/<int:pk>/provider-response/action/', views.case_provider_response_action, name='case_provider_response_action'),
+    path('casussen/<int:pk>/outcomes/action/', views.case_outcome_action, name='case_outcome_action'),
     path('casussen/<int:pk>/documenten/new/', views.CaseScopedDocumentCreateView.as_view(), name='case_document_create'),
     path('casussen/<int:pk>/taken/new/', views.CaseScopedDeadlineCreateView.as_view(), name='case_task_create'),
     path('casussen/<int:pk>/signalen/new/', views.CaseScopedCareSignalCreateView.as_view(), name='case_signal_create'),

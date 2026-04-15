@@ -1,29 +1,29 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}{% if region %}Bewerken: {{ region.region_name }}{% else %}Nieuwe regio{% endif %} - Zorgregie{% endblock %}
+{% block title %}{% if region %}Wijzigen: {{ region.region_name }}{% else %}Nieuwe zorgregio{% endif %} - Zorgregie{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
+<div class="ds-detail-shell">
 
-<nav style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
-        <a href="{% url 'dashboard' %}" style="color: var(--primary); text-decoration: none;">Dashboard</a>
+<nav class="ds-i-j4dftv">
+        <a class="ds-i-1iadm4s" href="{% url 'dashboard' %}">Regiekamer</a>
         <span> / </span>
-        <a href="{% url 'careon:regional_list' %}" style="color: var(--primary); text-decoration: none;">Regio's</a>
+        <a class="ds-i-1iadm4s" href="{% url 'careon:regional_list' %}">Zorgregio's</a>
         {% if region %}
         <span> / </span>
-        <a href="{% url 'careon:regional_detail' region.pk %}" style="color: var(--primary); text-decoration: none;">{{ region.region_name }}</a>
+        <a class="ds-i-1iadm4s" href="{% url 'careon:regional_detail' region.pk %}">{{ region.region_name }}</a>
         <span> / </span>
-        <span style="color: var(--text-muted);">Bewerken</span>
+        <span class="ds-i-1vkpsqq">Wijzigen</span>
         {% else %}
         <span> / </span>
-        <span style="color: var(--text-muted);">Nieuw</span>
+        <span class="ds-i-1vkpsqq">Nieuw</span>
         {% endif %}
     </nav>
 </div>
 
 <div>
-    <h1 class="page-title mb-6">{% if region %}Regio bewerken{% else %}Nieuwe regio toevoegen{% endif %}</h1>
+    <h1 class="page-title mb-6">{% if region %}Zorgregio bewerken{% else %}Nieuwe zorgregio toevoegen{% endif %}</h1>
 
-    <form method="post" class="space-y-6">
+    <form method="post" class="ds-detail-sections space-y-6">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
@@ -34,14 +34,22 @@
         </div>
         {% endif %}
 
-        <div class="panel">
-            <div class="panel-head">
+        <div class="ds-detail-card">
+            <div class="ds-detail-card-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-blue"></div>
-                    <span class="panel-title">Regiogegevens</span>
+                    <span class="panel-title">Zorgregiogegevens</span>
                 </div>
             </div>
-            <div class="panel-inner space-y-4">
+            <div class="ds-detail-card-inner">
+                <div>
+                    <label for="{{ form.region_type.id_for_label }}" class="field-label">{{ form.region_type.label }} *</label>
+                    {{ form.region_type }}
+                    {% if form.region_type.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.region_type.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
                 <div>
                     <label for="{{ form.region_name.id_for_label }}" class="field-label">{{ form.region_name.label }} *</label>
                     {{ form.region_name }}
@@ -76,14 +84,14 @@
             </div>
         </div>
 
-        <div class="panel">
-            <div class="panel-head">
+        <div class="ds-detail-card">
+            <div class="ds-detail-card-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-purple"></div>
                     <span class="panel-title">Gemeenten</span>
                 </div>
             </div>
-            <div class="panel-inner">
+            <div class="ds-detail-card-inner">
                 <label for="{{ form.served_municipalities.id_for_label }}" class="field-label">{{ form.served_municipalities.label }}</label>
                 <div class="space-y-2 max-h-48 overflow-y-auto">
                     {{ form.served_municipalities }}
@@ -94,14 +102,14 @@
             </div>
         </div>
 
-        <div class="panel">
-            <div class="panel-head">
+        <div class="ds-detail-card">
+            <div class="ds-detail-card-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-amber"></div>
                     <span class="panel-title">Zorgconfiguratie</span>
                 </div>
             </div>
-            <div class="panel-inner space-y-4">
+            <div class="ds-detail-card-inner">
                 <div>
                     <label for="{{ form.care_domains.id_for_label }}" class="field-label">{{ form.care_domains.label }}</label>
                     <div class="space-y-2 max-h-48 overflow-y-auto">
@@ -124,14 +132,14 @@
             </div>
         </div>
 
-        <div class="panel">
-            <div class="panel-head">
+        <div class="ds-detail-card">
+            <div class="ds-detail-card-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-green"></div>
                     <span class="panel-title">Capaciteitsbeheer</span>
                 </div>
             </div>
-            <div class="panel-inner space-y-4">
+            <div class="ds-detail-card-inner">
                 <div>
                     <label for="{{ form.max_wait_days.id_for_label }}" class="field-label">{{ form.max_wait_days.label }}</label>
                     {{ form.max_wait_days }}
@@ -158,9 +166,9 @@
             </div>
         </div>
 
-        <div class="form-actions">
+        <div class="ds-list-actions">
             <button type="submit" class="btn btn-primary">
-                {% if region %}Wijzigingen opslaan{% else %}Regio aanmaken{% endif %}
+                {% if region %}Wijzigingen opslaan{% else %}Zorgregio aanmaken{% endif %}
             </button>
             <a href="{% url 'careon:regional_list' %}" class="btn btn-secondary">Annuleren</a>
         </div>

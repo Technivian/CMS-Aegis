@@ -2,27 +2,41 @@
 {% block title %}Instellingen - Careon{% endblock %}
 
 {% block content %}
-<div style="max-width: 1100px; margin: 0 auto;">
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px;">
+<div class="settings-shell">
+    <div class="settings-header">
         <div>
-            <h1 style="font-size: 28px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Instellingen</h1>
-            <p style="font-size: 14px; color: var(--text-secondary);">Beheer je account, team en complianceconfiguratie op een plek.</p>
+            <h1 class="settings-title">Instellingen</h1>
+            <p class="settings-subtitle">Beheer je account, team en complianceconfiguratie op een plek.</p>
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px;">
-        <div style="display: block; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface);">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Instellingenoverzicht</h2>
+    <div class="settings-grid">
+        <a href="{% url 'profile' %}" class="settings-card-link">
+            <div class="settings-card-head">
+                <h2 class="settings-card-title">Profiel</h2>
             </div>
-            <p style="font-size: 13px; color: var(--text-secondary);">Niet-kritieke account- en organisatiepagina's zijn uit de primaire navigatie gehaald voor de MVP-flow.</p>
-        </div>
+            <p class="settings-card-copy">Werk persoonlijke gegevens en profielmetadata bij.</p>
+        </a>
 
-        <a href="{% url 'careon:audit_log_list' %}" style="display: block; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); text-decoration: none; transition: all 0.2s ease;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Audittrail</h2>
+        <a href="{% url 'careon:organization_team' %}" class="settings-card-link">
+            <div class="settings-card-head">
+                <h2 class="settings-card-title">Organisatieteam</h2>
             </div>
-            <p style="font-size: 13px; color: var(--text-secondary);">Bekijk gebeurtenissen en wijzigingen binnen de organisatie.</p>
+            <p class="settings-card-copy">Beheer leden, rollen en uitnodigingen.</p>
+        </a>
+
+        <a href="{% url 'careon:organization_activity' %}" class="settings-card-link">
+            <div class="settings-card-head">
+                <h2 class="settings-card-title">Teamactiviteit</h2>
+            </div>
+            <p class="settings-card-copy">Bekijk activiteitenlogs op organisatieniveau.</p>
+        </a>
+
+        <a href="{% url 'careon:audit_log_list' %}" class="settings-card-link">
+            <div class="settings-card-head">
+                <h2 class="settings-card-title">Audittrail</h2>
+            </div>
+            <p class="settings-card-copy">Bekijk gebeurtenissen en wijzigingen binnen de organisatie.</p>
         </a>
     </div>
 </div>

@@ -1,37 +1,38 @@
 {% extends "base.html" %}
 {% block title %}Taken - Careon{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
-    <div class="page-header">
+<div class="ds-list-shell">
+    <div class="ds-list-header">
         <div>
             <h1 class="page-title">Taken</h1>
-            <p class="page-subtitle">Dagelijkse werkplek voor casusopvolging</p>
+            <p class="ds-note-text">Cross-case overzicht voor monitoring. Uitvoering en afronding verlopen vanuit de casuswerkruimte.</p>
         </div>
         <div class="page-actions">
-            <a href="{% url 'careon:task_create' %}" class="btn btn-primary">Nieuwe taak</a>
+            <a href="{% url 'careon:care_task_kanban' %}" class="btn btn-secondary">Kanbanweergave</a>
+            <a href="{% url 'careon:case_list' %}" class="btn btn-primary">Open casussen</a>
         </div>
     </div>
 
-    <div class="task-kpi-grid">
-        <div class="ds-card task-kpi-card">
-            <div class="kpi-label">Mijn taken</div>
-            <div class="kpi-value">{{ my_open_count|default:0 }}</div>
+    <div class="ds-list-kpi-grid">
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Mijn taken</div>
+            <div class="ds-list-kpi-value">{{ my_open_count|default:0 }}</div>
         </div>
-        <div class="ds-card task-kpi-card">
-            <div class="kpi-label">Vandaag</div>
-            <div class="kpi-value">{{ today_count }}</div>
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Vandaag</div>
+            <div class="ds-list-kpi-value">{{ today_count }}</div>
         </div>
-        <div class="ds-card task-kpi-card">
-            <div class="kpi-label">Achterstallig</div>
-            <div class="kpi-value tone-critical">{{ overdue_count }}</div>
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Achterstallig</div>
+            <div class="ds-list-kpi-value tone-critical">{{ overdue_count }}</div>
         </div>
-        <div class="ds-card task-kpi-card">
-            <div class="kpi-label">Hoge prioriteit</div>
-            <div class="kpi-value tone-warning">{{ high_priority_count }}</div>
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Hoge prioriteit</div>
+            <div class="ds-list-kpi-value tone-warning">{{ high_priority_count }}</div>
         </div>
-        <div class="ds-card task-kpi-card">
-            <div class="kpi-label">Voltooid</div>
-            <div class="kpi-value tone-good">{{ completed_count }}</div>
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Voltooid</div>
+            <div class="ds-list-kpi-value tone-good">{{ completed_count }}</div>
         </div>
     </div>
 
@@ -43,7 +44,7 @@
         <a href="?show=all" class="filter-pill {% if show == 'all' %}active{% endif %}">Alles</a>
     </div>
 
-    <div class="ds-card table-card">
+    <div class="ds-list-table">
         <div class="ds-table-wrap">
             <table class="ds-table">
                 <thead>
@@ -94,15 +95,15 @@
                         </td>
                         <td class="td-right">
                             <div class="task-actions">
-                                {% if row.can_edit and not row.deadline.is_completed %}
-                                <form method="post" action="{% url 'careon:deadline_complete' row.deadline.pk %}" class="inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-ghost task-action-btn">Voltooien</button>
-                                </form>
+                                {% if row.open_href %}
+                                <a href="{{ row.open_href }}" class="btn btn-ghost task-action-btn">Open casus</a>
                                 {% endif %}
-                                {% if row.can_edit %}
-                                <a href="{% url 'careon:task_update' row.deadline.pk %}" class="btn btn-ghost task-action-btn">Bewerken</a>
-                                {% else %}
+                                {% if not row.open_href and not row.can_edit %}
+                                <span class="task-readonly">Alleen-lezen</span>
+                                {% elif not row.open_href %}
+                                <span class="task-readonly">Inspectie</span>
+                                {% endif %}
+                                {% if row.open_href and not row.can_edit %}
                                 <span class="task-readonly">Alleen-lezen</span>
                                 {% endif %}
                             </div>

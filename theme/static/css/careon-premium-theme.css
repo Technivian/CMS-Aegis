@@ -1,0 +1,65 @@
+/* Premium theme token override layer.
+   Component definitions live in zorgregie-design-system.css. */
+[data-theme="careon-premium"] {
+  --zr-bg-app: #f8fafc;
+  --zr-bg-canvas: #f8fafc;
+  --zr-bg-surface: #ffffff;
+  --zr-bg-surface-subtle: #f8fafc;
+  --zr-bg-surface-muted: #f1f5f9;
+  --zr-bg-input: #ffffff;
+
+  --zr-text-primary: #0f172a;
+  --zr-text-secondary: #334155;
+  --zr-text-muted: #64748b;
+  --zr-text-disabled: #94a3b8;
+
+  --zr-border-default: #e2e8f0;
+  --zr-border-strong: #cbd5e1;
+  --zr-divider: #e2e8f0;
+
+  --zr-brand-700: #1e3a8a;
+  --zr-brand-600: #2563eb;
+  --zr-brand-500: #60a5fa;
+  --zr-brand-100: #dbeafe;
+  --zr-brand-050: #eff6ff;
+
+  --zr-success-700: #059669;
+  --zr-success-100: #d1fae5;
+  --zr-warning-700: #d97706;
+  --zr-warning-100: #ffedd5;
+  --zr-danger-700: #dc2626;
+  --zr-danger-100: #fee2e2;
+  --zr-info-700: #2563eb;
+  --zr-info-100: #dbeafe;
+
+  --zr-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --zr-shadow-md: 0 10px 28px rgba(15, 23, 42, 0.08);
+  --zr-shadow-focus: 0 0 0 4px rgba(37, 99, 235, 0.16);
+
+  --zr-radius-sm: 10px;
+  --zr-radius-md: 12px;
+  --zr-radius-lg: 16px;
+  --zr-radius-xl: 20px;
+
+  --zr-focus-border: #2563eb;
+  --zr-focus-ring: rgba(37, 99, 235, 0.18);
+  --zr-hover-surface: #f1f5f9;
+  --zr-hover-border: #94a3b8;
+  --zr-selected-surface: #eff6ff;
+  --zr-selected-border: #bfdbfe;
+
+  /* Legacy aliases used by old templates. */
+  --bg: var(--zr-bg-app);
+  --surface: var(--zr-bg-surface);
+  --surface-alt: var(--zr-bg-canvas);
+  --primary: var(--zr-brand-600);
+  --primary-hover: var(--zr-brand-500);
+  --primary-light: var(--zr-brand-500);
+  --accent: var(--zr-success-700);
+  --text-primary: var(--zr-text-primary);
+  --text-secondary: var(--zr-text-secondary);
+  --text-muted: var(--zr-text-muted);
+  --text-dim: var(--zr-text-disabled);
+  --border: var(--zr-border-default);
+  --input-bg: var(--zr-bg-input);
+}

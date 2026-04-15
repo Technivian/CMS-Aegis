@@ -4,14 +4,14 @@
 <div class="page-wrap page-stack">
 
 <div class="page-header">
-    <div style="flex:1;">
+    <div class="team-head-main">
         <h1 class="page-title">Organisatieteam</h1>
         <span class="page-subtitle">Beheer leden en nodig teamgenoten uit voor {{ organization.name }}.</span>
     </div>
     <a href="{% url 'careon:organization_activity' %}" class="btn btn-secondary">Bekijk activiteit</a>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;">
+<div class="team-layout">
 
     <!-- Members table -->
     <div class="ds-card table-card">
@@ -28,10 +28,10 @@
                 <tbody>
                     {% for membership in memberships %}
                     <tr>
-                        <td style="font-weight:600;">{{ membership.user.get_full_name|default:membership.user.username }}</td>
+                        <td class="team-user-name">{{ membership.user.get_full_name|default:membership.user.username }}</td>
                         <td>{{ membership.user.email|default:"—" }}</td>
                         <td>
-                            <form method="post" action="{% url 'careon:update_membership_role' membership.id %}" style="display:inline-flex;align-items:center;gap:6px;">
+                            <form method="post" action="{% url 'careon:update_membership_role' membership.id %}" class="team-role-form">
                                 {% csrf_token %}
                                 <select name="role" {% if membership.role == 'OWNER' and not is_owner %}disabled{% endif %}>
                                     <option value="OWNER" {% if membership.role == 'OWNER' %}selected{% endif %}>Eigenaar</option>
@@ -42,19 +42,19 @@
                             </form>
                         </td>
                         <td>{{ membership.created_at|date:"d M Y" }}</td>
-                        <td style="text-align:right;">
+                        <td class="team-cell-right">
                             {% if membership.user_id != current_user_id %}
-                            <form method="post" action="{% url 'careon:deactivate_organization_member' membership.id %}" style="display:inline;">
+                            <form method="post" action="{% url 'careon:deactivate_organization_member' membership.id %}" class="base-inline-form">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-danger">Deactiveren</button>
                             </form>
                             {% else %}
-                            <span style="font-size:12px;color:var(--text-muted);">Jij</span>
+                            <span class="team-self-label">Jij</span>
                             {% endif %}
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted);">Geen leden gevonden.</td></tr>
+                    <tr><td colspan="5" class="team-empty-row">Geen leden gevonden.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -76,17 +76,17 @@
                     <label class="field-label">Rol</label>
                     {{ invite_form.role }}
                 </div>
-                <button type="submit" class="btn btn-primary" style="width:100%;">Uitnodiging maken</button>
+                <button type="submit" class="btn btn-primary team-btn-block">Uitnodiging maken</button>
             </form>
         </div>
 
         <div class="ds-card action-card page-stack">
             <h2 class="panel-title">Openstaande uitnodigingen</h2>
             {% for invitation in invitations %}
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;">
-                <div style="font-size:14px;font-weight:600;color:var(--text-primary);">{{ invitation.email }}</div>
-                <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">{{ invitation.get_role_display }} &middot; Verloopt {{ invitation.expires_at|date:"d M Y" }}</div>
-                <div style="display:flex;gap:6px;margin-top:8px;">
+            <div class="team-invite-card">
+                <div class="team-invite-email">{{ invitation.email }}</div>
+                <div class="team-invite-meta">{{ invitation.get_role_display }} &middot; Verloopt {{ invitation.expires_at|date:"d M Y" }}</div>
+                <div class="team-invite-actions">
                     <form method="post" action="{% url 'careon:resend_organization_invite' invitation.id %}">
                         {% csrf_token %}<button type="submit" class="btn btn-ghost">Opnieuw verzenden</button>
                     </form>
@@ -96,37 +96,37 @@
                 </div>
             </div>
             {% empty %}
-            <p style="font-size:13px;color:var(--text-muted);">Geen openstaande uitnodigingen.</p>
+            <p class="team-empty-copy">Geen openstaande uitnodigingen.</p>
             {% endfor %}
         </div>
 
         <div class="ds-card action-card page-stack">
             <h2 class="panel-title">Inactieve leden</h2>
             {% for membership in inactive_memberships %}
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
+            <div class="team-inactive-row">
                 <div>
-                    <div style="font-size:13px;font-weight:600;color:var(--text-primary);">{{ membership.user.get_full_name|default:membership.user.username }}</div>
-                    <div style="font-size:11px;color:var(--text-muted);">{{ membership.user.email|default:"—" }} &middot; {{ membership.get_role_display }}</div>
+                    <div class="team-inactive-name">{{ membership.user.get_full_name|default:membership.user.username }}</div>
+                    <div class="team-inactive-meta">{{ membership.user.email|default:"—" }} &middot; {{ membership.get_role_display }}</div>
                 </div>
                 <form method="post" action="{% url 'careon:reactivate_organization_member' membership.id %}">
                     {% csrf_token %}<button type="submit" class="btn btn-ghost">Heractiveren</button>
                 </form>
             </div>
             {% empty %}
-            <p style="font-size:13px;color:var(--text-muted);">Geen inactieve leden.</p>
+            <p class="team-empty-copy">Geen inactieve leden.</p>
             {% endfor %}
         </div>
 
         <div class="ds-card action-card page-stack">
             <h2 class="panel-title">Uitnodigingshistorie</h2>
-            <div style="max-height:280px;overflow-y:auto;">
+            <div class="team-history-scroll">
                 {% for invitation in invitation_history %}
-                <div style="padding:8px 0;border-bottom:1px solid var(--border);">
-                    <div style="font-size:13px;font-weight:600;color:var(--text-primary);">{{ invitation.email }}</div>
-                    <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">{{ invitation.get_role_display }} &middot; {{ invitation.get_status_display }} &middot; {{ invitation.created_at|date:"d M Y" }}</div>
+                <div class="team-history-row">
+                    <div class="team-history-email">{{ invitation.email }}</div>
+                    <div class="team-history-meta">{{ invitation.get_role_display }} &middot; {{ invitation.get_status_display }} &middot; {{ invitation.created_at|date:"d M Y" }}</div>
                 </div>
                 {% empty %}
-                <p style="font-size:13px;color:var(--text-muted);">Nog geen uitnodigingshistorie.</p>
+                <p class="team-empty-copy">Nog geen uitnodigingshistorie.</p>
                 {% endfor %}
             </div>
         </div>

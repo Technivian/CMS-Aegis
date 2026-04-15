@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Provider Response Monitor - Careon{% endblock %}
+{% block content %}
+<div class="page-wrap">
+    <header class="ds-list-header">
+        <div>
+            <h1 class="page-title">Provider Response Monitor</h1>
+            <p class="page-subtitle">Operationeel overzicht van providerreacties die intake-voortgang blokkeren</p>
+        </div>
+        <div class="ds-list-actions">
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Terug naar Regiekamer</a>
+            <a href="{% url 'careon:matching_dashboard' %}" class="btn btn-primary">Open matching</a>
+        </div>
+    </header>
+
+    <section class="ds-analytics-kpi-grid">
+        <article class="ds-analytics-kpi-card">
+            <div class="ds-analytics-kpi-value">{{ monitor_summary.waiting_count }}</div>
+            <div class="ds-analytics-kpi-label">Wacht op reactie</div>
+            <div class="ds-analytics-kpi-trend">Open providerreacties</div>
+        </article>
+        <article class="ds-analytics-kpi-card">
+            <div class="ds-analytics-kpi-value">{{ monitor_summary.overdue_count }}</div>
+            <div class="ds-analytics-kpi-label">Over deadline</div>
+            <div class="ds-analytics-kpi-trend">Direct opvolgen</div>
+        </article>
+        <article class="ds-analytics-kpi-card">
+            <div class="ds-analytics-kpi-value">{{ monitor_summary.rematch_recommended_count }}</div>
+            <div class="ds-analytics-kpi-label">Hermatch aanbevolen</div>
+            <div class="ds-analytics-kpi-trend">Reactie blokkeert plaatsing</div>
+        </article>
+        <article class="ds-analytics-kpi-card">
+            <div class="ds-analytics-kpi-value">{{ monitor_summary.waitlist_no_capacity_count }}</div>
+            <div class="ds-analytics-kpi-label">Wachtlijst / Geen capaciteit</div>
+            <div class="ds-analytics-kpi-trend">Escaleren of alternatieven</div>
+        </article>
+        <article class="ds-analytics-kpi-card">
+            <div class="ds-analytics-kpi-value">{{ monitor_summary.avg_age_days|floatformat:1 }}</div>
+            <div class="ds-analytics-kpi-label">Gem. leeftijd open reacties</div>
+            <div class="ds-analytics-kpi-trend">In dagen</div>
+        </article>
+    </section>
+
+    <section class="panel mt-4">
+        <div class="ds-detail-header">
+            <h2 class="ds-card-title">Actiequeue providerreacties</h2>
+            <span class="ds-note-text">{{ monitor_summary.total_cases }} casussen · bijgewerkt {{ monitor_updated_at|date:"d-m-Y H:i" }}</span>
+        </div>
+
+        {% if monitor_queue_rows %}
+        <div class="ds-table-wrap">
+            <table class="ds-table">
+                <thead>
+                    <tr>
+                        <th>Casus</th>
+                        <th>Aanbieder</th>
+                        <th>Status providerreactie</th>
+                        <th>Leeftijd</th>
+                        <th>Deadline</th>
+                        <th>Signalen</th>
+                        <th>Actie</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in monitor_queue_rows %}
+                    <tr>
+                        <td>
+                            <div class="font-600">{{ row.case_title }}</div>
+                            <div class="item-meta">{{ row.phase_label }} · {{ row.urgency_label }}</div>
+                        </td>
+                        <td>{{ row.provider_name }}</td>
+                        <td>
+                            <span class="ds-badge {% if row.flags.is_rematch_recommended %}badge-critical{% elif row.flags.is_overdue %}badge-high{% else %}badge-medium{% endif %}">
+                                {{ row.status_label }}
+                            </span>
+                        </td>
+                        <td>{{ row.age_days }} dagen</td>
+                        <td>
+                            {% if row.deadline_at %}
+                            {{ row.deadline_at|date:"d-m-Y H:i" }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if row.flags.is_overdue %}
+                            <span class="ds-badge badge-high">Over tijd</span>
+                            {% endif %}
+                            {% if row.flags.is_waitlist_or_no_capacity %}
+                            <span class="ds-badge badge-critical">Capaciteitsblokkade</span>
+                            {% endif %}
+                            {% if row.flags.is_rematch_recommended %}
+                            <span class="ds-badge badge-critical">Hermatch</span>
+                            {% endif %}
+                            {% if row.flags.is_waiting %}
+                            <span class="ds-badge badge-medium">Wachten</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ row.case_href }}" class="btn btn-primary">Open plaatsing</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="ds-empty-state">Geen open providerreactie-knelpunten gevonden.</div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

@@ -1,12 +1,12 @@
 
 <!-- Feature Flag Toggle Component -->
-<div class="fixed bottom-4 right-4 z-50">
-    <div class="bg-white border border-stroke rounded-lg shadow-lg p-4">
-        <div class="flex items-center space-x-3">
-            <span class="text-sm font-medium text-ink">Layout:</span>
-            <form method="post" action="{% url 'toggle_redesign' %}" class="inline">
+<div class="fixed bottom-4 right-4 z-50 ds-muted-panel ds-sidebar-card ds-detail-sections ds-page-shell ds-list-shell ds-detail-shell ds-analytics-section ds-summary-strip ds-signal-stack ds-mini-docs ds-contact-list ds-detail-metrics ds-muted-panels ds-meta-grid ds-info-grid ds-list-filter-group ds-detail-grid-2 ds-list-container ds-analytics-section-inner ds-hero-actions ds-supporting-actions">
+    <div class="rounded-lg shadow-lg p-4 ds-i-13m613y ds-detail-card ds-card ds-detail-card-head ds-detail-card-inner ds-sidebar-card ds-hero-card ds-status-bar ds-analytics-kpi-card ds-metric-card ds-muted-strip ds-info-card">
+        <div class="flex items-center space-x-3 ds-detail-card-actions ds-list-row-actions ds-hero-actions ds-zero-state-actions ds-tabs-nav">
+            <span class="text-sm font-medium ds-i-17rgbru ds-detail-label ds-section-title ds-muted-label ds-analytics-section-title ds-detail-indicator ds-status-label ds-eyebrow ds-helper-text">Layout:</span>
+            <form method="post" action="{% url 'toggle_redesign' %}" class="inline ds-list-actions ds-detail-card-actions ds-supporting-actions">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-sm {% if FEATURE_REDESIGN %}btn-primary{% else %}btn-secondary{% endif %}">
+                <button type="submit" class="btn btn-sm ds-list-actions {% if FEATURE_REDESIGN %}btn-primary{% else %}btn-secondary{% endif %}">
                     {% if FEATURE_REDESIGN %}
                         New Design
                     {% else %}

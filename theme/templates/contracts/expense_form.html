@@ -1,25 +1,51 @@
 {% extends "base.html" %}
 {% block title %}Uitgave toevoegen - Careon{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
-    <div class="page-header">
-        <h1 class="page-title">Uitgave toevoegen</h1>
-    </div>
-    <form method="post" class="ds-card action-card page-stack">
-        {% csrf_token %}
-        <div class="field-group">
-            {% for field in form %}
-            <div>
-                <label class="field-label">{{ field.label }}</label>
-                {{ field }}
-                {% if field.errors %}<p style="color:#f87171;font-size:12px;margin-top:4px;">{{ field.errors.0 }}</p>{% endif %}
-            </div>
-            {% endfor %}
+<div class="ds-detail-shell">
+
+    <nav class="ds-i-10k60uh">
+        <a class="ds-i-1iadm4s" href="{% url 'dashboard' %}">Regiekamer</a>
+        <span class="ds-muted-label"> / </span>
+        <span class="ds-i-1vkpsqq">Uitgave toevoegen</span>
+    </nav>
+
+    <div class="ds-detail-header">
+        <div class="ds-detail-meta">
+            <h1 class="page-title ds-section-title">Uitgave toevoegen</h1>
+            <p class="ds-helper-text">Registreer een nieuwe financiële uitgave voor de zorgcasus.</p>
         </div>
-        <div class="form-actions">
+    </div>
+
+    <form method="post" class="ds-detail-sections" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="ds-detail-card">
+            {% for error in form.non_field_errors %}<p class="ds-i-1ynt37i">{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="ds-detail-card">
+            <div class="ds-detail-card-head">
+                <h2 class="ds-detail-card-title">Uitgavegegevens</h2>
+                <p class="ds-helper-text">Vul alle vereiste velden in.</p>
+            </div>
+            <div class="ds-detail-card-inner">
+                {% for field in form %}
+                <div class="ds-detail-row">
+                    <label class="ds-detail-label field-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<p class="ds-i-1ynt37i">{{ field.errors.0 }}</p>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="ds-list-actions">
             <button type="submit" class="btn btn-primary">Uitgave opslaan</button>
             <a href="javascript:history.back()" class="btn btn-secondary">Annuleren</a>
         </div>
     </form>
+
 </div>
 {% endblock %}

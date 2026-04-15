@@ -10,6 +10,28 @@ import os
 User = get_user_model()
 
 
+class RegionType(models.TextChoices):
+    GEMEENTELIJK = 'GEMEENTELIJK', 'Gemeentelijk'
+    ROAZ = 'ROAZ', 'ROAZ'
+    GGD = 'GGD', 'GGD'
+    ZORGKANTOOR = 'ZORGKANTOOR', 'Zorgkantoor'
+
+
+class OutcomeReasonCode(models.TextChoices):
+    NONE = 'NONE', 'Geen specifieke reden'
+    CAPACITY = 'CAPACITY', 'Capaciteit'
+    WAITLIST = 'WAITLIST', 'Wachtlijst'
+    CLIENT_DECLINED = 'CLIENT_DECLINED', 'Client heeft afgezien'
+    PROVIDER_DECLINED = 'PROVIDER_DECLINED', 'Aanbieder heeft afgewezen'
+    NO_SHOW = 'NO_SHOW', 'Niet verschenen'
+    NO_RESPONSE = 'NO_RESPONSE', 'Geen reactie'
+    CARE_MISMATCH = 'CARE_MISMATCH', 'Zorgvraag past niet'
+    REGION_MISMATCH = 'REGION_MISMATCH', 'Regio past niet'
+    SAFETY_RISK = 'SAFETY_RISK', 'Veiligheidsrisico'
+    ADMINISTRATIVE_BLOCK = 'ADMINISTRATIVE_BLOCK', 'Administratieve blokkade'
+    OTHER = 'OTHER', 'Anders'
+
+
 def document_upload_path(instance, filename):
     return f'documents/{instance.matter.id if instance.matter else "general"}/{filename}'
 
@@ -258,6 +280,12 @@ class ProviderProfile(models.Model):
     # Target care categories
     target_care_categories = models.ManyToManyField(CareCategoryMain, blank=True, related_name='provider_profiles',
                                                      verbose_name='Zorgvraagcategorieën')
+    served_regions = models.ManyToManyField(
+        'RegionalConfiguration',
+        blank=True,
+        related_name='provider_profiles',
+        verbose_name='Bediende regio\'s',
+    )
     
     # Target care forms
     offers_outpatient = models.BooleanField(default=False, verbose_name='Aanbod: Ambulant')
@@ -900,6 +928,24 @@ class PlacementRequest(models.Model):
         RESIDENTIAL = 'RESIDENTIAL', 'Residentieel'
         CRISIS = 'CRISIS', 'Crisisopvang'
 
+    class ProviderResponseStatus(models.TextChoices):
+        PENDING = 'PENDING', 'Nog niet vastgelegd'
+        ACCEPTED = 'ACCEPTED', 'Geaccepteerd'
+        REJECTED = 'REJECTED', 'Afgewezen'
+        NEEDS_INFO = 'NEEDS_INFO', 'Aanvullende info nodig'
+        WAITLIST = 'WAITLIST', 'Wachtlijst'
+        NO_CAPACITY = 'NO_CAPACITY', 'Geen capaciteit'
+
+    # Backward-compatible aliases used by older tests/code paths.
+    ProviderResponseStatus.DECLINED = ProviderResponseStatus.REJECTED
+    ProviderResponseStatus.NO_RESPONSE = ProviderResponseStatus.PENDING
+
+    class PlacementQualityStatus(models.TextChoices):
+        PENDING = 'PENDING', 'Nog niet vastgelegd'
+        GOOD_FIT = 'GOOD_FIT', 'Goede plaatsing'
+        AT_RISK = 'AT_RISK', 'Risico op uitval'
+        BROKEN_DOWN = 'BROKEN_DOWN', 'Plaatsing vastgelopen'
+
     # Schema-compatibility fields; DB columns retained until a rename migration is applied.
     mark_text = models.CharField(max_length=200, blank=True)
     description = models.TextField(blank=True)
@@ -943,6 +989,65 @@ class PlacementRequest(models.Model):
     start_date = models.DateField(null=True, blank=True, verbose_name='Startdatum')
     duration_weeks = models.PositiveIntegerField(null=True, blank=True, verbose_name='Duur (weken, optioneel)')
     decision_notes = models.TextField(blank=True, verbose_name='Besluitnotities')
+    provider_response_status = models.CharField(
+        max_length=20,
+        choices=ProviderResponseStatus.choices,
+        default=ProviderResponseStatus.PENDING,
+        verbose_name='Reactie aanbieder',
+    )
+    provider_response_reason_code = models.CharField(
+        max_length=30,
+        choices=OutcomeReasonCode.choices,
+        default=OutcomeReasonCode.NONE,
+        verbose_name='Redencode reactie aanbieder',
+    )
+    provider_response_notes = models.TextField(blank=True, verbose_name='Notities reactie aanbieder')
+    provider_response_recorded_at = models.DateTimeField(null=True, blank=True, verbose_name='Reactie vastgelegd op')
+    provider_response_recorded_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='recorded_provider_responses',
+        verbose_name='Reactie vastgelegd door',
+    )
+    provider_response_requested_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Aanvraag verstuurd op',
+    )
+    provider_response_deadline_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Reactiedeadline',
+    )
+    provider_response_last_reminder_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Laatste herinnering providerreactie',
+    )
+    placement_quality_status = models.CharField(
+        max_length=20,
+        choices=PlacementQualityStatus.choices,
+        default=PlacementQualityStatus.PENDING,
+        verbose_name='Plaatsingskwaliteit',
+    )
+    placement_quality_reason_code = models.CharField(
+        max_length=30,
+        choices=OutcomeReasonCode.choices,
+        default=OutcomeReasonCode.NONE,
+        verbose_name='Redencode plaatsingskwaliteit',
+    )
+    placement_quality_notes = models.TextField(blank=True, verbose_name='Notities plaatsingskwaliteit')
+    placement_quality_recorded_at = models.DateTimeField(null=True, blank=True, verbose_name='Plaatsingskwaliteit vastgelegd op')
+    placement_quality_recorded_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='recorded_placement_quality_updates',
+        verbose_name='Plaatsingskwaliteit vastgelegd door',
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -1272,6 +1377,12 @@ class CaseIntakeProcess(models.Model):
         INSTITUTION = 'INSTITUTION', 'Instelling'
         OTHER = 'OTHER', 'Anders'
 
+    class IntakeOutcomeStatus(models.TextChoices):
+        PENDING = 'PENDING', 'Nog niet vastgelegd'
+        COMPLETED = 'COMPLETED', 'Afgerond'
+        CANCELLED = 'CANCELLED', 'Geannuleerd'
+        NO_SHOW = 'NO_SHOW', 'Niet verschenen'
+
     # Organization & basic info
     organization = models.ForeignKey('Organization', on_delete=models.CASCADE, null=True, blank=True, related_name='due_diligence_processes')
     contract = models.OneToOneField('CareCase', on_delete=models.SET_NULL, null=True, blank=True, related_name='due_diligence_process')
@@ -1300,6 +1411,20 @@ class CaseIntakeProcess(models.Model):
     urgency = models.CharField(max_length=10, choices=Urgency.choices, default=Urgency.MEDIUM, verbose_name='Urgentie')
     complexity = models.CharField(max_length=20, choices=Complexity.choices, default=Complexity.SIMPLE, verbose_name='Complexiteit')
     preferred_care_form = models.CharField(max_length=20, choices=CareForm.choices, default=CareForm.OUTPATIENT, verbose_name='Gewenste zorgvorm')
+    preferred_region_type = models.CharField(
+        max_length=20,
+        choices=RegionType.choices,
+        default=RegionType.GEMEENTELIJK,
+        verbose_name='Voorkeur regiotype',
+    )
+    preferred_region = models.ForeignKey(
+        'RegionalConfiguration',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='preferred_intakes',
+        verbose_name='Voorkeursregio',
+    )
     
     # CARE-SPECIFIC: Client profile
     client_age_category = models.CharField(max_length=10, choices=AgeCategory.choices, null=True, blank=True, verbose_name='Leeftijdscategorie cliënt')
@@ -1314,6 +1439,28 @@ class CaseIntakeProcess(models.Model):
     # Descriptive assessment
     assessment_summary = models.TextField(blank=True, verbose_name='Intake samenvatting', help_text='Hulpvraag samenvatting, urgentie, aandachtspunten')
     description = models.TextField(blank=True, verbose_name='Aanvullende opmerkingen')
+    intake_outcome_status = models.CharField(
+        max_length=20,
+        choices=IntakeOutcomeStatus.choices,
+        default=IntakeOutcomeStatus.PENDING,
+        verbose_name='Uitkomst intake',
+    )
+    intake_outcome_reason_code = models.CharField(
+        max_length=30,
+        choices=OutcomeReasonCode.choices,
+        default=OutcomeReasonCode.NONE,
+        verbose_name='Redencode intake-uitkomst',
+    )
+    intake_outcome_notes = models.TextField(blank=True, verbose_name='Notities intake-uitkomst')
+    intake_outcome_recorded_at = models.DateTimeField(null=True, blank=True, verbose_name='Intake-uitkomst vastgelegd op')
+    intake_outcome_recorded_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='recorded_intake_outcomes',
+        verbose_name='Intake-uitkomst vastgelegd door',
+    )
     
     # Legacy fields (kept for migration compatibility)
     transaction_type = models.CharField(max_length=20, blank=True)
@@ -1598,6 +1745,13 @@ class RegionalConfiguration(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='regional_configs')
     
     # Region info
+    region_type = models.CharField(
+        max_length=20,
+        choices=RegionType.choices,
+        default=RegionType.GEMEENTELIJK,
+        db_index=True,
+        verbose_name='Regiotype',
+    )
     region_name = models.CharField(max_length=150, verbose_name='Regio')
     region_code = models.CharField(max_length=50, blank=True, verbose_name='Regiode')
     
@@ -1637,7 +1791,7 @@ class RegionalConfiguration(models.Model):
         unique_together = ('organization', 'region_code')
 
     def __str__(self):
-        return f'{self.region_name} (regio)'
+        return f'{self.region_name} ({self.get_region_type_display().lower()})'
 
     @property
     def provider_count(self):

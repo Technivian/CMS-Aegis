@@ -31,6 +31,9 @@ mkdir -p logs
 
 echo "[verify-ui] Running UI integrity suites..."
 "$PYTHON_BIN" manage.py test \
+  tests.test_redesign_layout \
+  tests.test_dashboard_shell \
+  tests.test_reports_dashboard \
   tests.test_ui_click_integrity \
   tests.test_redesign_components \
   -v 2

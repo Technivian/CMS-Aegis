@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from .models import (
     CareCase, PlacementRequest, CareTask, CareSignal,
     Workflow, WorkflowTemplate, WorkflowTemplateStep, WorkflowStep,
@@ -9,7 +10,9 @@ from .models import (
     Deadline, UserProfile, CaseAssessment,
     OrganizationInvitation,
     CareCategoryMain,
+    CareCategorySubcategory,
     MunicipalityConfiguration, RegionalConfiguration,
+    OutcomeReasonCode,
 )
 
 User = get_user_model()
@@ -44,12 +47,19 @@ class UserProfileForm(forms.ModelForm):
 
 
 class ClientForm(forms.ModelForm):
+    served_regions = forms.ModelMultipleChoiceField(
+        queryset=RegionalConfiguration.objects.none(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': TAILWIND_SELECT}),
+        label='Bediende regio\'s',
+    )
+
     class Meta:
         model = Client
         fields = ['name', 'client_type', 'status', 'email', 'phone', 'address', 'city',
                   'state', 'zip_code', 'country', 'tax_id', 'website', 'industry',
                   'primary_contact', 'primary_contact_email', 'primary_contact_phone',
-                  'responsible_coordinator', 'intake_coordinator', 'notes']
+                  'responsible_coordinator', 'intake_coordinator', 'served_regions', 'notes']
         widgets = {
             'name': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
             'client_type': forms.Select(attrs={'class': TAILWIND_SELECT}),
@@ -79,7 +89,15 @@ class ClientForm(forms.ModelForm):
             'responsible_coordinator': 'Casusregisseur',
             'intake_coordinator': 'Backoffice contact',
             'notes': 'Notities en voorwaarden',
+            'served_regions': 'Bediende regio\'s',
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['served_regions'].queryset = RegionalConfiguration.objects.order_by('region_type', 'region_name')
+        profile = getattr(self.instance, 'provider_profile', None)
+        if profile:
+            self.initial['served_regions'] = profile.served_regions.values_list('id', flat=True)
 
 
 class CareConfigurationForm(forms.ModelForm):
@@ -356,6 +374,29 @@ class OrganizationInvitationForm(forms.ModelForm):
 
 
 class CaseIntakeProcessForm(forms.ModelForm):
+    urgency_applied = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': TAILWIND_CHECKBOX}),
+        label='Urgentie aangevraagd',
+    )
+    urgency_applied_since = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'class': TAILWIND_INPUT, 'type': 'date'}),
+        label='Sinds wanneer aangevraagd',
+    )
+
+    diagnostiek = forms.MultipleChoiceField(
+        choices=[
+            ('ADHD', 'ADHD'),
+            ('PDD_NOS', 'PDD-NOS'),
+            ('AUTISME', 'Autisme'),
+            ('DEPRESSIE', 'Depressie'),
+        ],
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': TAILWIND_CHECKBOX}),
+        label='Diagnostiek',
+    )
+
     class Meta:
         model = CaseIntakeProcess
         fields = [
@@ -366,8 +407,9 @@ class CaseIntakeProcessForm(forms.ModelForm):
             'care_category_sub',
             'assessment_summary',
             'urgency',
-            'complexity',
             'preferred_care_form',
+            'preferred_region_type',
+            'preferred_region',
             'client_age_category',
             'family_situation',
             'school_work_status',
@@ -382,8 +424,9 @@ class CaseIntakeProcessForm(forms.ModelForm):
             'care_category_sub': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'assessment_summary': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 4}),
             'urgency': forms.Select(attrs={'class': TAILWIND_SELECT}),
-            'complexity': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'preferred_care_form': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'preferred_region_type': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'preferred_region': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'client_age_category': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'family_situation': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'school_work_status': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
@@ -391,21 +434,78 @@ class CaseIntakeProcessForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 4}),
         }
         labels = {
-            'title': 'Casustitel',
+            'title': 'Client',
             'start_date': 'Startdatum casus',
             'target_completion_date': 'Doeldatum matchbesluit',
             'care_category_main': 'Hoofdcategorie zorgvraag',
             'care_category_sub': 'Subcategorie zorgvraag',
             'assessment_summary': 'Intake samenvatting',
             'urgency': 'Urgentie',
-            'complexity': 'Complexiteit',
             'preferred_care_form': 'Gewenste zorgvorm',
+            'preferred_region_type': 'Voorkeur regiotype',
+            'preferred_region': 'Voorkeursregio',
             'client_age_category': 'Leeftijdscategorie cliënt',
             'family_situation': 'Gezinssituatie',
-            'school_work_status': 'School- / werkstatus',
+            'school_work_status': 'Dagbesteding',
             'case_coordinator': 'Casusregisseur',
             'description': 'Aanvullende opmerkingen',
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        main_name = 'Woonvoorziening'
+        subcategory_names = [
+            'Begeleid wonen',
+            'Intens begeleid wonen',
+            'Kamertraining',
+        ]
+
+        # Ensure requested care categories exist for intake creation.
+        main_category, _ = CareCategoryMain.objects.get_or_create(
+            name=main_name,
+            defaults={
+                'description': 'Woonvoorziening gerelateerde zorgvraag',
+                'order': 10,
+                'is_active': True,
+            },
+        )
+
+        if not main_category.is_active:
+            main_category.is_active = True
+            main_category.save(update_fields=['is_active'])
+
+        for index, sub_name in enumerate(subcategory_names, start=1):
+            CareCategorySubcategory.objects.get_or_create(
+                main_category=main_category,
+                name=sub_name,
+                defaults={
+                    'description': f'Subcategorie voor {main_name}',
+                    'order': index,
+                    'is_active': True,
+                },
+            )
+
+        self.fields['care_category_main'].queryset = CareCategoryMain.objects.filter(
+            is_active=True,
+            id=main_category.id,
+        ).order_by('order', 'name')
+
+        self.fields['care_category_sub'].queryset = CareCategorySubcategory.objects.filter(
+            is_active=True,
+            main_category=main_category,
+            name__in=subcategory_names,
+        ).order_by('order', 'name')
+
+        selected_region_type = self.data.get('preferred_region_type') or self.initial.get('preferred_region_type')
+        if not selected_region_type:
+            self.initial['preferred_region_type'] = 'GEMEENTELIJK'
+        self.fields['preferred_region'].queryset = RegionalConfiguration.objects.filter(
+            status=RegionalConfiguration.Status.ACTIVE
+        ).order_by('region_type', 'region_name')
+
+        if not self.initial.get('care_category_main'):
+            self.initial['care_category_main'] = main_category.id
 
 
 class IntakeTaskForm(forms.ModelForm):
@@ -558,6 +658,7 @@ class PlacementRequestForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['due_diligence_process'].label = 'Casus'
+        self.fields['due_diligence_process'].required = True
         self.fields['decision_notes'].label = 'Notities'
 
         self.fields['proposed_provider'].queryset = Client.objects.filter(
@@ -577,6 +678,69 @@ class PlacementRequestForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class CaseOutcomeUpdateForm(forms.Form):
+    OUTCOME_TYPE_INTAKE = 'intake'
+    OUTCOME_TYPE_PROVIDER_RESPONSE = 'provider_response'
+    OUTCOME_TYPE_PLACEMENT_QUALITY = 'placement_quality'
+
+    OUTCOME_TYPE_CHOICES = [
+        (OUTCOME_TYPE_INTAKE, 'Intake-uitkomst'),
+        (OUTCOME_TYPE_PROVIDER_RESPONSE, 'Reactie aanbieder'),
+        (OUTCOME_TYPE_PLACEMENT_QUALITY, 'Plaatsingskwaliteit'),
+    ]
+
+    outcome_type = forms.ChoiceField(
+        choices=OUTCOME_TYPE_CHOICES,
+        widget=forms.HiddenInput(),
+    )
+    status = forms.ChoiceField(
+        choices=[],
+        widget=forms.Select(attrs={'class': TAILWIND_SELECT}),
+        label='Status',
+    )
+    reason_code = forms.ChoiceField(
+        choices=OutcomeReasonCode.choices,
+        widget=forms.Select(attrs={'class': TAILWIND_SELECT}),
+        label='Reden',
+    )
+    notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 3}),
+        label='Notities',
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        outcome_type = self.data.get('outcome_type') or self.initial.get('outcome_type')
+        self.fields['status'].choices = self._status_choices_for_outcome_type(outcome_type)
+
+    def clean_outcome_type(self):
+        outcome_type = self.cleaned_data['outcome_type']
+        valid_types = {choice[0] for choice in self.OUTCOME_TYPE_CHOICES}
+        if outcome_type not in valid_types:
+            raise ValidationError('Ongeldig uitkomsttype.')
+        return outcome_type
+
+    def clean(self):
+        cleaned_data = super().clean()
+        outcome_type = cleaned_data.get('outcome_type')
+        status = cleaned_data.get('status')
+        valid_statuses = {choice[0] for choice in self._status_choices_for_outcome_type(outcome_type)}
+        if status and status not in valid_statuses:
+            raise ValidationError('Ongeldige status voor dit uitkomsttype.')
+        return cleaned_data
+
+    @classmethod
+    def _status_choices_for_outcome_type(cls, outcome_type):
+        if outcome_type == cls.OUTCOME_TYPE_INTAKE:
+            return CaseIntakeProcess.IntakeOutcomeStatus.choices
+        if outcome_type == cls.OUTCOME_TYPE_PROVIDER_RESPONSE:
+            return PlacementRequest.ProviderResponseStatus.choices
+        if outcome_type == cls.OUTCOME_TYPE_PLACEMENT_QUALITY:
+            return PlacementRequest.PlacementQualityStatus.choices
+        return []
 
 
 class CareTaskForm(forms.ModelForm):
@@ -676,14 +840,15 @@ class RegionalConfigurationForm(forms.ModelForm):
     class Meta:
         model = RegionalConfiguration
         fields = [
-            'region_name', 'region_code', 'status',
+            'region_type', 'region_name', 'region_code', 'status',
             'served_municipalities', 'care_domains', 'linked_providers',
             'max_wait_days', 'priority_rules',
             'responsible_coordinator', 'notes'
         ]
         widgets = {
-            'region_name': forms.TextInput(attrs={'class': TAILWIND_INPUT, 'placeholder': 'Bijv. Metropoolregio Amsterdam'}),
-            'region_code': forms.TextInput(attrs={'class': TAILWIND_INPUT, 'placeholder': 'Bijv. MRA'}),
+            'region_type': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'region_name': forms.TextInput(attrs={'class': TAILWIND_INPUT, 'placeholder': 'Bijv. Netwerk Acute Zorg Midden-Nederland'}),
+            'region_code': forms.TextInput(attrs={'class': TAILWIND_INPUT, 'placeholder': 'Bijv. ZR001'}),
             'status': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'served_municipalities': forms.CheckboxSelectMultiple(attrs={'class': 'h-4 w-4'}),
             'care_domains': forms.CheckboxSelectMultiple(attrs={'class': 'h-4 w-4'}),
@@ -694,8 +859,9 @@ class RegionalConfigurationForm(forms.ModelForm):
             'notes': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 3, 'placeholder': 'Aanvullende notities...'}),
         }
         labels = {
-            'region_name': 'Regio',
-            'region_code': 'Regio code',
+            'region_type': 'Regiotype',
+            'region_name': 'Zorgregio',
+            'region_code': 'Zorgregio code',
             'status': 'Status',
             'served_municipalities': 'Bediende gemeenten',
             'care_domains': 'Zorgdomeinen',

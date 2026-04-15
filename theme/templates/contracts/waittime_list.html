@@ -1,42 +1,41 @@
 {% extends "base.html" %}
 {% block title %}Wachttijden - Zorgregie{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
-    <div class="page-header">
+<div class="ds-list-shell">
+    <div class="ds-list-header">
         <div>
             <h1 class="page-title">Wachttijden</h1>
-            <p class="page-subtitle">{{ total_count }} vermeldingen &middot; gemiddeld {{ avg_wait_days }} dagen &middot; {{ no_capacity_count }} zonder capaciteit</p>
-        </div>
+            </div>
         <div class="page-actions">
             <a href="{% url 'careon:waittime_create' %}" class="btn btn-primary">Wachttijd registreren</a>
         </div>
     </div>
 
-    <div class="waittime-kpi-grid">
-        <div class="ds-card waittime-kpi-card">
-            <div class="kpi-label">Vermeldingen</div>
-            <div class="kpi-value">{{ total_count }}</div>
+    <div class="ds-list-kpi-grid">
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Vermeldingen</div>
+            <div class="ds-list-kpi-value">{{ total_count }}</div>
         </div>
-        <div class="ds-card waittime-kpi-card">
-            <div class="kpi-label">Gemiddeld</div>
-            <div class="kpi-value">{{ avg_wait_days }} <span class="kpi-unit">dgn</span></div>
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Gemiddeld</div>
+            <div class="ds-list-kpi-value">{{ avg_wait_days }} <span class="kpi-unit">dgn</span></div>
         </div>
-        <div class="ds-card waittime-kpi-card">
-            <div class="kpi-label">Zonder capaciteit</div>
-            <div class="kpi-value tone-critical">{{ no_capacity_count }}</div>
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Zonder capaciteit</div>
+            <div class="ds-list-kpi-value tone-critical">{{ no_capacity_count }}</div>
         </div>
     </div>
 
-    <form method="get" class="ds-card action-card form-grid-3">
+    <form method="get" class="ds-list-filters">
         <div>
-            <label for="waittime-q" class="field-label">Zoeken</label>
+            <label for="waittime-q" class="ds-list-filter-label">Zoeken</label>
             <input id="waittime-q" type="text" name="q" value="{{ search_query }}" placeholder="Zoek op aanbieder, regio of zorgtype...">
         </div>
         <div></div>
         <button type="submit" class="btn btn-secondary">Zoeken</button>
     </form>
 
-    <div class="ds-card table-card">
+    <div class="ds-list-table">
         <div class="ds-table-wrap">
             <table class="ds-table">
                 <thead>
@@ -65,13 +64,13 @@
                             {% endif %}
                         </td>
                         <td class="td-num">{{ wt.waiting_list_size }}</td>
-                        <td class="td-right"><a href="{% url 'careon:waittime_update' wt.pk %}" class="btn btn-ghost" style="min-height:34px;">Bijwerken</a></td>
+                        <td class="td-right"><a href="{% url 'careon:waittime_update' wt.pk %}" class="btn btn-ghost ds-i-okgsyj">Bijwerken</a></td>
                     </tr>
                     {% empty %}
                     <tr>
                         <td colspan="7" class="td-empty">
                             Nog geen wachttijden geregistreerd.
-                            <div style="margin-top:10px;"><a href="{% url 'careon:waittime_create' %}" class="btn btn-primary">Eerste wachttijd registreren</a></div>
+                            <div class="ds-i-1tei6ul"><a href="{% url 'careon:waittime_create' %}" class="btn btn-primary">Eerste wachttijd registreren</a></div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -81,38 +80,20 @@
     </div>
 
     {% if is_paginated %}
-    <div class="ds-card feed-card feed-row">
+    <div class="ds-list-pagination">
         <span class="c-secondary">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
         <div class="feed-actions">
             {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary" style="min-height:36px;">Vorige</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary ds-i-alf985">Vorige</a>
             {% endif %}
             {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary" style="min-height:36px;">Volgende</a>
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary ds-i-alf985">Volgende</a>
             {% endif %}
         </div>
     </div>
     {% endif %}
 </div>
 
-<style>
-    .waittime-kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: var(--card-gap);
-    }
-    .waittime-kpi-card { padding: 14px 16px; }
-    .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); font-weight: 700; }
-    .kpi-value { margin-top: 8px; font-size: 30px; line-height: 1; font-weight: 800; color: var(--text-primary); }
-    .kpi-unit { font-size: 14px; color: var(--text-secondary); font-weight: 600; }
-    .tone-critical { color: #fca5a5 !important; }
-    .tone-warning { color: #fcd34d !important; }
-    .tone-good { color: #86efac !important; }
-    .row-no-capacity td { background: color-mix(in srgb, #7f1d1d 18%, transparent); }
-    .td-empty { text-align: center; padding: 28px 16px; color: var(--text-secondary); }
-    @media (max-width: 920px) {
-        .waittime-kpi-grid { grid-template-columns: 1fr; }
-    }
-</style>
+
 
 {% endblock %}

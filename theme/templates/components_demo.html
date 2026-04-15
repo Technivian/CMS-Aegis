@@ -5,15 +5,15 @@
 {% block title %}Components Demo{% endblock %}
 
 {% block content %}
-<div class="container py-8">
-  <div class="page-header">
+<div class="container py-8 ds-page-shell ds-detail-shell">
+  <div class="page-header ds-page-header ds-list-header">
     <h1>Design System Components</h1>
     <p>Design system components for the CareOn care-regie app</p>
   </div>
 
   <!-- Buttons -->
-  <section class="mb-12">
-    <h2 class="text-h2 font-titles text-ink mb-4">Buttons</h2>
+  <section class="mb-12 ds-analytics-section">
+    <h2 class="text-h2 font-titles text-ink mb-4 ds-section-title ds-analytics-section-title">Buttons</h2>
     <div class="flex flex-wrap gap-4">
       <button class="btn-primary">Primary Button</button>
       <button class="btn-secondary">Secondary Button</button>
@@ -23,10 +23,10 @@
   </section>
 
   <!-- Cards -->
-  <section class="mb-12">
-    <h2 class="text-h2 font-titles text-ink mb-4">Cards</h2>
+  <section class="mb-12 ds-analytics-section">
+    <h2 class="text-h2 font-titles text-ink mb-4 ds-section-title ds-analytics-section-title">Cards</h2>
     <div class="grid md:grid-cols-2 gap-6">
-      <div class="card">
+      <div class="card ds-card">
         <div class="card-header">
           <h3 class="font-titles text-ink">Card Title</h3>
         </div>
@@ -38,7 +38,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card ds-card">
         <div class="card-content">
           <h3 class="font-titles text-ink mb-2">Simple Card</h3>
           <p class="text-muted">This card only has content.</p>
@@ -48,37 +48,37 @@
   </section>
 
   <!-- Stats -->
-  <section class="mb-12">
-    <h2 class="text-h2 font-titles text-ink mb-4">Stats</h2>
+  <section class="mb-12 ds-analytics-section">
+    <h2 class="text-h2 font-titles text-ink mb-4 ds-section-title ds-analytics-section-title">Stats</h2>
     <div class="grid md:grid-cols-4 gap-6">
-      <div class="stat">
+      <div class="stat ds-metric-card">
         <div>
-          <div class="stat-label">Totale casussen</div>
-          <div class="stat-value">142</div>
+          <div class="stat-label ds-metric-label">Totale casussen</div>
+          <div class="stat-value ds-metric-value">142</div>
         </div>
         <div class="stat-trend up">+12%</div>
       </div>
 
-      <div class="stat">
+      <div class="stat ds-metric-card">
         <div>
-          <div class="stat-label">Pending Tasks</div>
-          <div class="stat-value">23</div>
+          <div class="stat-label ds-metric-label">Pending Tasks</div>
+          <div class="stat-value ds-metric-value">23</div>
         </div>
         <div class="stat-trend down">-5%</div>
       </div>
 
-      <div class="stat">
+      <div class="stat ds-metric-card">
         <div>
-          <div class="stat-label">Actieve trajecten</div>
-          <div class="stat-value">8</div>
+          <div class="stat-label ds-metric-label">Actieve trajecten</div>
+          <div class="stat-value ds-metric-value">8</div>
         </div>
         <div class="stat-trend up">+2</div>
       </div>
 
-      <div class="stat">
+      <div class="stat ds-metric-card">
         <div>
-          <div class="stat-label">Expiring Soon</div>
-          <div class="stat-value">5</div>
+          <div class="stat-label ds-metric-label">Expiring Soon</div>
+          <div class="stat-value ds-metric-value">5</div>
         </div>
         <div class="stat-trend">No change</div>
       </div>
@@ -86,8 +86,8 @@
   </section>
 
   <!-- Badges -->
-  <section class="mb-12">
-    <h2 class="text-h2 font-titles text-ink mb-4">Badges</h2>
+  <section class="mb-12 ds-analytics-section">
+    <h2 class="text-h2 font-titles text-ink mb-4 ds-section-title ds-analytics-section-title">Badges</h2>
     <div class="flex flex-wrap gap-4">
       <span class="badge-default">Draft</span>
       <span class="badge-success">Active</span>
@@ -97,8 +97,8 @@
   </section>
 
   <!-- Form Controls -->
-  <section class="mb-12">
-    <h2 class="text-h2 font-titles text-ink mb-4">Form Controls</h2>
+  <section class="mb-12 ds-analytics-section">
+    <h2 class="text-h2 font-titles text-ink mb-4 ds-section-title ds-analytics-section-title">Form Controls</h2>
     <div class="grid md:grid-cols-2 gap-6">
       <div>
         <label class="block text-sm font-labels text-ink mb-2">Input Field</label>
@@ -122,8 +122,8 @@
   </section>
 
   <!-- Search -->
-  <section class="mb-12">
-    <h2 class="text-h2 font-titles text-ink mb-4">Search</h2>
+  <section class="mb-12 ds-analytics-section">
+    <h2 class="text-h2 font-titles text-ink mb-4 ds-section-title ds-analytics-section-title">Search</h2>
     <div class="search max-w-md">
       <input type="text" class="search-input" placeholder="Zoek casussen...">
       <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,8 +133,8 @@
   </section>
 
   <!-- Tabs -->
-  <section class="mb-12">
-    <h2 class="text-h2 font-titles text-ink mb-4">Tabs</h2>
+  <section class="mb-12 ds-analytics-section">
+    <h2 class="text-h2 font-titles text-ink mb-4 ds-section-title ds-analytics-section-title">Tabs</h2>
     <div class="tabs">
       <button class="tab active">Dashboard</button>
       <button class="tab">Casussen</button>
@@ -144,10 +144,10 @@
   </section>
 
   <!-- Table -->
-  <section class="mb-12">
-    <h2 class="text-h2 font-titles text-ink mb-4">Table</h2>
-    <div class="card">
-      <table class="table">
+  <section class="mb-12 ds-analytics-section">
+    <h2 class="text-h2 font-titles text-ink mb-4 ds-section-title ds-analytics-section-title">Table</h2>
+    <div class="card ds-card">
+      <table class="table ds-table">
         <thead>
           <tr>
             <th>Casusnaam</th>
@@ -175,8 +175,8 @@
   </section>
 
   <!-- Filter Chips -->
-  <section class="mb-12">
-    <h2 class="text-h2 font-titles text-ink mb-4">Filter Chips</h2>
+  <section class="mb-12 ds-analytics-section">
+    <h2 class="text-h2 font-titles text-ink mb-4 ds-section-title ds-analytics-section-title">Filter Chips</h2>
     <div class="filter-chips">
       <div class="filter-chip">
         Status: Active
@@ -198,16 +198,16 @@
   </section>
 
   <!-- Progress -->
-  <section class="mb-12">
-    <h2 class="text-h2 font-titles text-ink mb-4">Progress</h2>
+  <section class="mb-12 ds-analytics-section">
+    <h2 class="text-h2 font-titles text-ink mb-4 ds-section-title ds-analytics-section-title">Progress</h2>
     <div class="space-y-4">
       <div>
         <div class="flex justify-between text-sm mb-2">
           <span>Voortgang beoordeling</span>
           <span>75%</span>
         </div>
-        <div class="progress">
-          <div class="progress-bar" style="width: 75%"></div>
+        <div class="progress ds-analytics-progress">
+          <div class="progress-bar ds-analytics-progress-bar ds-analytics-progress-bar ds-i-k3fogl"></div>
         </div>
       </div>
 
@@ -216,18 +216,18 @@
           <span>Compliance Check</span>
           <span>40%</span>
         </div>
-        <div class="progress">
-          <div class="progress-bar" style="width: 40%"></div>
+        <div class="progress ds-analytics-progress">
+          <div class="progress-bar ds-analytics-progress-bar ds-analytics-progress-bar ds-i-z96qzp"></div>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Empty State -->
-  <section class="mb-12">
-    <h2 class="text-h2 font-titles text-ink mb-4">Empty State</h2>
-    <div class="card">
-      <div class="empty-state">
+  <section class="mb-12 ds-analytics-section">
+    <h2 class="text-h2 font-titles text-ink mb-4 ds-section-title ds-analytics-section-title">Empty State</h2>
+    <div class="card ds-card">
+      <div class="empty-state ds-empty-state">
         <svg class="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
         </svg>
@@ -239,9 +239,9 @@
   </section>
 
   <!-- Skeleton Loading -->
-  <section class="mb-12">
-    <h2 class="text-h2 font-titles text-ink mb-4">Skeleton Loading</h2>
-    <div class="card">
+  <section class="mb-12 ds-analytics-section">
+    <h2 class="text-h2 font-titles text-ink mb-4 ds-section-title ds-analytics-section-title">Skeleton Loading</h2>
+    <div class="card ds-card">
       <div class="card-content space-y-4">
         <div class="skeleton-title w-1/3"></div>
         <div class="skeleton-text w-full"></div>

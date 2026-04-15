@@ -1,24 +1,25 @@
 {% extends "base.html" %}
 {% block title %}Documenten - Careon{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
-    <div class="page-header">
+<div class="ds-list-shell">
+    <div class="ds-list-header">
         <div>
             <h1 class="page-title">Documenten</h1>
-            <p class="page-subtitle">{{ total_documents }} totaal &middot; {{ review_documents }} in beoordeling &middot; {{ draft_documents }} concept</p>
+            <p class="ds-note-text">Cross-case archief en zoeken. Voor uitvoering en uploads werk je vanuit de casuswerkruimte.</p>
         </div>
         <div class="page-actions">
-            <a href="{% url 'careon:document_create' %}" class="btn btn-primary">Document toevoegen</a>
+            <a href="{% url 'careon:case_list' %}" class="btn btn-primary">Open casussen</a>
         </div>
     </div>
 
-    <form method="get" class="ds-card action-card form-grid-3">
-        <div>
-            <label for="doc-q" class="field-label">Zoeken</label>
+    <form method="get" class="ds-list-filters">
+    <div class="ds-list-filter-row">
+        <div class="ds-list-filter-group">
+            <label for="doc-q" class="ds-list-filter-label">Zoeken</label>
             <input id="doc-q" type="search" name="q" value="{{ request.GET.q }}" placeholder="Zoek documenten...">
         </div>
-        <div>
-            <label for="doc-type" class="field-label">Documenttype</label>
+        <div class="ds-list-filter-group">
+            <label for="doc-type" class="ds-list-filter-label">Documenttype</label>
             <select id="doc-type" name="type" onchange="this.form.submit()">
                 <option value="">Alle typen</option>
                 <option value="CONTRACT">Casusdossier</option>
@@ -27,10 +28,13 @@
                 <option value="RESEARCH">Onderzoeksrapport</option>
             </select>
         </div>
+        <div class="ds-list-actions">
         <button type="submit" class="btn btn-secondary">Filter</button>
+        </div>
+    </div>
     </form>
 
-    <div class="ds-card table-card">
+    <div class="ds-list-table">
         <div class="ds-table-wrap">
             <table class="ds-table">
                 <thead>
@@ -41,45 +45,51 @@
                         <th>Casus</th>
                         <th>Versie</th>
                         <th>Datum</th>
-                        <th style="text-align:right;">Acties</th>
+                        <th class="ds-i-58t0wj">Acties</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for doc in documents %}
+                    {% for row in document_rows %}
                     <tr>
                         <td>
-                            <a href="{% url 'careon:document_detail' doc.pk %}">{{ doc.title|truncatechars:40 }}</a>
-                            {% if doc.is_privileged %}<span class="ds-badge badge-high" style="margin-left:6px;">Beperkte inzage</span>{% endif %}
-                            {% if doc.is_confidential %}<span class="ds-badge badge-critical" style="margin-left:6px;">Vertrouwelijk</span>{% endif %}
+                            <a href="{% url 'careon:document_detail' row.document.pk %}">{{ row.document.title|truncatechars:40 }}</a>
+                            {% if row.document.is_privileged %}<span class="ds-badge badge-high ds-i-17295w0">Beperkte inzage</span>{% endif %}
+                            {% if row.document.is_confidential %}<span class="ds-badge badge-critical ds-i-17295w0">Vertrouwelijk</span>{% endif %}
                         </td>
-                        <td>{{ doc.get_document_type_display }}</td>
-                        <td><span class="ds-badge {% if doc.status == 'FINAL' %}badge-low{% elif doc.status == 'REVIEW' %}badge-high{% else %}badge-medium{% endif %}">{{ doc.get_status_display }}</span></td>
+                        <td>{{ row.document.get_document_type_display }}</td>
+                        <td><span class="ds-badge {% if row.document.status == 'FINAL' %}badge-low{% elif row.document.status == 'REVIEW' %}badge-high{% else %}badge-medium{% endif %}">{{ row.document.get_status_display }}</span></td>
                         <td>
-                            {% if doc.contract and doc.contract.due_diligence_process %}
-                            <a href="{% url 'careon:case_detail' doc.contract.due_diligence_process.pk %}">{{ doc.contract.due_diligence_process.title|default:doc.contract.title }}</a>
-                            {% elif doc.contract %}
-                            {{ doc.contract.title }}
+                            {% if row.document.contract and row.document.contract.due_diligence_process %}
+                            <a href="{% url 'careon:case_detail' row.document.contract.due_diligence_process.pk %}?tab=documenten">{{ row.document.contract.due_diligence_process.title|default:row.document.contract.title }}</a>
+                            {% elif row.document.contract %}
+                            {{ row.document.contract.title }}
                             {% else %}
                             —
                             {% endif %}
                         </td>
-                        <td>v{{ doc.version }}</td>
-                        <td>{{ doc.created_at|date:"d-m-Y" }}</td>
-                        <td style="text-align:right;">
-                            <a href="{% url 'careon:document_detail' doc.pk %}" class="btn btn-ghost" style="min-height:36px;">Openen</a>
-                            {% if doc.pk in editable_document_ids %}
-                            <a href="{% url 'careon:document_update' doc.pk %}" class="btn btn-ghost" style="min-height:36px;">Bewerken</a>
-                            {% else %}
-                            <span class="btn btn-ghost" style="min-height:36px;opacity:0.6;cursor:not-allowed;">Alleen-lezen</span>
+                        <td>v{{ row.document.version }}</td>
+                        <td>{{ row.document.created_at|date:"d-m-Y" }}</td>
+                        <td class="ds-i-58t0wj">
+                            {% if row.case_href %}
+                            <a href="{{ row.case_href }}" class="btn btn-ghost ds-i-alf985">Open casus</a>
+                            {% endif %}
+                            <a href="{% url 'careon:document_detail' row.document.pk %}" class="btn btn-ghost ds-i-alf985">Openen</a>
+                            {% if not row.case_href and not row.can_edit %}
+                            <span class="btn btn-ghost ds-i-1iuxl16">Alleen-lezen</span>
+                            {% elif not row.case_href %}
+                            <span class="btn btn-ghost ds-i-1iuxl16">Inspectie</span>
+                            {% endif %}
+                            {% if row.case_href and not row.can_edit %}
+                            <span class="btn btn-ghost ds-i-1iuxl16">Alleen-lezen</span>
                             {% endif %}
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="empty-state">
-                            <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                            Geen documenten gevonden. Voeg een document toe om overdracht en compliance te borgen.
-                            <div style="margin-top:10px;"><a href="{% url 'careon:document_create' %}" class="btn btn-primary">Document toevoegen</a></div>
+                        <td colspan="7" class="ds-list-empty">
+                            <svg class="ds-list-empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                            Geen documenten gevonden. Open een casus om daar documenten toe te voegen.
+                            <div class="ds-i-1tei6ul"><a href="{% url 'careon:case_list' %}" class="btn btn-primary">Open casussen</a></div>
                         </td>
                     </tr>
                     {% endfor %}

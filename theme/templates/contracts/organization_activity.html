@@ -1,17 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Organisatieactiviteit - Careon{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
+<div class="ds-list-shell">
 
-<div class="page-header">
-    <div style="flex:1;">
+<div class="ds-list-header">
+    <div class="ds-i-g2rnps">
         <h1 class="page-title">Organisatieactiviteit</h1>
-        <span class="page-subtitle">Beheers- en lidmaatschapsevents voor {{ organization.name }}.</span>
-    </div>
+        </div>
     <a href="{% url 'careon:organization_team' %}" class="btn btn-secondary">Terug naar team</a>
 </div>
 
-<form method="get" class="ds-card action-card" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+<form method="get" class="ds-list-filters">
+    <div class="ds-list-filter-row">
+    <div class="ds-list-filter-group">
     <select name="action" onchange="this.form.submit()">
         <option value="">Alle acties</option>
         <option value="CREATE" {% if request.GET.action == 'CREATE' %}selected{% endif %}>Aangemaakt</option>
@@ -20,18 +21,24 @@
         <option value="APPROVE" {% if request.GET.action == 'APPROVE' %}selected{% endif %}>Goedgekeurd</option>
         <option value="REJECT" {% if request.GET.action == 'REJECT' %}selected{% endif %}>Afgekeurd</option>
     </select>
+    </div>
+    <div class="ds-list-filter-group">
     <select name="model" onchange="this.form.submit()">
         <option value="">Alle typen</option>
         <option value="OrganizationInvitation" {% if request.GET.model == 'OrganizationInvitation' %}selected{% endif %}>Uitnodiging</option>
         <option value="OrganizationMembership" {% if request.GET.model == 'OrganizationMembership' %}selected{% endif %}>Lidmaatschap</option>
     </select>
+    </div>
+    <div class="ds-list-filter-group">
     <input type="date" name="start_date" value="{{ request.GET.start_date }}">
     <input type="date" name="end_date" value="{{ request.GET.end_date }}">
     <button type="submit" class="btn btn-primary">Toepassen</button>
     <a href="{% url 'careon:organization_activity_export' %}{% if query_string %}?{{ query_string }}{% endif %}" class="btn btn-secondary">CSV exporteren</a>
+    </div>
+    </div>
 </form>
 
-<div class="ds-card table-card">
+<div class="ds-list-table">
     <div class="ds-table-wrap">
         <table class="ds-table">
             <thead><tr>
@@ -45,17 +52,17 @@
             <tbody>
                 {% for log in logs %}
                 <tr>
-                    <td style="white-space:nowrap;">{{ log.timestamp|date:"d M Y H:i" }}</td>
+                    <td class="ds-i-6oi7h7">{{ log.timestamp|date:"d M Y H:i" }}</td>
                     <td>{{ log.user.get_full_name|default:log.user.username|default:"System" }}</td>
                     <td>
                         <span class="badge-sm {% if log.action == 'CREATE' %}badge-green{% elif log.action == 'UPDATE' %}badge-blue{% elif log.action == 'DELETE' %}badge-red{% elif log.action == 'APPROVE' %}badge-green{% elif log.action == 'REJECT' %}badge-red{% else %}badge-gray{% endif %}">{{ log.get_action_display }}</span>
                     </td>
                     <td>{{ log.model_name }}</td>
                     <td>{{ log.object_repr|truncatechars:50 }}</td>
-                    <td style="font-size:12px;color:var(--text-muted);">{{ log.changes.event|default:"—" }}</td>
+                    <td class="ds-i-54q943">{{ log.changes.event|default:"—" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-muted);">Nog geen organisatieactiviteit.</td></tr>
+                <tr><td colspan="6" class="ds-list-empty"><span class="ds-list-empty-title">Nog geen organisatieactiviteit.</span></td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -63,12 +70,12 @@
 </div>
 
 {% if is_paginated %}
-<div style="display:flex;justify-content:center;gap:8px;margin-top:16px;">
-    {% if page_obj.has_previous %}<a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}" class="btn btn-ghost">Vorige</a>{% endif %}
-    <span style="padding:8px 12px;font-size:13px;color:var(--text-muted);">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}<a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}" class="btn btn-ghost">Volgende</a>{% endif %}
+<div class="ds-list-pagination"><div class="ds-list-pagination-buttons">
+    {% if page_obj.has_previous %}<a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}" class="ds-list-pagination-btn btn btn-ghost">Vorige</a>{% endif %}
+    <span class="ds-i-1p8k879">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}" class="ds-list-pagination-btn btn btn-ghost">Volgende</a>{% endif %}
 </div>
 {% endif %}
-
+</div>
 </div>
 {% endblock %}

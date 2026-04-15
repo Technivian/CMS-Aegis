@@ -30,8 +30,8 @@ class RedesignComponentsTestCase(TestCase):
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Urgente casussen')
-        self.assertContains(response, 'Systeemoverzicht')
-        self.assertContains(response, 'Knelpuntfocus')
+        self.assertContains(response, 'Priority Case Queue')
+        self.assertContains(response, 'Bottlenecks')
         self.assertContains(response, 'Signalen')
         self.assertContains(response, 'Regiekamer')
 
@@ -70,7 +70,7 @@ class RedesignComponentsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'title="Search"')
         self.assertContains(response, '@media (max-width: 1024px)')
-        self.assertContains(response, '@media (max-width: 640px)')
+        self.assertContains(response, 'visually-hidden')
 
     def test_budget_list_matches_dashboard_style(self):
         Budget.objects.create(

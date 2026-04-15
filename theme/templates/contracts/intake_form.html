@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% block title %}{% if is_edit %}Casus bewerken{% else %}Nieuwe casus{% endif %} - Careon{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
-    <div class="page-header form-shell">
+<div class="ds-detail-shell">
+    <div class="ds-detail-header">
         <div>
-            <h1 class="page-title">{% if is_edit %}Casus bewerken{% else %}Nieuwe casus{% endif %}</h1>
-            <p class="page-subtitle">Start met de intakegegevens. Na opslaan ga je direct naar het casusdossier voor beoordeling en matching.</p>
-            <p class="form-note required-note">Velden met <strong>*</strong> zijn verplicht.</p>
+            <h1 class="page-title ds-section-title">{% if is_edit %}Casus bewerken{% else %}Nieuwe casus{% endif %}</h1>
+            <p class="page-subtitle ds-helper-text">Start met de intakegegevens. Na opslaan ga je direct naar het casusdossier voor beoordeling en matching.</p>
+            <p class="form-note required-note ds-note-text">Velden met <strong>*</strong> zijn verplicht.</p>
         </div>
     </div>
 
-    <form method="post" class="page-stack form-shell">
+    <form method="post" class="ds-detail-sections">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
@@ -22,129 +22,214 @@
         </div>
         {% endif %}
 
-        <section class="ds-card action-card field-group workflow-identificatie">
-            <div class="form-section-head">
+        <section class="ds-detail-card ds-detail-card field-group workflow-identificatie">
+            <div class="ds-detail-card-head">
                 <div class="form-section-number">1</div>
                 <div>
-                    <div class="form-section-title">Identificatie</div>
-                    <div class="form-section-desc">Naam, start- en streefdatum van de casus</div>
+                    <div class="ds-detail-card-title">Identificatie</div>
                 </div>
             </div>
             <div>
-                <label for="{{ form.title.id_for_label }}" class="field-label">{{ form.title.label }} {% if form.title.field.required %}*{% endif %}</label>
+                <label for="{{ form.title.id_for_label }}" class="ds-detail-label field-label">{{ form.title.label }} {% if form.title.field.required %}*{% endif %}</label>
                 {{ form.title }}
                 {% if form.title.errors %}<div class="form-field-error">{{ form.title.errors.0 }}</div>{% endif %}
             </div>
-            <div class="form-grid-2">
+            <div class="ds-detail-grid-2 form-grid-2">
                 <div>
-                    <label for="{{ form.start_date.id_for_label }}" class="field-label">{{ form.start_date.label }} {% if form.start_date.field.required %}*{% endif %}</label>
+                    <label for="{{ form.start_date.id_for_label }}" class="ds-detail-label field-label">{{ form.start_date.label }} {% if form.start_date.field.required %}*{% endif %}</label>
                     {{ form.start_date }}
                     {% if form.start_date.errors %}<div class="form-field-error">{{ form.start_date.errors.0 }}</div>{% endif %}
                 </div>
                 <div>
-                    <label for="{{ form.target_completion_date.id_for_label }}" class="field-label">{{ form.target_completion_date.label }} {% if form.target_completion_date.field.required %}*{% endif %}</label>
+                    <label for="{{ form.target_completion_date.id_for_label }}" class="ds-detail-label field-label">{{ form.target_completion_date.label }} {% if form.target_completion_date.field.required %}*{% endif %}</label>
                     {{ form.target_completion_date }}
                     {% if form.target_completion_date.errors %}<div class="form-field-error">{{ form.target_completion_date.errors.0 }}</div>{% endif %}
                 </div>
             </div>
         </section>
 
-        <section class="ds-card action-card field-group workflow-zorgvraag">
-            <div class="form-section-head">
+        <section class="ds-detail-card ds-detail-card field-group workflow-zorgvraag">
+            <div class="ds-detail-card-head">
                 <div class="form-section-number">2</div>
                 <div>
-                    <div class="form-section-title">Zorgvraag</div>
-                    <div class="form-section-desc">Categorie, subcategorie en beschrijving van de zorgbehoefte</div>
+                    <div class="ds-detail-card-title">Zorgvraag</div>
                 </div>
             </div>
-            <div class="form-grid-2">
+            <div class="ds-detail-grid-2 form-grid-2">
                 <div>
-                    <label for="{{ form.care_category_main.id_for_label }}" class="field-label">{{ form.care_category_main.label }} {% if form.care_category_main.field.required %}*{% endif %}</label>
+                    <label for="{{ form.care_category_main.id_for_label }}" class="ds-detail-label field-label">{{ form.care_category_main.label }} {% if form.care_category_main.field.required %}*{% endif %}</label>
                     {{ form.care_category_main }}
                     {% if form.care_category_main.errors %}<div class="form-field-error">{{ form.care_category_main.errors.0 }}</div>{% endif %}
                 </div>
                 <div>
-                    <label for="{{ form.care_category_sub.id_for_label }}" class="field-label">{{ form.care_category_sub.label }}</label>
+                    <label for="{{ form.care_category_sub.id_for_label }}" class="ds-detail-label field-label">{{ form.care_category_sub.label }}</label>
                     {{ form.care_category_sub }}
                     {% if form.care_category_sub.errors %}<div class="form-field-error">{{ form.care_category_sub.errors.0 }}</div>{% endif %}
                 </div>
             </div>
             <div>
-                <label for="{{ form.assessment_summary.id_for_label }}" class="field-label">{{ form.assessment_summary.label }}</label>
+                <label for="{{ form.assessment_summary.id_for_label }}" class="ds-detail-label field-label">{{ form.assessment_summary.label }}</label>
                 {{ form.assessment_summary }}
                 {% if form.assessment_summary.errors %}<div class="form-field-error">{{ form.assessment_summary.errors.0 }}</div>{% endif %}
             </div>
         </section>
 
-        <section class="ds-card action-card field-group workflow-analyse">
-            <div class="form-section-head">
+        <section class="ds-detail-card ds-detail-card field-group workflow-analyse">
+            <div class="ds-detail-card-head">
                 <div class="form-section-number">3</div>
                 <div>
-                    <div class="form-section-title">Matching dimensies</div>
-                    <div class="form-section-desc">Urgentie, complexiteit en gewenste zorgvorm</div>
+                    <div class="ds-detail-card-title">Diagnostiek</div>
                 </div>
             </div>
-            <div class="form-grid-3">
+            <div class="ds-detail-grid-2 form-grid-2">
+                {% for checkbox in form.diagnostiek %}
+                <label class="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700">
+                    {{ checkbox.tag }}
+                    <span>{{ checkbox.choice_label }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            {% if form.diagnostiek.errors %}<div class="form-field-error">{{ form.diagnostiek.errors.0 }}</div>{% endif %}
+        </section>
+
+        <section class="ds-detail-card ds-detail-card field-group workflow-analyse">
+            <div class="ds-detail-card-head">
+                <div class="form-section-number">4</div>
                 <div>
-                    <label for="{{ form.urgency.id_for_label }}" class="field-label">{{ form.urgency.label }} {% if form.urgency.field.required %}*{% endif %}</label>
+                    <div class="ds-detail-card-title">Matching dimensies</div>
+                </div>
+            </div>
+            <div class="ds-detail-grid-2 form-grid-2">
+                <div>
+                    <label for="{{ form.urgency.id_for_label }}" class="ds-detail-label field-label">{{ form.urgency.label }} {% if form.urgency.field.required %}*{% endif %}</label>
                     {{ form.urgency }}
                     {% if form.urgency.errors %}<div class="form-field-error">{{ form.urgency.errors.0 }}</div>{% endif %}
+                    <label class="mt-3 flex items-center gap-2 text-sm font-medium text-gray-700">
+                        {{ form.urgency_applied }}
+                        <span>{{ form.urgency_applied.label }}</span>
+                    </label>
+                    {% if form.urgency_applied.errors %}<div class="form-field-error">{{ form.urgency_applied.errors.0 }}</div>{% endif %}
+
+                    <div id="urgency-applied-since-wrap" class="mt-3 {% if not form.urgency_applied.value %}ds-hidden{% endif %}">
+                        <label for="{{ form.urgency_applied_since.id_for_label }}" class="ds-detail-label field-label">{{ form.urgency_applied_since.label }}</label>
+                        {{ form.urgency_applied_since }}
+                        {% if form.urgency_applied_since.errors %}<div class="form-field-error">{{ form.urgency_applied_since.errors.0 }}</div>{% endif %}
+                    </div>
                 </div>
                 <div>
-                    <label for="{{ form.complexity.id_for_label }}" class="field-label">{{ form.complexity.label }} {% if form.complexity.field.required %}*{% endif %}</label>
-                    {{ form.complexity }}
-                    {% if form.complexity.errors %}<div class="form-field-error">{{ form.complexity.errors.0 }}</div>{% endif %}
-                </div>
-                <div>
-                    <label for="{{ form.preferred_care_form.id_for_label }}" class="field-label">{{ form.preferred_care_form.label }} {% if form.preferred_care_form.field.required %}*{% endif %}</label>
-                    {{ form.preferred_care_form }}
+                    <label for="{{ form.preferred_care_form.id_for_label }}" class="ds-detail-label field-label">{{ form.preferred_care_form.label }} {% if form.preferred_care_form.field.required %}*{% endif %}</label>
+                    <p class="text-xs text-gray-600 mb-2">Kies 1 zorgvorm</p>
+                    <div class="grid gap-2">
+                        {% for choice in form.preferred_care_form.field.choices %}
+                        <label class="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700">
+                            <input
+                                type="checkbox"
+                                class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                data-care-form-choice
+                                value="{{ choice.0 }}"
+                                {% if form.preferred_care_form.value == choice.0 %}checked{% endif %}
+                            >
+                            <span>{{ choice.1 }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <div class="ds-i-1tei6ul ds-hidden">
+                        {{ form.preferred_care_form }}
+                    </div>
                     {% if form.preferred_care_form.errors %}<div class="form-field-error">{{ form.preferred_care_form.errors.0 }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="ds-detail-grid-2 form-grid-2">
+                <div>
+                    <label for="{{ form.preferred_region_type.id_for_label }}" class="ds-detail-label field-label">{{ form.preferred_region_type.label }}</label>
+                    {{ form.preferred_region_type }}
+                    {% if form.preferred_region_type.errors %}<div class="form-field-error">{{ form.preferred_region_type.errors.0 }}</div>{% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.preferred_region.id_for_label }}" class="ds-detail-label field-label">{{ form.preferred_region.label }}</label>
+                    {{ form.preferred_region }}
+                    {% if form.preferred_region.errors %}<div class="form-field-error">{{ form.preferred_region.errors.0 }}</div>{% endif %}
                 </div>
             </div>
         </section>
 
-        <section class="ds-card action-card field-group workflow-matching">
-            <div class="form-section-head">
-                <div class="form-section-number">4</div>
+        <section class="ds-detail-card ds-detail-card field-group workflow-matching">
+            <div class="ds-detail-card-head">
+                <div class="form-section-number">5</div>
                 <div>
-                    <div class="form-section-title">Cliëntprofiel</div>
-                    <div class="form-section-desc">Leeftijdscategorie, gezinssituatie, regie en aanvullende context</div>
+                    <div class="ds-detail-card-title">Cliëntprofiel</div>
                 </div>
             </div>
-            <div class="form-grid-2">
+            <div class="ds-detail-grid-2 form-grid-2">
                 <div>
-                    <label for="{{ form.client_age_category.id_for_label }}" class="field-label">{{ form.client_age_category.label }}</label>
+                    <label for="{{ form.client_age_category.id_for_label }}" class="ds-detail-label field-label">{{ form.client_age_category.label }}</label>
                     {{ form.client_age_category }}
                     {% if form.client_age_category.errors %}<div class="form-field-error">{{ form.client_age_category.errors.0 }}</div>{% endif %}
                 </div>
                 <div>
-                    <label for="{{ form.family_situation.id_for_label }}" class="field-label">{{ form.family_situation.label }}</label>
+                    <label for="{{ form.family_situation.id_for_label }}" class="ds-detail-label field-label">{{ form.family_situation.label }}</label>
                     {{ form.family_situation }}
                     {% if form.family_situation.errors %}<div class="form-field-error">{{ form.family_situation.errors.0 }}</div>{% endif %}
                 </div>
             </div>
             <div>
-                <label for="{{ form.case_coordinator.id_for_label }}" class="field-label">{{ form.case_coordinator.label }}</label>
+                <label for="{{ form.case_coordinator.id_for_label }}" class="ds-detail-label field-label">{{ form.case_coordinator.label }}</label>
                 {{ form.case_coordinator }}
                 {% if form.case_coordinator.errors %}<div class="form-field-error">{{ form.case_coordinator.errors.0 }}</div>{% endif %}
             </div>
             <div>
-                <label for="{{ form.school_work_status.id_for_label }}" class="field-label">{{ form.school_work_status.label }}</label>
+                <label for="{{ form.school_work_status.id_for_label }}" class="ds-detail-label field-label">{{ form.school_work_status.label }}</label>
                 {{ form.school_work_status }}
                 {% if form.school_work_status.errors %}<div class="form-field-error">{{ form.school_work_status.errors.0 }}</div>{% endif %}
             </div>
             <div>
-                <label for="{{ form.description.id_for_label }}" class="field-label">{{ form.description.label }}</label>
+                <label for="{{ form.description.id_for_label }}" class="ds-detail-label field-label">{{ form.description.label }}</label>
                 {{ form.description }}
                 {% if form.description.errors %}<div class="form-field-error">{{ form.description.errors.0 }}</div>{% endif %}
             </div>
         </section>
 
-        <div class="ds-card feed-card form-actions">
+        <div class="ds-card feed-card form-actions ds-list-actions">
             <a href="{% url 'careon:case_list' %}" class="btn btn-secondary">Annuleren</a>
             <button type="submit" class="btn btn-primary">{{ button_text|default:"Casus opslaan" }}</button>
         </div>
     </form>
 </div>
+
+<script>
+    (function() {
+        var checkbox = document.getElementById('{{ form.urgency_applied.id_for_label }}');
+        var sinceWrap = document.getElementById('urgency-applied-since-wrap');
+        var careFormSelect = document.getElementById('{{ form.preferred_care_form.id_for_label }}');
+        var careFormChoices = document.querySelectorAll('[data-care-form-choice]');
+        if (!checkbox || !sinceWrap) {
+            return;
+        }
+
+        function syncUrgencyAppliedDateVisibility() {
+            sinceWrap.classList.toggle('ds-hidden', !checkbox.checked);
+        }
+
+        checkbox.addEventListener('change', syncUrgencyAppliedDateVisibility);
+        syncUrgencyAppliedDateVisibility();
+
+        if (careFormSelect && careFormChoices.length) {
+            careFormChoices.forEach(function(choice) {
+                choice.addEventListener('change', function() {
+                    if (choice.checked) {
+                        careFormChoices.forEach(function(other) {
+                            if (other !== choice) {
+                                other.checked = false;
+                            }
+                        });
+                        careFormSelect.value = choice.value;
+                    } else {
+                        careFormSelect.value = '';
+                    }
+                });
+            });
+        }
+    })();
+</script>
 
 {% endblock %}

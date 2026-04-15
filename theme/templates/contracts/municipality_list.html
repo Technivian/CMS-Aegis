@@ -1,35 +1,34 @@
 {% extends "base.html" %}
 {% block title %}Gemeenten - Zorgregie{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
-    <div class="page-header">
+<div class="ds-list-shell">
+    <div class="ds-list-header">
         <div>
             <h1 class="page-title">Gemeenten</h1>
-            <p class="page-subtitle">{{ total_municipalities }} totaal &middot; {{ active_municipalities }} actief</p>
-        </div>
+            </div>
         <div class="page-actions">
             <a href="{% url 'careon:municipality_create' %}" class="btn btn-primary">Nieuwe gemeente</a>
         </div>
     </div>
 
-    <div class="municipality-kpi-grid">
-        <div class="ds-card municipality-kpi-card">
-            <div class="kpi-label">Totaal</div>
+    <div class="ds-list-kpi-grid">
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Totaal</div>
             <div class="kpi-value">{{ total_municipalities }}</div>
         </div>
-        <div class="ds-card municipality-kpi-card">
-            <div class="kpi-label">Actief</div>
-            <div class="kpi-value tone-good">{{ active_municipalities }}</div>
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Actief</div>
+            <div class="ds-list-kpi-value tone-good">{{ active_municipalities }}</div>
         </div>
     </div>
 
-    <form method="get" class="ds-card action-card form-grid-3">
+    <form method="get" class="ds-list-filters">
         <div>
-            <label for="municipality-q" class="field-label">Zoeken</label>
+            <label for="municipality-q" class="ds-list-filter-label">Zoeken</label>
             <input id="municipality-q" type="search" name="q" value="{{ search_query }}" placeholder="Zoek gemeenten...">
         </div>
         <div>
-            <label for="municipality-status" class="field-label">Status</label>
+            <label for="municipality-status" class="ds-list-filter-label">Status</label>
             <select id="municipality-status" name="status" onchange="this.form.submit()">
                 <option value="">Alle statussen</option>
                 <option value="ACTIVE" {% if request.GET.status == 'ACTIVE' %}selected{% endif %}>Actief</option>
@@ -40,7 +39,7 @@
         <button type="submit" class="btn btn-secondary">Zoeken</button>
     </form>
 
-    <div class="ds-card table-card">
+    <div class="ds-list-table">
         <div class="ds-table-wrap">
             <table class="ds-table">
                 <thead>
@@ -67,13 +66,13 @@
                             </span>
                         </td>
                         <td>{{ municipality.responsible_coordinator.get_full_name|default:"—" }}</td>
-                        <td class="td-right"><a href="{% url 'careon:municipality_update' municipality.pk %}" class="btn btn-ghost" style="min-height:34px;">Bewerken</a></td>
+                        <td class="td-right"><a href="{% url 'careon:municipality_update' municipality.pk %}" class="btn btn-ghost ds-i-okgsyj">Wijzigen</a></td>
                     </tr>
                     {% empty %}
                     <tr>
                         <td colspan="7" class="td-empty">
                             U hebt nog geen gemeenten ingesteld.
-                            <div style="margin-top:10px;"><a href="{% url 'careon:municipality_create' %}" class="btn btn-primary">Voeg eerste gemeente toe</a></div>
+                            <div class="ds-i-1tei6ul"><a href="{% url 'careon:municipality_create' %}" class="btn btn-primary">Voeg eerste gemeente toe</a></div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -83,52 +82,22 @@
     </div>
 
     {% if is_paginated %}
-    <div class="ds-card feed-card feed-row">
+    <div class="ds-list-pagination">
         <span class="c-secondary">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
         <div class="feed-actions">
             {% if page_obj.has_previous %}
-            <a href="?page=1" class="btn btn-secondary" style="min-height:36px;">Eerste</a>
-            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary" style="min-height:36px;">Vorige</a>
+            <a href="?page=1" class="btn btn-secondary ds-i-alf985">Eerste</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary ds-i-alf985">Vorige</a>
             {% endif %}
             {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary" style="min-height:36px;">Volgende</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-secondary" style="min-height:36px;">Laatste</a>
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary ds-i-alf985">Volgende</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-secondary ds-i-alf985">Laatste</a>
             {% endif %}
         </div>
     </div>
     {% endif %}
 </div>
 
-<style>
-    .municipality-kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: var(--card-gap);
-    }
-    .municipality-kpi-card { padding: 14px 16px; }
-    .kpi-label {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--text-secondary);
-        font-weight: 700;
-    }
-    .kpi-value {
-        margin-top: 8px;
-        font-size: 30px;
-        line-height: 1;
-        font-weight: 800;
-        color: var(--text-primary);
-    }
-    .tone-good { color: #86efac; }
-    .td-empty {
-        text-align: center;
-        padding: 28px 16px;
-        color: var(--text-secondary);
-    }
-    @media (max-width: 740px) {
-        .municipality-kpi-grid { grid-template-columns: 1fr; }
-    }
-</style>
+
 
 {% endblock %}

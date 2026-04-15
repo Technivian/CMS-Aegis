@@ -1,39 +1,39 @@
 {% extends "base.html" %}
 {% block title %}Signalen - Zorgregie{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
-    <div class="page-header">
+<div class="ds-list-shell">
+    <div class="ds-list-header">
         <div>
             <h1 class="page-title">Signalen</h1>
-            <p class="page-subtitle">{{ total_count }} totaal &middot; {{ open_count }} open &middot; {{ critical_count }} kritisch</p>
+            <p class="ds-note-text">Cross-case monitor voor signalering. Behandeling en statusupdates verlopen vanuit de casuswerkruimte.</p>
         </div>
         <div class="page-actions">
-            <a href="{% url 'careon:signal_create' %}" class="btn btn-primary">Nieuw signaal</a>
+            <a href="{% url 'careon:case_list' %}" class="btn btn-primary">Open casussen</a>
         </div>
     </div>
 
-    <div class="signal-kpi-grid">
-        <div class="ds-card signal-kpi-card">
-            <div class="kpi-label">Totaal</div>
-            <div class="kpi-value">{{ total_count }}</div>
+    <div class="ds-list-kpi-grid">
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Totaal</div>
+            <div class="ds-list-kpi-value">{{ total_count }}</div>
         </div>
-        <div class="ds-card signal-kpi-card">
-            <div class="kpi-label">Open</div>
-            <div class="kpi-value tone-warning">{{ open_count }}</div>
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Open</div>
+            <div class="ds-list-kpi-value tone-warning">{{ open_count }}</div>
         </div>
-        <div class="ds-card signal-kpi-card">
-            <div class="kpi-label">Kritisch</div>
-            <div class="kpi-value tone-critical">{{ critical_count }}</div>
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Kritisch</div>
+            <div class="ds-list-kpi-value tone-critical">{{ critical_count }}</div>
         </div>
     </div>
 
-    <form method="get" class="ds-card action-card form-grid-4">
+    <form method="get" class="ds-list-filters">
         <div>
-            <label for="signal-q" class="field-label">Zoeken</label>
+            <label for="signal-q" class="ds-list-filter-label">Zoeken</label>
             <input id="signal-q" type="text" name="q" value="{{ search_query }}" placeholder="Zoek op casus, beschrijving...">
         </div>
         <div>
-            <label for="signal-status" class="field-label">Status</label>
+            <label for="signal-status" class="ds-list-filter-label">Status</label>
             <select id="signal-status" name="status" onchange="this.form.submit()">
                 <option value="">Alle statussen</option>
                 {% for val, label in status_choices %}
@@ -42,7 +42,7 @@
             </select>
         </div>
         <div>
-            <label for="signal-risk" class="field-label">Niveau</label>
+            <label for="signal-risk" class="ds-list-filter-label">Niveau</label>
             <select id="signal-risk" name="risk_level" onchange="this.form.submit()">
                 <option value="">Alle niveaus</option>
                 {% for val, label in risk_level_choices %}
@@ -53,7 +53,7 @@
         <button type="submit" class="btn btn-secondary">Zoeken</button>
     </form>
 
-    <div class="ds-card table-card">
+    <div class="ds-list-table">
         <div class="ds-table-wrap">
             <table class="ds-table">
                 <thead>
@@ -68,31 +68,36 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for signal in signals %}
+                    {% for row in signal_rows %}
                     <tr>
-                        <td><a href="{% url 'careon:signal_detail' signal.pk %}">{% if signal.title %}{{ signal.title }}{% else %}{{ signal.get_signal_type_display }}{% endif %}</a></td>
+                        <td><a href="{% url 'careon:signal_detail' row.signal.pk %}">{% if row.signal.title %}{{ row.signal.title }}{% else %}{{ row.signal.get_signal_type_display }}{% endif %}</a></td>
                         <td>
-                            {% if signal.intake %}
-                            <a href="{% url 'careon:case_detail' signal.intake.pk %}">{{ signal.intake.title }}</a>
+                            {% if row.signal.intake %}
+                            <a href="{% url 'careon:case_detail' row.signal.intake.pk %}?tab=signalen">{{ row.signal.intake.title }}</a>
                             {% else %}—{% endif %}
                         </td>
-                        <td>{{ signal.get_signal_type_display }}</td>
+                        <td>{{ row.signal.get_signal_type_display }}</td>
                         <td>
-                            <span class="ds-badge {% if signal.risk_level == 'CRITICAL' %}badge-critical{% elif signal.risk_level == 'HIGH' %}badge-high{% elif signal.risk_level == 'MEDIUM' %}badge-medium{% else %}badge-low{% endif %}">
-                                {{ signal.get_risk_level_display }}
+                            <span class="ds-badge {% if row.signal.risk_level == 'CRITICAL' %}badge-critical{% elif row.signal.risk_level == 'HIGH' %}badge-high{% elif row.signal.risk_level == 'MEDIUM' %}badge-medium{% else %}badge-low{% endif %}">
+                                {{ row.signal.get_risk_level_display }}
                             </span>
                         </td>
                         <td>
-                            <span class="ds-badge {% if signal.status == 'OPEN' %}badge-medium{% elif signal.status == 'IN_PROGRESS' %}badge-blue{% else %}badge-capacity-open{% endif %}">
-                                {{ signal.get_status_display }}
+                            <span class="ds-badge {% if row.signal.status == 'OPEN' %}badge-medium{% elif row.signal.status == 'IN_PROGRESS' %}badge-blue{% else %}badge-capacity-open{% endif %}">
+                                {{ row.signal.get_status_display }}
                             </span>
                         </td>
-                        <td>{{ signal.assigned_to.get_full_name|default:"—" }}</td>
+                        <td>{{ row.signal.assigned_to.get_full_name|default:"—" }}</td>
                         <td class="td-right">
-                            {% if signal.pk in editable_signal_ids %}
-                            <a href="{% url 'careon:signal_update' signal.pk %}" class="btn btn-ghost" style="min-height:34px;">Bewerken</a>
+                            {% if row.case_href %}
+                            <a href="{{ row.case_href }}" class="btn btn-ghost ds-i-okgsyj">Open casus</a>
+                            {% elif not row.case_href and not row.can_edit %}
+                            <span class="c-secondary ds-i-fcjutf">Alleen-lezen</span>
                             {% else %}
-                            <span class="c-secondary" style="font-size:11px;">Alleen-lezen</span>
+                            <span class="c-secondary ds-i-fcjutf">Inspectie</span>
+                            {% endif %}
+                            {% if row.case_href and not row.can_edit %}
+                            <span class="c-secondary ds-i-fcjutf">Alleen-lezen</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -100,7 +105,7 @@
                     <tr>
                         <td colspan="7" class="td-empty">
                             Geen signalen gevonden.
-                            <div style="margin-top:10px;"><a href="{% url 'careon:signal_create' %}" class="btn btn-primary">Voeg eerste signaal toe</a></div>
+                            <div class="ds-i-1tei6ul"><a href="{% url 'careon:case_list' %}" class="btn btn-primary">Open casussen</a></div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -110,35 +115,20 @@
     </div>
 
     {% if is_paginated %}
-    <div class="ds-card feed-card feed-row">
+    <div class="ds-list-pagination">
         <span class="c-secondary">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
         <div class="feed-actions">
             {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary" style="min-height:36px;">Vorige</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary ds-i-alf985">Vorige</a>
             {% endif %}
             {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary" style="min-height:36px;">Volgende</a>
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary ds-i-alf985">Volgende</a>
             {% endif %}
         </div>
     </div>
     {% endif %}
 </div>
 
-<style>
-    .signal-kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: var(--card-gap);
-    }
-    .signal-kpi-card { padding: 14px 16px; }
-    .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); font-weight: 700; }
-    .kpi-value { margin-top: 8px; font-size: 30px; line-height: 1; font-weight: 800; color: var(--text-primary); }
-    .tone-critical { color: #fca5a5; }
-    .tone-warning { color: #fcd34d; }
-    .td-empty { text-align: center; padding: 28px 16px; color: var(--text-secondary); }
-    @media (max-width: 920px) {
-        .signal-kpi-grid { grid-template-columns: 1fr; }
-    }
-</style>
+
 
 {% endblock %}

@@ -1,35 +1,34 @@
 {% extends "base.html" %}
 {% block title %}Aanbieders - Careon{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
-    <div class="page-header">
+<div class="ds-list-shell">
+    <div class="ds-list-header">
         <div>
             <h1 class="page-title">Zorgaanbieders</h1>
-            <p class="page-subtitle">{{ total_clients }} totaal &middot; {{ active_clients }} actief</p>
-        </div>
+            </div>
         <div class="page-actions">
             <a href="{% url 'careon:client_create' %}" class="btn btn-primary">Nieuwe aanbieder</a>
         </div>
     </div>
 
-    <div class="client-kpi-grid">
-        <div class="ds-card client-kpi-card">
-            <div class="kpi-label">Totaal</div>
-            <div class="kpi-value">{{ total_clients }}</div>
+    <div class="ds-list-kpi-grid">
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Totaal</div>
+            <div class="ds-list-kpi-value">{{ total_clients }}</div>
         </div>
-        <div class="ds-card client-kpi-card">
-            <div class="kpi-label">Actief</div>
-            <div class="kpi-value tone-good">{{ active_clients }}</div>
+        <div class="ds-list-kpi-card">
+            <div class="ds-list-kpi-label">Actief</div>
+            <div class="ds-list-kpi-value tone-good">{{ active_clients }}</div>
         </div>
     </div>
 
-    <form method="get" class="ds-card action-card client-filter-grid">
+    <form method="get" class="ds-list-filters">
         <div>
-            <label for="provider-q" class="field-label">Zoeken</label>
+            <label for="provider-q" class="ds-list-filter-label">Zoeken</label>
             <input id="provider-q" type="search" name="q" value="{{ search_query }}" placeholder="Zoek op aanbieder, contact of sector...">
         </div>
         <div>
-            <label for="provider-status" class="field-label">Beschikbaarheid</label>
+            <label for="provider-status" class="ds-list-filter-label">Beschikbaarheid</label>
             <select id="provider-status" name="status" onchange="this.form.submit()">
                 <option value="">Alle statussen</option>
                 <option value="ACTIVE" {% if request.GET.status == 'ACTIVE' %}selected{% endif %}>Beschikbaar</option>
@@ -37,10 +36,28 @@
                 <option value="PROSPECTIVE" {% if request.GET.status == 'PROSPECTIVE' %}selected{% endif %}>Beperkt</option>
             </select>
         </div>
+        <div>
+            <label for="provider-region-type" class="ds-list-filter-label">Regiotype</label>
+            <select id="provider-region-type" name="region_type" onchange="this.form.submit()">
+                <option value="">Alle typen</option>
+                {% for value, label in region_type_choices %}
+                <option value="{{ value }}" {% if selected_region_type == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="provider-region" class="ds-list-filter-label">Regio</label>
+            <select id="provider-region" name="region" onchange="this.form.submit()">
+                <option value="">Alle regio's</option>
+                {% for region in region_choices %}
+                <option value="{{ region.pk }}" {% if selected_region == region.pk|stringformat:"s" %}selected{% endif %}>{{ region.region_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
         <button type="submit" class="btn btn-secondary">Filter</button>
     </form>
 
-    <div class="ds-card table-card">
+    <div class="ds-list-table">
         <div class="ds-table-wrap">
             <table class="ds-table">
                 <thead>
@@ -49,8 +66,9 @@
                         <th>Type</th>
                         <th>Beschikbaarheid</th>
                         <th>Sector</th>
+                        <th>Regio's</th>
                         <th>Contact</th>
-                        <th style="text-align:right;">Acties</th>
+                        <th class="ds-i-58t0wj">Acties</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -64,15 +82,31 @@
                             </span>
                         </td>
                         <td>{{ client.industry|default:"—" }}</td>
+                        <td>
+                            {% if client.provider_profile %}
+                                {% with regions=client.provider_profile.served_regions.all %}
+                                {% if regions %}
+                                {% for region in client.provider_profile.served_regions.all|slice:":2" %}
+                                    {{ region.region_name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                                {% if regions|length > 2 %}...{% endif %}
+                                {% else %}
+                                —
+                                {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
                         <td>{{ client.email|default:"—" }}</td>
-                        <td class="td-right"><a href="{% url 'careon:client_update' client.pk %}" class="btn btn-ghost" style="min-height:36px;">Bewerken</a></td>
+                        <td class="td-right"><a href="{% url 'careon:client_update' client.pk %}" class="btn btn-ghost ds-i-alf985">Wijzigen</a></td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="td-empty">
+                        <td colspan="7" class="td-empty">
                             <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             Geen aanbieders gevonden.
-                            <div style="margin-top:10px;"><a href="{% url 'careon:client_create' %}" class="btn btn-primary">Aanbieder toevoegen</a></div>
+                            <div class="ds-i-1tei6ul"><a href="{% url 'careon:client_create' %}" class="btn btn-primary">Aanbieder toevoegen</a></div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -82,52 +116,15 @@
     </div>
 
     {% if is_paginated %}
-    <div class="ds-card feed-card feed-row">
+    <div class="ds-list-pagination">
         <span class="c-secondary">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
         <div class="feed-actions">
-            {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary" style="min-height:36px;">Vorige</a>{% endif %}
-            {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary" style="min-height:36px;">Volgende</a>{% endif %}
+            {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary ds-i-alf985">Vorige</a>{% endif %}
+            {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary ds-i-alf985">Volgende</a>{% endif %}
         </div>
     </div>
     {% endif %}
 </div>
 
-<style>
-    .client-kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: var(--card-gap);
-    }
-    .client-kpi-card { padding: 14px 16px; }
-    .kpi-label {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--text-secondary);
-        font-weight: 700;
-    }
-    .kpi-value {
-        margin-top: 8px;
-        font-size: 30px;
-        line-height: 1;
-        font-weight: 800;
-        color: var(--text-primary);
-    }
-    .tone-good { color: #86efac; }
-    .client-filter-grid {
-        display: grid;
-        grid-template-columns: 2fr 1fr auto;
-        gap: 12px;
-        align-items: end;
-    }
-    .td-empty {
-        text-align: center;
-        padding: 28px 16px;
-        color: var(--text-secondary);
-    }
-    @media (max-width: 980px) {
-        .client-kpi-grid { grid-template-columns: 1fr; }
-        .client-filter-grid { grid-template-columns: 1fr; }
-    }
-</style>
+
 {% endblock %}

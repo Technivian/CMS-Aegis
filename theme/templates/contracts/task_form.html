@@ -7,47 +7,47 @@
 {% endblock %}
 
 {% block content %}
-<div class="page-wrap page-stack">
-    <div class="page-header">
-        <h1 class="page-title">{% if form.instance.pk %}Taak bewerken{% else %}Nieuwe taak{% endif %}</h1>
+<div class="ds-detail-shell">
+    <div class="ds-detail-header">
+        <h1 class="page-title ds-section-title">{% if form.instance.pk %}Taak bewerken{% else %}Nieuwe taak{% endif %}</h1>
     </div>
-    <form method="post" class="ds-card action-card page-stack">
+    <form method="post" class="ds-detail-card ds-detail-card-inner">
         {% csrf_token %}
-        <div class="form-grid-2">
-            <div style="grid-column:1/-1">
-                <label for="{{ form.title.id_for_label }}" class="field-label">Titel</label>
+        <div class="ds-detail-grid-2 form-grid-2">
+            <div class="ds-i-ozql2z">
+                <label for="{{ form.title.id_for_label }}" class="ds-detail-label field-label">Titel</label>
                 {{ form.title }}
             </div>
-            <div>
-                <label for="{{ form.task_type.id_for_label }}" class="field-label">Taaktype</label>
+            <div class="ds-detail-row">
+                <label for="{{ form.task_type.id_for_label }}" class="ds-detail-label field-label">Taaktype</label>
                 {{ form.task_type }}
             </div>
-            <div>
-                <label for="{{ form.priority.id_for_label }}" class="field-label">Prioriteit</label>
+            <div class="ds-detail-row">
+                <label for="{{ form.priority.id_for_label }}" class="ds-detail-label field-label">Prioriteit</label>
                 {{ form.priority }}
             </div>
-            <div style="grid-column:1/-1">
-                <label for="{{ form.subject.id_for_label }}" class="field-label">Onderwerp / Omschrijving</label>
+            <div class="ds-i-ozql2z">
+                <label for="{{ form.subject.id_for_label }}" class="ds-detail-label field-label">Onderwerp / Omschrijving</label>
                 {{ form.subject }}
             </div>
-            <div>
-                <label for="{{ form.assigned_to.id_for_label }}" class="field-label">Toegewezen aan</label>
+            <div class="ds-detail-row">
+                <label for="{{ form.assigned_to.id_for_label }}" class="ds-detail-label field-label">Toegewezen aan</label>
                 {{ form.assigned_to }}
             </div>
-            <div>
-                <label for="{{ form.due_date.id_for_label }}" class="field-label">Vervaldatum</label>
+            <div class="ds-detail-row">
+                <label for="{{ form.due_date.id_for_label }}" class="ds-detail-label field-label">Vervaldatum</label>
                 {{ form.due_date }}
             </div>
             <div>
-                <label for="{{ form.status.id_for_label }}" class="field-label">Taakstatus</label>
+                <label for="{{ form.status.id_for_label }}" class="ds-detail-label field-label">Taakstatus</label>
                 {{ form.status }}
             </div>
-            <div style="display:flex;align-items:center;gap:8px;padding-top:24px;">
+            <div class="ds-i-atapg0">
                 {{ form.is_recurring }}
-                <label for="{{ form.is_recurring.id_for_label }}" class="field-label" style="margin-bottom:0;">Is dit een terugkerende taak?</label>
+                <label for="{{ form.is_recurring.id_for_label }}" class="field-label ds-i-19gmeoo">Is dit een terugkerende taak?</label>
             </div>
         </div>
-        <div class="form-actions">
+        <div class="ds-list-actions">
             <button type="submit" class="btn btn-primary">Taak opslaan</button>
             <a href="{% url 'careon:task_list' %}" class="btn btn-secondary">Annuleren</a>
         </div>

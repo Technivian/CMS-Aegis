@@ -1,42 +1,40 @@
 {% extends "base.html" %}
 {% block title %}{% if is_edit %}Plaatsing bewerken{% else %}Nieuwe plaatsing{% endif %} - Zorgregie{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
+<div class="ds-detail-shell">
 
-<nav class="mb-4" style="font-size: 13px; color: var(--text-secondary);">
-    <a href="{% url 'dashboard' %}" style="color: var(--text-muted); text-decoration: none;">Dashboard</a>
-    <span class="mx-2">/</span>
-    <a href="{% url 'careon:placement_list' %}" style="color: var(--text-muted); text-decoration: none;">Plaatsingen</a>
+<nav class="mb-4 ds-i-10k60uh">
+    <a class="ds-i-r3c69b" href="{% url 'dashboard' %}">Regiekamer</a>
+    <span class="mx-2 ds-muted-label">/</span>
+    <a class="ds-i-r3c69b" href="{% url 'careon:placement_list' %}">Plaatsingen</a>
     {% if is_edit %}
-    <span class="mx-2">/</span>
-    <a href="{% url 'careon:placement_detail' object.pk %}" style="color: var(--text-muted); text-decoration: none;">
+    <span class="mx-2 ds-muted-label">/</span>
+    <a class="ds-i-r3c69b" href="{% url 'careon:placement_detail' object.pk %}">
         {% if object.intake %}{{ object.intake.title }}{% else %}Plaatsing #{{ object.pk }}{% endif %}
     </a>
     {% endif %}
-    <span class="mx-2">/</span>
-    <span style="color: var(--primary);">{% if is_edit %}Bewerken{% else %}Nieuw{% endif %}</span>
+    <span class="mx-2 ds-muted-label">/</span>
+    <span class="ds-i-19irvnf">{% if is_edit %}Wijzigen{% else %}Nieuw{% endif %}</span>
 </nav>
 
-<h1 class="page-title mb-6">{{ page_title }}</h1>
+<h1 class="page-title ds-section-title">{{ page_title }}</h1>
 
 {% if intake %}
-<div class="mb-4 px-4 py-3 rounded-lg text-sm" style="background: var(--bg-soft); color: var(--text-muted);">
+<div class="mb-4 px-4 py-3 rounded-lg text-sm ds-i-lilo15">
     Plaatsing voor casus: <strong>{{ intake.title }}</strong>
 </div>
 {% endif %}
 
-<div class="panel">
-    <div class="panel-head">
-        <div class="panel-head-inner">
-            <h2 class="panel-title">Plaatsingsgegevens</h2>
-        </div>
+<div class="ds-detail-card">
+    <div class="ds-detail-card-head">
+        <h2 class="ds-detail-card-title">Plaatsingsgegevens</h2>
     </div>
-    <div class="panel-inner">
-        <form method="post" novalidate>
+    <div class="ds-detail-card-inner">
+        <form method="post" class="ds-detail-sections" novalidate>
             {% csrf_token %}
             {% for field in form %}
-            <div class="mb-5">
-                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            <div class="mb-5 ds-detail-row">
+                <label for="{{ field.id_for_label }}" class="field-label ds-detail-label">
                     {{ field.label }}{% if field.field.required %} <span class="text-red-500">*</span>{% endif %}
                 </label>
                 {{ field }}
@@ -51,13 +49,17 @@
             </div>
             {% endfor %}
             {% if form.non_field_errors %}
-            <div class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200">
+            <div class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 ds-detail-card">
                 {% for error in form.non_field_errors %}<p class="text-xs text-red-600">{{ error }}</p>{% endfor %}
             </div>
             {% endif %}
-            <div class="form-actions">
+            <div class="ds-list-actions">
                 <button type="submit" class="btn btn-primary">{% if is_edit %}Wijzigingen opslaan{% else %}Aanmaken{% endif %}</button>
+                {% if intake %}
+                <a href="{% url 'careon:case_detail' intake.pk %}?tab=plaatsing" class="btn btn-secondary">Annuleren</a>
+                {% else %}
                 <a href="{% url 'careon:placement_list' %}" class="btn btn-secondary">Annuleren</a>
+                {% endif %}
             </div>
         </form>
     </div>

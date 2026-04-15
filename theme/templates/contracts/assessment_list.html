@@ -1,95 +1,99 @@
 {% extends "base.html" %}
 {% block title %}Beoordelingen - Careon{% endblock %}
 {% block content %}
-<div class="page-wrap page-stack">
-    <div class="page-header">
-        <div>
+<div class="ds-list-shell">
+    <div class="ds-list-header ds-page-header">
+        <div class="ds-list-header">
             <h1 class="page-title">Beoordelingen</h1>
-            <p class="page-subtitle">{{ total_assessments }} totaal &middot; {{ pending_assessments }} in behandeling &middot; {{ ready_for_matching }} gereed voor matching</p>
+            <p class="ds-header-meta">
+                <span>{{ total_assessments }} totaal</span>
+                <span>{{ pending_assessments }} in behandeling</span>
+                <span>{{ ready_for_matching }} gereed voor matching</span>
+            </p>
         </div>
-        <div class="page-actions">
-            <a href="{% url 'careon:assessment_create' %}" class="btn btn-primary">Nieuwe beoordeling</a>
-        </div>
+        <a href="{% url 'careon:assessment_create' %}" class="btn btn-primary">Nieuwe beoordeling</a>
     </div>
 
-    <form method="get" class="ds-card action-card form-grid-3">
-        <div>
-            <label for="assessment-q" class="field-label">Zoeken</label>
-            <input id="assessment-q" type="search" name="q" value="{{ search_query }}" placeholder="Zoek op casus...">
-        </div>
-        <div>
-            <label for="assessment-status" class="field-label">Status</label>
-            <select id="assessment-status" name="status" onchange="this.form.submit()">
-                <option value="">Alle statussen</option>
-                {% for choice_id, choice_label in status_choices %}
-                    <option value="{{ choice_id }}" {% if request.GET.status == choice_id %}selected{% endif %}>{{ choice_label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <button type="submit" class="btn btn-secondary">Filter</button>
-    </form>
+    <div class="ds-list-filters">
+        <form method="get" class="ds-list-filter-row">
+            <div class="ds-list-filter-group">
+                <label for="assessment-q" class="ds-list-filter-label">Zoeken</label>
+                <input id="assessment-q" type="search" name="q" value="{{ search_query }}" placeholder="Zoek op casus...">
+            </div>
+            <div class="ds-list-filter-group">
+                <label for="assessment-status" class="ds-list-filter-label">Status</label>
+                <select id="assessment-status" name="status" onchange="this.form.submit()">
+                    <option value="">Alle statussen</option>
+                    {% for choice_id, choice_label in status_choices %}
+                        <option value="{{ choice_id }}" {% if request.GET.status == choice_id %}selected{% endif %}>{{ choice_label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-secondary ds-btn-compact">Filter</button>
+        </form>
+    </div>
 
     {% if assessments %}
-    <div class="ds-card table-card">
-        <div class="ds-table-wrap">
-            <table class="ds-table">
-                <thead>
-                    <tr>
-                        <th>Casus</th>
-                        <th>Status</th>
-                        <th>Beoordelaar</th>
-                        <th>Gewijzigd</th>
-                        <th style="text-align:right;">Acties</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for assessment in assessments %}
-                    <tr>
-                        <td>
-                            <a href="{% url 'careon:assessment_detail' assessment.pk %}">{{ assessment.intake.title }}</a>
-                        </td>
-                        <td>
-                            <span class="ds-badge
-                                {% if assessment.assessment_status == 'APPROVED_FOR_MATCHING' %}badge-low
-                                {% elif assessment.assessment_status == 'DRAFT' %}badge-high
-                                {% else %}badge-medium{% endif %}">
-                                {{ assessment.get_assessment_status_display }}
-                            </span>
-                        </td>
-                        <td>{{ assessment.assessed_by.get_full_name|default:"—" }}</td>
-                        <td>{{ assessment.updated_at|date:"d-m-Y H:i" }}</td>
-                        <td style="text-align:right;">
-                            <a href="{% url 'careon:assessment_detail' assessment.pk %}" class="btn btn-ghost" style="min-height:36px;">Bekijken</a>
-                            <a href="{% url 'careon:assessment_update' assessment.pk %}" class="btn btn-ghost" style="min-height:36px;">Bewerken</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <table class="ds-list-table">
+        <thead>
+            <tr>
+                <th>Casus</th>
+                <th>Status</th>
+                <th>Beoordelaar</th>
+                <th>Gewijzigd</th>
+                <th class="ds-cell-right">Acties</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for assessment in assessments %}
+            <tr>
+                <td>
+                    <a href="{% url 'careon:assessment_detail' assessment.pk %}" class="ds-link">{{ assessment.intake.title }}</a>
+                </td>
+                <td>
+                    <span class="ds-badge
+                        {% if assessment.assessment_status == 'APPROVED_FOR_MATCHING' %}badge-low
+                        {% elif assessment.assessment_status == 'DRAFT' %}badge-high
+                        {% else %}badge-medium{% endif %}">
+                        {{ assessment.get_assessment_status_display }}
+                    </span>
+                </td>
+                <td>{{ assessment.assessed_by.get_full_name|default:"—" }}</td>
+                <td>{{ assessment.updated_at|date:"d-m-Y H:i" }}</td>
+                <td class="ds-cell-right">
+                    <div class="ds-list-row-actions">
+                        <a href="{% url 'careon:assessment_detail' assessment.pk %}" class="ds-list-row-action-btn">Bekijken</a>
+                        <a href="{% url 'careon:assessment_update' assessment.pk %}" class="ds-list-row-action-btn">Bewerken</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
     {% if is_paginated %}
-    <div class="ds-card feed-card feed-row">
-        <span class="c-secondary">Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
-        <div class="feed-actions">
+    <div class="ds-list-pagination">
+        <span>Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}</span>
+        <div class="ds-list-pagination-buttons">
             {% if page_obj.has_previous %}
-            <a href="?page=1" class="btn btn-secondary" style="min-height:36px;">Eerste</a>
-            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary" style="min-height:36px;">Vorige</a>
+            <a href="?page=1" class="ds-list-pagination-btn">Eerste</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="ds-list-pagination-btn">Vorige</a>
             {% endif %}
             {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary" style="min-height:36px;">Volgende</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-secondary" style="min-height:36px;">Laatste</a>
+            <a href="?page={{ page_obj.next_page_number }}" class="ds-list-pagination-btn">Volgende</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="ds-list-pagination-btn">Laatste</a>
             {% endif %}
         </div>
     </div>
     {% endif %}
 
     {% else %}
-    <div class="ds-card empty-state">
-        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        Geen beoordelingen gevonden.
-        <div style="margin-top:10px;"><a href="{% url 'careon:assessment_create' %}" class="btn btn-primary">Nieuwe beoordeling</a></div>
+    <div class="ds-list-empty">
+        <svg class="ds-list-empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <h3 class="ds-list-empty-title">Geen beoordelingen gevonden</h3>
+        <p class="ds-list-empty-copy">
+            <a href="{% url 'careon:assessment_create' %}" class="btn btn-primary ds-stack-top-sm">Nieuwe beoordeling</a>
+        </p>
     </div>
     {% endif %}
 </div>

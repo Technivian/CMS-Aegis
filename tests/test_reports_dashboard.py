@@ -7,7 +7,7 @@ from django.urls import reverse
 from contracts.models import (
     Organization, OrganizationMembership, CaseIntakeProcess,
     Client as CareProvider, CareSignal, TrustAccount, PlacementRequest,
-    CareConfiguration
+    CareConfiguration, RegionalConfiguration
 )
 
 
@@ -115,6 +115,33 @@ class ReportsDashboardTestCase(TestCase):
         # Check that page contains recommendation links or attention items
         content = response.content.decode()
         self.assertIn('Aanbevelingen', content)
+
+    def test_reports_dashboard_can_filter_on_region_type_and_region(self):
+        region = RegionalConfiguration.objects.create(
+            organization=self.organization,
+            region_name='GGD Test Regio',
+            region_code='GGD001',
+            region_type='GGD',
+            status=RegionalConfiguration.Status.ACTIVE,
+        )
+        CaseIntakeProcess.objects.create(
+            organization=self.organization,
+            title='Region Filter Case',
+            status=CaseIntakeProcess.ProcessStatus.MATCHING,
+            preferred_region_type='GGD',
+            preferred_region=region,
+            start_date=date.today(),
+            target_completion_date=date.today(),
+        )
+
+        response = self.client.get(
+            reverse('careon:reports_dashboard'),
+            {'region_type': 'GGD', 'region': str(region.pk)},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Regio-overzicht')
+        self.assertContains(response, 'GGD Test Regio')
 
     def tearDown(self):
         if 'FEATURE_REDESIGN' in os.environ:
