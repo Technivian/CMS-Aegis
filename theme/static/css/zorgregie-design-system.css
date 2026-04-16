@@ -3205,8 +3205,8 @@ body.app-shell-body {
 }
 
 .app-shell-body .app-sidebar-footer {
-  margin-top: auto;
-  padding-top: 14px;
+  flex-shrink: 0;
+  padding: 14px 10px 0;
   border-top: 1px solid var(--app-border-soft);
   display: grid;
   gap: 8px;
