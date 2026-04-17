@@ -594,6 +594,10 @@ class Contract(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_contracts')
     approved_at = models.DateTimeField(null=True, blank=True)
+    source_system = models.CharField(max_length=40, blank=True, default='')
+    source_system_id = models.CharField(max_length=255, blank=True, default='')
+    source_system_url = models.URLField(blank=True)
+    source_last_modified_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -625,6 +629,7 @@ class Contract(models.Model):
             models.Index(fields=['organization', 'end_date'], name='ctr_org_end_ix'),
             models.Index(fields=['organization', 'renewal_date'], name='ctr_org_renew_ix'),
             models.Index(fields=['organization', 'created_at'], name='ctr_org_created_ix'),
+            models.Index(fields=['organization', 'source_system', 'source_system_id'], name='ctr_org_src_ref_ix'),
         ]
 
 

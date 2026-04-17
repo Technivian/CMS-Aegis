@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/integrations/salesforce/oauth/callback/', api_views.salesforce_oauth_callback_api, name='salesforce_oauth_callback_api'),
     path('api/integrations/salesforce/disconnect/', api_views.salesforce_disconnect_api, name='salesforce_disconnect_api'),
     path('api/integrations/salesforce/field-map/', api_views.salesforce_field_map_api, name='salesforce_field_map_api'),
+    path('api/integrations/salesforce/ingest-preview/', api_views.salesforce_ingest_preview_api, name='salesforce_ingest_preview_api'),
 
     # Clients
     path('clients/', views.ClientListView.as_view(), name='client_list'),

@@ -92,6 +92,9 @@ jobs:
       - name: Sprint 1 integration foundations
         run: python manage.py test tests.test_salesforce_sprint1 -v 1
 
+      - name: Sprint 2 Salesforce ingestion guardrails
+        run: python manage.py test tests.test_salesforce_sprint2_ingestion -v 1
+
   security-scans:
     runs-on: ubuntu-latest
     timeout-minutes: 20

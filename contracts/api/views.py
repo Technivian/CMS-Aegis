@@ -19,8 +19,12 @@ from contracts.services.repository import BulkUpdateValidationError, get_reposit
 from contracts.services.salesforce import (
     CANONICAL_CONTRACT_FIELDS,
     build_salesforce_authorize_url,
+    decrypt_salesforce_token,
     default_field_map_records,
+    encrypt_salesforce_token,
     exchange_salesforce_code_for_tokens,
+    get_effective_field_map_records,
+    ingest_salesforce_records,
     refresh_salesforce_access_token,
     salesforce_oauth_is_configured,
 )
@@ -1047,20 +1051,18 @@ def salesforce_connection_status_api(request):
     connection = SalesforceOrganizationConnection.objects.filter(organization=organization).first()
     if connection and connection.refresh_token and connection.token_expired:
         try:
-            refreshed = refresh_salesforce_access_token(connection.refresh_token)
-            connection.access_token = refreshed.access_token
+            refreshed = refresh_salesforce_access_token(decrypt_salesforce_token(connection.refresh_token))
+            connection.access_token = encrypt_salesforce_token(refreshed.access_token)
             connection.instance_url = refreshed.instance_url or connection.instance_url
             connection.scope = refreshed.scope or connection.scope
             connection.token_expires_at = refreshed.token_expires_at
+            if refreshed.refresh_token:
+                connection.refresh_token = encrypt_salesforce_token(refreshed.refresh_token)
             connection.save(update_fields=['access_token', 'instance_url', 'scope', 'token_expires_at', 'updated_at'])
         except Exception:
             logger.exception('Salesforce token refresh failed for org_id=%s', organization.id)
 
-    persisted_maps = list(
-        OrganizationContractFieldMap.objects.filter(organization=organization, is_active=True)
-        .values('canonical_field', 'salesforce_object', 'salesforce_field', 'is_required', 'transform_rule')
-        .order_by('canonical_field')
-    )
+    persisted_maps = get_effective_field_map_records(organization)
     return JsonResponse(
         {
             'configured': salesforce_oauth_is_configured(),
@@ -1128,8 +1130,10 @@ def salesforce_oauth_callback_api(request):
     connection.connected_by = request.user
     connection.external_org_id = token_data.external_org_id
     connection.instance_url = token_data.instance_url
-    connection.access_token = token_data.access_token
-    connection.refresh_token = token_data.refresh_token or connection.refresh_token
+    connection.access_token = encrypt_salesforce_token(token_data.access_token)
+    connection.refresh_token = (
+        encrypt_salesforce_token(token_data.refresh_token) if token_data.refresh_token else connection.refresh_token
+    )
     connection.scope = token_data.scope
     connection.token_expires_at = token_data.token_expires_at
     connection.is_active = True
@@ -1231,3 +1235,24 @@ def salesforce_field_map_api(request):
         mapping.save()
 
     return JsonResponse({'updated': len(normalized)})
+
+
+@login_required
+@require_http_methods(["POST"])
+def salesforce_ingest_preview_api(request):
+    organization, error = _require_org_admin_for_salesforce(request)
+    if error:
+        return error
+
+    try:
+        payload = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return _error_response(request, 'Invalid JSON body.', 400)
+
+    records = payload.get('records')
+    dry_run = bool(payload.get('dry_run', True))
+    if not isinstance(records, list):
+        return _error_response(request, 'records must be a list.', 400)
+
+    summary = ingest_salesforce_records(organization, records, dry_run=dry_run)
+    return JsonResponse({'summary': summary, 'dry_run': dry_run})

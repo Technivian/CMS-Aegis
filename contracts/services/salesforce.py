@@ -1,17 +1,24 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from decimal import Decimal
+from datetime import datetime, timedelta, timezone as datetime_timezone
+from functools import lru_cache
 from typing import Any
+import base64
+import hashlib
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 import json
 
+from cryptography.fernet import Fernet, InvalidToken
 from django.conf import settings
+from django.utils.dateparse import parse_date, parse_datetime
 from django.utils import timezone
 
 
 DEFAULT_SALESFORCE_OBJECT = 'Opportunity'
+TOKEN_CIPHER_PREFIX = 'enc:v1:'
 
 CANONICAL_CONTRACT_FIELDS: tuple[str, ...] = (
     'contract_title',
@@ -72,6 +79,37 @@ class SalesforceTokenPayload:
 
 class SalesforceOAuthError(RuntimeError):
     pass
+
+
+@lru_cache(maxsize=1)
+def _salesforce_token_cipher() -> Fernet:
+    secret = f'{settings.SECRET_KEY}:{getattr(settings, "SALESFORCE_TOKEN_ENCRYPTION_SALT", "salesforce-tokens-v1")}'
+    digest = hashlib.sha256(secret.encode('utf-8')).digest()
+    key = base64.urlsafe_b64encode(digest)
+    return Fernet(key)
+
+
+def encrypt_salesforce_token(raw_token: str) -> str:
+    token = str(raw_token or '').strip()
+    if not token:
+        return ''
+    if token.startswith(TOKEN_CIPHER_PREFIX):
+        return token
+    encrypted = _salesforce_token_cipher().encrypt(token.encode('utf-8')).decode('utf-8')
+    return f'{TOKEN_CIPHER_PREFIX}{encrypted}'
+
+
+def decrypt_salesforce_token(stored_token: str) -> str:
+    token = str(stored_token or '').strip()
+    if not token:
+        return ''
+    if not token.startswith(TOKEN_CIPHER_PREFIX):
+        return token
+    payload = token[len(TOKEN_CIPHER_PREFIX):]
+    try:
+        return _salesforce_token_cipher().decrypt(payload.encode('utf-8')).decode('utf-8')
+    except InvalidToken as exc:
+        raise SalesforceOAuthError('Salesforce token decrypt failed.') from exc
 
 
 def salesforce_oauth_is_configured() -> bool:
@@ -168,3 +206,200 @@ def refresh_salesforce_access_token(refresh_token: str) -> SalesforceTokenPayloa
 
 def default_field_map_records() -> list[dict[str, Any]]:
     return [dict(item) for item in DEFAULT_FIELD_MAP]
+
+
+def get_effective_field_map_records(organization) -> list[dict[str, Any]]:
+    from contracts.models import OrganizationContractFieldMap
+
+    persisted = list(
+        OrganizationContractFieldMap.objects.filter(organization=organization, is_active=True)
+        .values('canonical_field', 'salesforce_object', 'salesforce_field', 'is_required', 'transform_rule')
+        .order_by('canonical_field')
+    )
+    return persisted or default_field_map_records()
+
+
+def _extract_record_value(record: dict[str, Any], dotted_path: str):
+    current = record
+    for part in str(dotted_path or '').split('.'):
+        part = part.strip()
+        if not part:
+            return None
+        if not isinstance(current, dict):
+            return None
+        current = current.get(part)
+        if current is None:
+            return None
+    return current
+
+
+def _to_contract_type(raw: Any):
+    from contracts.models import Contract
+
+    value = str(raw or '').strip().upper()
+    allowed = {choice for choice, _ in Contract.ContractType.choices}
+    if value in allowed:
+        return value
+    mapping = {
+        'NON-DISCLOSURE AGREEMENT': Contract.ContractType.NDA,
+        'MASTER SERVICE AGREEMENT': Contract.ContractType.MSA,
+        'STATEMENT OF WORK': Contract.ContractType.SOW,
+    }
+    return mapping.get(value, Contract.ContractType.OTHER)
+
+
+def _to_contract_status(raw: Any):
+    from contracts.models import Contract
+
+    value = str(raw or '').strip().upper()
+    allowed = {choice for choice, _ in Contract.Status.choices}
+    if value in allowed:
+        return value
+    aliases = {
+        'OPEN': Contract.Status.DRAFT,
+        'NEGOTIATION': Contract.Status.IN_REVIEW,
+        'SIGNED': Contract.Status.ACTIVE,
+        'CLOSED': Contract.Status.COMPLETED,
+    }
+    return aliases.get(value, Contract.Status.DRAFT)
+
+
+def _to_risk_level(raw: Any):
+    from contracts.models import Contract
+
+    value = str(raw or '').strip().upper()
+    allowed = {choice for choice, _ in Contract.RiskLevel.choices}
+    return value if value in allowed else Contract.RiskLevel.LOW
+
+
+def _to_currency(raw: Any):
+    from contracts.models import Contract
+
+    value = str(raw or '').strip().upper()
+    allowed = {choice for choice, _ in Contract.Currency.choices}
+    return value if value in allowed else Contract.Currency.OTHER
+
+
+def _to_decimal(raw: Any):
+    if raw in {None, ''}:
+        return None
+    try:
+        return Decimal(str(raw))
+    except Exception:
+        return None
+
+
+def _to_date(raw: Any):
+    if raw in {None, ''}:
+        return None
+    parsed = parse_date(str(raw))
+    if parsed is not None:
+        return parsed
+    parsed_dt = parse_datetime(str(raw))
+    if parsed_dt is not None:
+        return parsed_dt.date()
+    return None
+
+
+def _to_datetime(raw: Any):
+    if raw in {None, ''}:
+        return None
+    parsed = parse_datetime(str(raw))
+    if parsed is not None:
+        return parsed
+    parsed_date = parse_date(str(raw))
+    if parsed_date is not None:
+        return datetime.combine(parsed_date, datetime.min.time(), tzinfo=datetime_timezone.utc)
+    return None
+
+
+def map_salesforce_record_to_contract_data(record: dict[str, Any], field_map: list[dict[str, Any]]) -> dict[str, Any]:
+    mapped = {}
+    for item in field_map:
+        canonical = str(item.get('canonical_field', '')).strip()
+        sf_field = str(item.get('salesforce_field', '')).strip()
+        if not canonical or not sf_field:
+            continue
+        mapped[canonical] = _extract_record_value(record, sf_field)
+    return mapped
+
+
+def upsert_contract_from_salesforce(organization, mapped: dict[str, Any]):
+    from contracts.models import Contract
+
+    source_system_id = str(mapped.get('source_system_id', '') or '').strip()
+    title = str(mapped.get('contract_title', '') or '').strip()
+    counterparty = str(mapped.get('counterparty_name', '') or '').strip()
+    if not source_system_id or not title:
+        return None, 'skipped_missing_required'
+
+    queryset = Contract.objects.filter(
+        organization=organization,
+        source_system='salesforce',
+        source_system_id=source_system_id,
+    )
+    contract = queryset.first()
+    created = contract is None
+    if created:
+        contract = Contract(organization=organization, source_system='salesforce', source_system_id=source_system_id)
+
+    contract.title = title
+    contract.counterparty = counterparty
+    contract.contract_type = _to_contract_type(mapped.get('contract_type'))
+    contract.status = _to_contract_status(mapped.get('status'))
+    contract.value = _to_decimal(mapped.get('contract_value'))
+    if mapped.get('currency') not in {None, ''}:
+        contract.currency = _to_currency(mapped.get('currency'))
+    contract.governing_law = str(mapped.get('governing_law', '') or '').strip()
+    contract.jurisdiction = str(mapped.get('jurisdiction', '') or '').strip()
+    contract.start_date = _to_date(mapped.get('effective_date'))
+    contract.end_date = _to_date(mapped.get('end_date'))
+    contract.renewal_date = _to_date(mapped.get('renewal_date'))
+    if mapped.get('risk_level') not in {None, ''}:
+        contract.risk_level = _to_risk_level(mapped.get('risk_level'))
+    contract.source_system_url = str(mapped.get('source_system_url', '') or '').strip()
+    contract.source_last_modified_at = _to_datetime(mapped.get('updated_at'))
+    contract.save()
+    return contract, 'created' if created else 'updated'
+
+
+def ingest_salesforce_records(organization, records: list[dict[str, Any]], dry_run: bool = False) -> dict[str, Any]:
+    field_map = get_effective_field_map_records(organization)
+    summary = {
+        'total_records': len(records),
+        'created': 0,
+        'updated': 0,
+        'skipped': 0,
+        'errors': [],
+    }
+
+    for index, record in enumerate(records):
+        try:
+            mapped = map_salesforce_record_to_contract_data(record, field_map)
+            if dry_run:
+                source_system_id = str(mapped.get('source_system_id', '') or '').strip()
+                title = str(mapped.get('contract_title', '') or '').strip()
+                if source_system_id and title:
+                    exists = (
+                        organization.contracts.filter(
+                            source_system='salesforce',
+                            source_system_id=source_system_id,
+                        ).exists()
+                    )
+                    if exists:
+                        summary['updated'] += 1
+                    else:
+                        summary['created'] += 1
+                else:
+                    summary['skipped'] += 1
+                continue
+            _, action = upsert_contract_from_salesforce(organization, mapped)
+            if action == 'created':
+                summary['created'] += 1
+            elif action == 'updated':
+                summary['updated'] += 1
+            else:
+                summary['skipped'] += 1
+        except Exception as exc:
+            summary['errors'].append({'index': index, 'error': str(exc)})
+    return summary

@@ -289,6 +289,7 @@ SALESFORCE_TOKEN_URL = os.getenv(
 ).strip()
 SALESFORCE_REDIRECT_URI = os.getenv('SALESFORCE_REDIRECT_URI', '').strip()
 SALESFORCE_SCOPES = os.getenv('SALESFORCE_SCOPES', 'api refresh_token offline_access').strip()
+SALESFORCE_TOKEN_ENCRYPTION_SALT = os.getenv('SALESFORCE_TOKEN_ENCRYPTION_SALT', 'salesforce-tokens-v1').strip()
 
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@cms-aegis.local')
 SERVER_EMAIL = os.getenv('SERVER_EMAIL', DEFAULT_FROM_EMAIL)
