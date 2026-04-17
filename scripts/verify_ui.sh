@@ -36,7 +36,7 @@ echo "[verify-ui] Running UI integrity suites..."
   -v 2
 
 echo "[verify-ui] Installing Playwright dependencies (if needed)..."
-npm --prefix client install >/dev/null
+npm --prefix client ci >/dev/null
 npm --prefix client exec playwright install chromium >/dev/null
 
 echo "[verify-ui] Seeding E2E user and organization..."

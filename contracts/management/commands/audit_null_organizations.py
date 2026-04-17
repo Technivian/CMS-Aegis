@@ -1,4 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
+from django.db import connections
+from django.db.migrations.executor import MigrationExecutor
 
 from contracts.models import (
     ApprovalRequest,
@@ -51,7 +53,24 @@ def _membership_orgs_for_user(user_id):
 class Command(BaseCommand):
     help = 'Audit records that still have NULL organization after tenant backfill.'
 
+    @staticmethod
+    def _ensure_no_unapplied_migrations():
+        connection = connections['default']
+        executor = MigrationExecutor(connection)
+        targets = executor.loader.graph.leaf_nodes()
+        plan = executor.migration_plan(targets)
+        if not plan:
+            return
+        preview = ', '.join(f'{migration.app_label}.{migration.name}' for migration, _ in plan[:5])
+        if len(plan) > 5:
+            preview = f'{preview}, ...'
+        raise CommandError(
+            'Unapplied migrations detected. Run `python manage.py migrate` before auditing '
+            f'(pending: {preview}).'
+        )
+
     def handle(self, *args, **options):
+        self._ensure_no_unapplied_migrations()
         self.stdout.write('NULL organization audit')
         self.stdout.write('----------------------')
 
