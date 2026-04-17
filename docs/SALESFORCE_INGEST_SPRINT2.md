@@ -39,6 +39,11 @@ This sprint adds deterministic contract reconciliation for Salesforce imports.
 }
 ```
 
+### Sync Run History
+
+- Endpoint: `GET /contracts/api/integrations/salesforce/sync-runs/?limit=20`
+- Returns most recent sync execution records for audit and troubleshooting.
+
 ### CLI Import
 
 ```bash

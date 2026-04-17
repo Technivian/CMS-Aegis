@@ -383,6 +383,58 @@ class OrganizationContractFieldMap(models.Model):
         return f'{self.organization.slug}:{self.canonical_field}->{self.salesforce_object}.{self.salesforce_field}'
 
 
+class SalesforceSyncRun(models.Model):
+    class TriggerSource(models.TextChoices):
+        API = 'API', 'API'
+        COMMAND = 'COMMAND', 'Command'
+        WORKER = 'WORKER', 'Worker'
+
+    class Status(models.TextChoices):
+        RUNNING = 'RUNNING', 'Running'
+        SUCCESS = 'SUCCESS', 'Success'
+        FAILED = 'FAILED', 'Failed'
+
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='salesforce_sync_runs')
+    connection = models.ForeignKey(
+        SalesforceOrganizationConnection,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='sync_runs',
+    )
+    triggered_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='salesforce_sync_runs',
+    )
+    trigger_source = models.CharField(max_length=20, choices=TriggerSource.choices, default=TriggerSource.API)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.RUNNING)
+    dry_run = models.BooleanField(default=False)
+    limit_applied = models.PositiveIntegerField(default=200)
+    source_object = models.CharField(max_length=80, blank=True)
+    fetched_records = models.PositiveIntegerField(default=0)
+    created_count = models.PositiveIntegerField(default=0)
+    updated_count = models.PositiveIntegerField(default=0)
+    skipped_count = models.PositiveIntegerField(default=0)
+    error_count = models.PositiveIntegerField(default=0)
+    error_message = models.TextField(blank=True)
+    summary = models.JSONField(default=dict, blank=True)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-started_at']
+        indexes = [
+            models.Index(fields=['organization', '-started_at'], name='sf_sync_org_time_ix'),
+            models.Index(fields=['organization', 'status'], name='sf_sync_org_status_ix'),
+        ]
+
+    def __str__(self):
+        return f'Salesforce sync {self.id} ({self.organization.slug}) {self.status}'
+
+
 class Client(models.Model):
     class ClientType(models.TextChoices):
         INDIVIDUAL = 'INDIVIDUAL', 'Individual'

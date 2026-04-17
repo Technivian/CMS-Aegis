@@ -42,6 +42,7 @@ from contracts.models import (
     SalesforceOrganizationConnection,
     OrganizationSCIMGroup,
     OrganizationSCIMGroupMembership,
+    SalesforceSyncRun,
     UserProfile,
     AuditLog,
 )
@@ -1284,9 +1285,89 @@ def salesforce_sync_api(request):
     if limit <= 0 or limit > 2000:
         return _error_response(request, 'limit must be between 1 and 2000.', 400)
 
+    run = SalesforceSyncRun.objects.create(
+        organization=organization,
+        connection=connection,
+        triggered_by=request.user,
+        trigger_source=SalesforceSyncRun.TriggerSource.API,
+        status=SalesforceSyncRun.Status.RUNNING,
+        dry_run=dry_run,
+        limit_applied=limit,
+    )
+
     try:
         summary = sync_salesforce_connection(connection, dry_run=dry_run, limit=limit)
     except Exception:
         logger.exception('Salesforce sync failed for org_id=%s', organization.id)
+        run.status = SalesforceSyncRun.Status.FAILED
+        run.error_message = 'Salesforce sync failed.'
+        run.completed_at = timezone.now()
+        run.save(update_fields=['status', 'error_message', 'completed_at'])
         return _error_response(request, 'Salesforce sync failed.', 502)
+
+    run.status = SalesforceSyncRun.Status.SUCCESS
+    run.source_object = str(summary.get('source_object', '') or '')
+    run.fetched_records = int(summary.get('fetched_records', 0) or 0)
+    run.created_count = int(summary.get('created', 0) or 0)
+    run.updated_count = int(summary.get('updated', 0) or 0)
+    run.skipped_count = int(summary.get('skipped', 0) or 0)
+    run.error_count = len(summary.get('errors') or [])
+    run.summary = summary
+    run.completed_at = timezone.now()
+    run.save(
+        update_fields=[
+            'status',
+            'source_object',
+            'fetched_records',
+            'created_count',
+            'updated_count',
+            'skipped_count',
+            'error_count',
+            'summary',
+            'completed_at',
+        ]
+    )
     return JsonResponse({'summary': summary, 'dry_run': dry_run})
+
+
+@login_required
+@require_http_methods(["GET"])
+def salesforce_sync_runs_api(request):
+    organization, error = _require_org_admin_for_salesforce(request)
+    if error:
+        return error
+
+    limit = request.GET.get('limit', 20)
+    try:
+        limit = int(limit)
+    except (TypeError, ValueError):
+        return _error_response(request, 'limit must be an integer.', 400)
+    limit = max(1, min(limit, 100))
+
+    runs = (
+        SalesforceSyncRun.objects.filter(organization=organization)
+        .select_related('triggered_by')
+        .order_by('-started_at')[:limit]
+    )
+    payload = []
+    for run in runs:
+        payload.append(
+            {
+                'id': run.id,
+                'status': run.status,
+                'trigger_source': run.trigger_source,
+                'dry_run': run.dry_run,
+                'limit_applied': run.limit_applied,
+                'source_object': run.source_object,
+                'fetched_records': run.fetched_records,
+                'created_count': run.created_count,
+                'updated_count': run.updated_count,
+                'skipped_count': run.skipped_count,
+                'error_count': run.error_count,
+                'error_message': run.error_message,
+                'started_at': run.started_at.isoformat() if run.started_at else None,
+                'completed_at': run.completed_at.isoformat() if run.completed_at else None,
+                'triggered_by': run.triggered_by.username if run.triggered_by else None,
+            }
+        )
+    return JsonResponse({'runs': payload})

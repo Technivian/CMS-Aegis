@@ -11,7 +11,7 @@ from .models import (
     Counterparty, ClauseCategory, ClauseTemplate, SignatureRequest, DataInventoryRecord,
     DSARRequest, Subprocessor, TransferRecord, RetentionPolicy, LegalHold,
     ApprovalRule, ApprovalRequest, EthicalWall, SalesforceOrganizationConnection,
-    OrganizationContractFieldMap,
+    OrganizationContractFieldMap, SalesforceSyncRun,
 )
 
 
@@ -143,6 +143,26 @@ class OrganizationContractFieldMapAdmin(admin.ModelAdmin):
     list_filter = ('is_required', 'is_active', 'salesforce_object')
     search_fields = ('organization__name', 'canonical_field', 'salesforce_field')
     readonly_fields = ('created_at', 'updated_at')
+
+
+@admin.register(SalesforceSyncRun)
+class SalesforceSyncRunAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'organization',
+        'status',
+        'trigger_source',
+        'dry_run',
+        'fetched_records',
+        'created_count',
+        'updated_count',
+        'error_count',
+        'started_at',
+        'completed_at',
+    )
+    list_filter = ('status', 'trigger_source', 'dry_run')
+    search_fields = ('organization__name', 'organization__slug', 'error_message')
+    readonly_fields = ('started_at', 'completed_at')
 
 
 @admin.register(Deadline)

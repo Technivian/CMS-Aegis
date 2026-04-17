@@ -1,8 +1,9 @@
 import json
 
 from django.core.management.base import BaseCommand, CommandError
+from django.utils import timezone
 
-from contracts.models import Organization, SalesforceOrganizationConnection
+from contracts.models import Organization, SalesforceOrganizationConnection, SalesforceSyncRun
 from contracts.services.salesforce import SalesforceSyncError, sync_salesforce_connection
 
 
@@ -23,13 +24,51 @@ class Command(BaseCommand):
         if connection is None:
             raise CommandError('No active Salesforce connection.')
 
+        dry_run = bool(options['dry_run'])
+        limit = max(1, int(options['limit']))
+        run = SalesforceSyncRun.objects.create(
+            organization=organization,
+            connection=connection,
+            trigger_source=SalesforceSyncRun.TriggerSource.COMMAND,
+            status=SalesforceSyncRun.Status.RUNNING,
+            dry_run=dry_run,
+            limit_applied=limit,
+        )
+
         try:
             summary = sync_salesforce_connection(
                 connection,
-                dry_run=bool(options['dry_run']),
-                limit=max(1, int(options['limit'])),
+                dry_run=dry_run,
+                limit=limit,
             )
         except SalesforceSyncError as exc:
+            run.status = SalesforceSyncRun.Status.FAILED
+            run.error_message = str(exc)
+            run.completed_at = timezone.now()
+            run.save(update_fields=['status', 'error_message', 'completed_at'])
             raise CommandError(str(exc))
+
+        run.status = SalesforceSyncRun.Status.SUCCESS
+        run.source_object = str(summary.get('source_object', '') or '')
+        run.fetched_records = int(summary.get('fetched_records', 0) or 0)
+        run.created_count = int(summary.get('created', 0) or 0)
+        run.updated_count = int(summary.get('updated', 0) or 0)
+        run.skipped_count = int(summary.get('skipped', 0) or 0)
+        run.error_count = len(summary.get('errors') or [])
+        run.summary = summary
+        run.completed_at = timezone.now()
+        run.save(
+            update_fields=[
+                'status',
+                'source_object',
+                'fetched_records',
+                'created_count',
+                'updated_count',
+                'skipped_count',
+                'error_count',
+                'summary',
+                'completed_at',
+            ]
+        )
 
         self.stdout.write(json.dumps(summary, indent=2, sort_keys=True))

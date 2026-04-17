@@ -9,7 +9,7 @@ from django.core.management import call_command
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from contracts.models import Contract, Organization, OrganizationMembership, SalesforceOrganizationConnection
+from contracts.models import Contract, Organization, OrganizationMembership, SalesforceOrganizationConnection, SalesforceSyncRun
 from contracts.services.salesforce import TOKEN_CIPHER_PREFIX, SalesforceTokenPayload, decrypt_salesforce_token
 
 
@@ -104,6 +104,28 @@ class SalesforceSprintTwoIngestionTests(TestCase):
         payload = response.json()
         self.assertTrue(payload['dry_run'])
         self.assertEqual(payload['summary']['created'], 1)
+        run = SalesforceSyncRun.objects.get(organization=self.organization)
+        self.assertEqual(run.status, SalesforceSyncRun.Status.SUCCESS)
+        self.assertEqual(run.trigger_source, SalesforceSyncRun.TriggerSource.API)
+        self.assertEqual(run.created_count, 1)
+
+    def test_sync_runs_api_returns_recent_runs(self):
+        SalesforceSyncRun.objects.create(
+            organization=self.organization,
+            trigger_source=SalesforceSyncRun.TriggerSource.COMMAND,
+            status=SalesforceSyncRun.Status.SUCCESS,
+            dry_run=False,
+            fetched_records=3,
+            created_count=2,
+            updated_count=1,
+            skipped_count=0,
+            error_count=0,
+        )
+        response = self.client.get(reverse('contracts:salesforce_sync_runs_api'), {'limit': 10})
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(len(payload['runs']), 1)
+        self.assertEqual(payload['runs'][0]['fetched_records'], 3)
 
     def test_ingest_salesforce_records_command_upserts_contracts(self):
         records = [
@@ -156,6 +178,9 @@ class SalesforceSprintTwoIngestionTests(TestCase):
         )
         self.assertEqual(contract.title, 'Live Synced Contract')
         self.assertEqual(contract.contract_type, Contract.ContractType.NDA)
+        run = SalesforceSyncRun.objects.get(organization=self.organization, trigger_source=SalesforceSyncRun.TriggerSource.COMMAND)
+        self.assertEqual(run.status, SalesforceSyncRun.Status.SUCCESS)
+        self.assertEqual(run.fetched_records, 1)
 
     def test_encrypt_salesforce_tokens_command_backfills_plaintext_tokens(self):
         connection = SalesforceOrganizationConnection.objects.create(

@@ -26,6 +26,7 @@ urlpatterns = [
     path('api/integrations/salesforce/field-map/', api_views.salesforce_field_map_api, name='salesforce_field_map_api'),
     path('api/integrations/salesforce/ingest-preview/', api_views.salesforce_ingest_preview_api, name='salesforce_ingest_preview_api'),
     path('api/integrations/salesforce/sync/', api_views.salesforce_sync_api, name='salesforce_sync_api'),
+    path('api/integrations/salesforce/sync-runs/', api_views.salesforce_sync_runs_api, name='salesforce_sync_runs_api'),
 
     # Clients
     path('clients/', views.ClientListView.as_view(), name='client_list'),
