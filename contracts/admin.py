@@ -4,13 +4,14 @@ from django.contrib import admin
 from django.utils import timezone
 
 from .models import (
-    Organization, OrganizationMembership, OrganizationInvitation,
+    Organization, OrganizationMembership, OrganizationInvitation, Deadline,
     TrademarkRequest, LegalTask, RiskLog, ComplianceChecklist,
     Workflow, WorkflowTemplate, WorkflowTemplateStep, WorkflowStep, ChecklistItem,
     DueDiligenceProcess, DueDiligenceTask, DueDiligenceRisk, Budget, BudgetExpense, Contract,
     Counterparty, ClauseCategory, ClauseTemplate, SignatureRequest, DataInventoryRecord,
     DSARRequest, Subprocessor, TransferRecord, RetentionPolicy, LegalHold,
-    ApprovalRule, ApprovalRequest, EthicalWall,
+    ApprovalRule, ApprovalRequest, EthicalWall, SalesforceOrganizationConnection,
+    OrganizationContractFieldMap,
 )
 
 
@@ -71,6 +72,28 @@ class OverdueDSARFilter(admin.SimpleListFilter):
         return queryset
 
 
+class DeadlineHealthFilter(admin.SimpleListFilter):
+    title = 'deadline health'
+    parameter_name = 'deadline_health'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('open', 'Open'),
+            ('overdue', 'Overdue'),
+            ('completed', 'Completed'),
+        )
+
+    def queryset(self, request, queryset):
+        today = timezone.localdate()
+        if self.value() == 'open':
+            return queryset.filter(is_completed=False)
+        if self.value() == 'overdue':
+            return queryset.filter(is_completed=False, due_date__lt=today)
+        if self.value() == 'completed':
+            return queryset.filter(is_completed=True)
+        return queryset
+
+
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'is_active', 'created_at')
@@ -90,6 +113,48 @@ class OrganizationInvitationAdmin(admin.ModelAdmin):
     list_display = ('organization', 'email', 'role', 'status', 'invited_by', 'expires_at', 'created_at')
     list_filter = ('role', 'status')
     search_fields = ('organization__name', 'email', 'invited_by__username')
+
+
+@admin.register(SalesforceOrganizationConnection)
+class SalesforceOrganizationConnectionAdmin(admin.ModelAdmin):
+    list_display = (
+        'organization',
+        'is_active',
+        'connected_by',
+        'instance_url',
+        'token_expires_at',
+        'updated_at',
+    )
+    list_filter = ('is_active',)
+    search_fields = ('organization__name', 'organization__slug', 'external_org_id', 'instance_url')
+    readonly_fields = ('created_at', 'updated_at')
+
+
+@admin.register(OrganizationContractFieldMap)
+class OrganizationContractFieldMapAdmin(admin.ModelAdmin):
+    list_display = (
+        'organization',
+        'canonical_field',
+        'salesforce_object',
+        'salesforce_field',
+        'is_required',
+        'is_active',
+    )
+    list_filter = ('is_required', 'is_active', 'salesforce_object')
+    search_fields = ('organization__name', 'canonical_field', 'salesforce_field')
+    readonly_fields = ('created_at', 'updated_at')
+
+
+@admin.register(Deadline)
+class DeadlineAdmin(admin.ModelAdmin):
+    list_display = ('title', 'contract', 'matter', 'due_date', 'is_completed', 'is_overdue')
+    list_filter = ('is_completed', 'deadline_type', 'priority', DeadlineHealthFilter)
+    search_fields = ('title', 'description', 'contract__title', 'matter__title')
+    date_hierarchy = 'due_date'
+
+    @admin.display(boolean=True, description='Overdue')
+    def is_overdue(self, obj):
+        return obj.is_overdue
 
 @admin.register(RiskLog)
 class RiskLogAdmin(admin.ModelAdmin):
@@ -183,7 +248,7 @@ class WorkflowAdmin(admin.ModelAdmin):
 
 @admin.register(WorkflowTemplate)
 class WorkflowTemplateAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'created_at')
+    list_display = ('name', 'version', 'category', 'parent_template', 'is_active', 'created_at')
     search_fields = ('name', 'description')
     readonly_fields = ('created_at',)
 

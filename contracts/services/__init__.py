@@ -6,50 +6,46 @@ without triggering unrelated service initialization and circular imports.
 """
 
 def get_repository_service(user=None):
-    """Get repository service - uses DjangoRepositoryService (real implementation).
-    
-    Note: The ideal pattern is to import get_repository_service directly from 
-    contracts.services.repository and pass user + use_mock parameters.
-    This wrapper is maintained for backwards compatibility.
-    
-    Args:
-        user: Django user object (optional, for backwards compat)
-    
-    Returns:
-        DjangoRepositoryService instance when real service is available
-        MockRepositoryService in test mode (if user is None)
-    """
-    from .repository import DjangoRepositoryService, MockRepositoryService
+    """Get repository service using the Django-backed implementation."""
+    from .repository import DjangoRepositoryService
 
     if user is None:
-        # Fallback to mock for backwards compatibility when user not provided
-        return MockRepositoryService()
-    else:
-        # Use real Django-backed service
-        return DjangoRepositoryService(user)
+        raise ValueError("user is required for repository service")
+    return DjangoRepositoryService(user)
 
-def get_template_service():
-    """Get template service"""
-    from .templates import template_service
 
-    return template_service
+def get_template_service(organization=None):
+    """Get persisted template service."""
+    from .templates import get_template_service as _get
 
-def get_clause_service():
-    """Get clause service"""
-    from .clauses import clause_service
+    return _get(organization=organization)
 
-    return clause_service
 
-def get_obligation_service():
-    """Get obligation service"""
-    from .obligations import obligation_service
+def get_clause_service(organization=None):
+    """Get persisted clause service."""
+    from .clauses import get_clause_service as _get
 
-    return obligation_service
+    return _get(organization=organization)
+
+
+def get_obligation_service(organization=None):
+    """Get persisted obligation service."""
+    from .obligations import get_obligation_service as _get
+
+    return _get(organization=organization)
+
+
+def get_default_salesforce_field_map():
+    """Get default Salesforce-to-contract canonical field mappings."""
+    from .salesforce import default_field_map_records
+
+    return default_field_map_records()
 
 # Export services for easy import
 __all__ = [
     'get_repository_service',
-    'get_template_service', 
+    'get_template_service',
     'get_clause_service',
-    'get_obligation_service'
+    'get_obligation_service',
+    'get_default_salesforce_field_map',
 ]
