@@ -81,6 +81,10 @@ class SalesforceOAuthError(RuntimeError):
     pass
 
 
+class SalesforceSyncError(RuntimeError):
+    pass
+
+
 @lru_cache(maxsize=1)
 def _salesforce_token_cipher() -> Fernet:
     secret = f'{settings.SECRET_KEY}:{getattr(settings, "SALESFORCE_TOKEN_ENCRYPTION_SALT", "salesforce-tokens-v1")}'
@@ -152,6 +156,22 @@ def _salesforce_token_request(payload: dict[str, str]) -> dict[str, Any]:
         raise SalesforceOAuthError(f'Salesforce token exchange failed: {exc}') from exc
 
 
+def _salesforce_get_json(url: str, access_token: str) -> dict[str, Any]:
+    request = Request(
+        url,
+        headers={
+            'Authorization': f'Bearer {access_token}',
+            'Accept': 'application/json',
+        },
+        method='GET',
+    )
+    try:
+        with urlopen(request, timeout=30) as response:
+            return json.loads(response.read().decode('utf-8'))
+    except Exception as exc:
+        raise SalesforceSyncError(f'Salesforce API request failed: {exc}') from exc
+
+
 def _payload_to_token_data(payload: dict[str, Any]) -> SalesforceTokenPayload:
     access_token = str(payload.get('access_token', '')).strip()
     if not access_token:
@@ -206,6 +226,52 @@ def refresh_salesforce_access_token(refresh_token: str) -> SalesforceTokenPayloa
 
 def default_field_map_records() -> list[dict[str, Any]]:
     return [dict(item) for item in DEFAULT_FIELD_MAP]
+
+
+def _source_object_for_mapping(field_map: list[dict[str, Any]]) -> str:
+    for item in field_map:
+        if str(item.get('canonical_field', '')).strip() == 'source_system_id':
+            value = str(item.get('salesforce_object', '')).strip()
+            if value:
+                return value
+    return DEFAULT_SALESFORCE_OBJECT
+
+
+def build_salesforce_soql(field_map: list[dict[str, Any]], source_object: str, limit: int = 200) -> str:
+    projected_fields: list[str] = []
+    for item in field_map:
+        object_name = str(item.get('salesforce_object', '')).strip() or DEFAULT_SALESFORCE_OBJECT
+        field_name = str(item.get('salesforce_field', '')).strip()
+        if object_name != source_object or not field_name:
+            continue
+        if field_name not in projected_fields:
+            projected_fields.append(field_name)
+    if 'Id' not in projected_fields:
+        projected_fields.append('Id')
+    selected = ', '.join(projected_fields)
+    return f'SELECT {selected} FROM {source_object} ORDER BY LastModifiedDate DESC LIMIT {max(1, int(limit))}'
+
+
+def fetch_salesforce_records(instance_url: str, access_token: str, soql: str) -> list[dict[str, Any]]:
+    api_version = str(getattr(settings, 'SALESFORCE_API_VERSION', '61.0')).strip() or '61.0'
+    base = instance_url.rstrip('/')
+    endpoint = f'{base}/services/data/v{api_version}/query?{urlencode({"q": soql})}'
+    records: list[dict[str, Any]] = []
+
+    while endpoint:
+        payload = _salesforce_get_json(endpoint, access_token)
+        chunk = payload.get('records') or []
+        if isinstance(chunk, list):
+            for row in chunk:
+                if isinstance(row, dict):
+                    row.pop('attributes', None)
+                    records.append(row)
+        next_url = payload.get('nextRecordsUrl')
+        if next_url:
+            endpoint = f'{base}{next_url}'
+        else:
+            endpoint = ''
+    return records
 
 
 def get_effective_field_map_records(organization) -> list[dict[str, Any]]:
@@ -402,4 +468,46 @@ def ingest_salesforce_records(organization, records: list[dict[str, Any]], dry_r
                 summary['skipped'] += 1
         except Exception as exc:
             summary['errors'].append({'index': index, 'error': str(exc)})
+    return summary
+
+
+def sync_salesforce_connection(connection, dry_run: bool = False, limit: int = 200) -> dict[str, Any]:
+    from contracts.models import SalesforceOrganizationConnection
+
+    if not connection or not isinstance(connection, SalesforceOrganizationConnection):
+        raise SalesforceSyncError('Salesforce connection is required.')
+    if not connection.is_active:
+        raise SalesforceSyncError('Salesforce connection is inactive.')
+
+    access_token = decrypt_salesforce_token(connection.access_token)
+    refresh_token = decrypt_salesforce_token(connection.refresh_token)
+    if not access_token:
+        raise SalesforceSyncError('Missing Salesforce access token.')
+    if not connection.instance_url:
+        raise SalesforceSyncError('Missing Salesforce instance URL.')
+
+    if connection.token_expired:
+        if not refresh_token:
+            raise SalesforceSyncError('Salesforce token expired and no refresh token is available.')
+        refreshed = refresh_salesforce_access_token(refresh_token)
+        access_token = refreshed.access_token
+        connection.access_token = encrypt_salesforce_token(refreshed.access_token)
+        if refreshed.refresh_token:
+            connection.refresh_token = encrypt_salesforce_token(refreshed.refresh_token)
+        connection.instance_url = refreshed.instance_url or connection.instance_url
+        connection.scope = refreshed.scope or connection.scope
+        connection.token_expires_at = refreshed.token_expires_at
+        connection.save(update_fields=['access_token', 'refresh_token', 'instance_url', 'scope', 'token_expires_at', 'updated_at'])
+
+    field_map = get_effective_field_map_records(connection.organization)
+    source_object = _source_object_for_mapping(field_map)
+    soql = build_salesforce_soql(field_map, source_object=source_object, limit=limit)
+    records = fetch_salesforce_records(connection.instance_url, access_token, soql)
+    summary = ingest_salesforce_records(connection.organization, records, dry_run=dry_run)
+    summary['source_object'] = source_object
+    summary['fetched_records'] = len(records)
+    summary['soql'] = soql
+    if not dry_run:
+        connection.last_sync_at = timezone.now()
+        connection.save(update_fields=['last_sync_at', 'updated_at'])
     return summary

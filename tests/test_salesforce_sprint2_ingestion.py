@@ -84,6 +84,27 @@ class SalesforceSprintTwoIngestionTests(TestCase):
         self.assertEqual(payload['created'], 1)
         self.assertEqual(payload['skipped'], 1)
 
+    @patch('contracts.api.views.sync_salesforce_connection')
+    def test_sync_api_returns_summary(self, mock_sync):
+        SalesforceOrganizationConnection.objects.create(
+            organization=self.organization,
+            connected_by=self.owner,
+            access_token='plain-access',
+            refresh_token='plain-refresh',
+            instance_url='https://example.my.salesforce.com',
+            is_active=True,
+        )
+        mock_sync.return_value = {'created': 1, 'updated': 0, 'skipped': 0, 'errors': []}
+        response = self.client.post(
+            reverse('contracts:salesforce_sync_api'),
+            data=json.dumps({'dry_run': True, 'limit': 50}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload['dry_run'])
+        self.assertEqual(payload['summary']['created'], 1)
+
     def test_ingest_salesforce_records_command_upserts_contracts(self):
         records = [
             {
@@ -113,6 +134,28 @@ class SalesforceSprintTwoIngestionTests(TestCase):
         self.assertEqual(contract.status, Contract.Status.ACTIVE)
         self.assertEqual(contract.risk_level, Contract.RiskLevel.HIGH)
         self.assertEqual(contract.value, Decimal('125000.50'))
+
+    @patch('contracts.services.salesforce.fetch_salesforce_records')
+    def test_sync_salesforce_contracts_command_fetches_and_upserts(self, mock_fetch):
+        SalesforceOrganizationConnection.objects.create(
+            organization=self.organization,
+            connected_by=self.owner,
+            access_token='plain-access',
+            refresh_token='plain-refresh',
+            instance_url='https://example.my.salesforce.com',
+            is_active=True,
+        )
+        mock_fetch.return_value = [
+            {'Id': '006LIVE', 'Name': 'Live Synced Contract', 'Type': 'NDA', 'Amount': '7000', 'CurrencyIsoCode': 'USD'}
+        ]
+        call_command('sync_salesforce_contracts', organization_slug='sf-org-2', limit=25)
+        contract = Contract.objects.get(
+            organization=self.organization,
+            source_system='salesforce',
+            source_system_id='006LIVE',
+        )
+        self.assertEqual(contract.title, 'Live Synced Contract')
+        self.assertEqual(contract.contract_type, Contract.ContractType.NDA)
 
     def test_encrypt_salesforce_tokens_command_backfills_plaintext_tokens(self):
         connection = SalesforceOrganizationConnection.objects.create(

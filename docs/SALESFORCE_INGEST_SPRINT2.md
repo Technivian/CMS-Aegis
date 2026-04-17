@@ -26,6 +26,19 @@ This sprint adds deterministic contract reconciliation for Salesforce imports.
 }
 ```
 
+### Live Sync
+
+- Endpoint: `POST /contracts/api/integrations/salesforce/sync/`
+- Authz: organization admin/owner.
+- Payload:
+
+```json
+{
+  "dry_run": false,
+  "limit": 200
+}
+```
+
 ### CLI Import
 
 ```bash
@@ -36,6 +49,14 @@ This sprint adds deterministic contract reconciliation for Salesforce imports.
 ```
 
 `records.json` must contain a top-level list of Salesforce records.
+
+### CLI Live Sync
+
+```bash
+.venv/bin/python manage.py sync_salesforce_contracts \
+  --organization-slug <org-slug> \
+  --limit 200
+```
 
 ## Token Hardening
 

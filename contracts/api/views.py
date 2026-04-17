@@ -27,6 +27,7 @@ from contracts.services.salesforce import (
     ingest_salesforce_records,
     refresh_salesforce_access_token,
     salesforce_oauth_is_configured,
+    sync_salesforce_connection,
 )
 from contracts.domain.contracts import ListParams
 from contracts.middleware import log_action
@@ -1255,4 +1256,37 @@ def salesforce_ingest_preview_api(request):
         return _error_response(request, 'records must be a list.', 400)
 
     summary = ingest_salesforce_records(organization, records, dry_run=dry_run)
+    return JsonResponse({'summary': summary, 'dry_run': dry_run})
+
+
+@login_required
+@require_http_methods(["POST"])
+def salesforce_sync_api(request):
+    organization, error = _require_org_admin_for_salesforce(request)
+    if error:
+        return error
+
+    try:
+        payload = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return _error_response(request, 'Invalid JSON body.', 400)
+
+    connection = SalesforceOrganizationConnection.objects.filter(organization=organization, is_active=True).first()
+    if connection is None:
+        return _error_response(request, 'No active Salesforce connection.', 400)
+
+    dry_run = bool(payload.get('dry_run', False))
+    limit = payload.get('limit', getattr(settings, 'SALESFORCE_SYNC_DEFAULT_LIMIT', 200))
+    try:
+        limit = int(limit)
+    except (TypeError, ValueError):
+        return _error_response(request, 'limit must be an integer.', 400)
+    if limit <= 0 or limit > 2000:
+        return _error_response(request, 'limit must be between 1 and 2000.', 400)
+
+    try:
+        summary = sync_salesforce_connection(connection, dry_run=dry_run, limit=limit)
+    except Exception:
+        logger.exception('Salesforce sync failed for org_id=%s', organization.id)
+        return _error_response(request, 'Salesforce sync failed.', 502)
     return JsonResponse({'summary': summary, 'dry_run': dry_run})
