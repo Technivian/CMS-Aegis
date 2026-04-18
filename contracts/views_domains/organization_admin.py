@@ -32,6 +32,7 @@ from contracts.models import (
     SalesforceOrganizationConnection,
     SalesforceSyncRun,
     TimeEntry,
+    WebhookDelivery,
 )
 from contracts.permissions import can_manage_organization, is_organization_owner
 from contracts.session_security import revoke_user_sessions
@@ -538,6 +539,11 @@ def organization_identity_settings(request):
         .select_related('triggered_by')
         .order_by('-started_at')[:10]
     )
+    webhook_deliveries = (
+        WebhookDelivery.objects.filter(organization=organization)
+        .select_related('endpoint')
+        .order_by('-created_at')[:10]
+    )
 
     return render(request, 'contracts/organization_identity_settings.html', {
         'organization': organization,
@@ -546,6 +552,7 @@ def organization_identity_settings(request):
         'api_token_preview': api_token_preview,
         'salesforce_connection': salesforce_connection,
         'salesforce_sync_runs': salesforce_sync_runs,
+        'webhook_deliveries': webhook_deliveries,
         'saml_login_url': request.build_absolute_uri(
             reverse('saml_login', kwargs={'organization_slug': organization.slug})
         ),

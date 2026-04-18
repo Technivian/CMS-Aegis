@@ -42,3 +42,6 @@ jobs:
 
       - name: Process background jobs
         run: python manage.py process_background_jobs --limit 100
+
+      - name: Dispatch webhook deliveries
+        run: python manage.py dispatch_webhook_deliveries --limit 200

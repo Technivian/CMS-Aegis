@@ -175,6 +175,41 @@
                 </table>
             </div>
         </div>
+
+        <div style="padding: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface);">
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Webhook deliveries</h2>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">Diagnostics for outbound integration events, including retries and dead-letter items.</p>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <thead>
+                        <tr style="text-align: left; border-bottom: 1px solid var(--border); color: var(--text-secondary);">
+                            <th style="padding: 8px 6px;">Created</th>
+                            <th style="padding: 8px 6px;">Endpoint</th>
+                            <th style="padding: 8px 6px;">Event</th>
+                            <th style="padding: 8px 6px;">Status</th>
+                            <th style="padding: 8px 6px;">Attempts</th>
+                            <th style="padding: 8px 6px;">Response</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for delivery in webhook_deliveries %}
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 8px 6px; color: var(--text-primary);">{{ delivery.created_at|date:"Y-m-d H:i" }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-secondary);">{{ delivery.endpoint.name }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-secondary);">{{ delivery.event_type }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-primary);">{{ delivery.status }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-secondary);">{{ delivery.attempt_count }}/{{ delivery.max_attempts }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-secondary);">{{ delivery.response_status|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="padding: 10px 6px; color: var(--text-secondary);">No webhook deliveries yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

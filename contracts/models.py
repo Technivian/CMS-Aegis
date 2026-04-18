@@ -435,6 +435,63 @@ class SalesforceSyncRun(models.Model):
         return f'Salesforce sync {self.id} ({self.organization.slug}) {self.status}'
 
 
+class WebhookEndpoint(models.Model):
+    class Status(models.TextChoices):
+        ACTIVE = 'ACTIVE', 'Active'
+        DISABLED = 'DISABLED', 'Disabled'
+
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='webhook_endpoints')
+    name = models.CharField(max_length=120)
+    url = models.URLField()
+    secret = models.CharField(max_length=255, blank=True)
+    event_types = models.JSONField(default=list, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
+    max_attempts = models.PositiveIntegerField(default=5)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_webhook_endpoints')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['organization__name', 'name']
+
+    def __str__(self):
+        return f'{self.organization.slug}:{self.name}'
+
+
+class WebhookDelivery(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'PENDING', 'Pending'
+        SENT = 'SENT', 'Sent'
+        FAILED = 'FAILED', 'Failed'
+        DEAD_LETTER = 'DEAD_LETTER', 'Dead Letter'
+
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='webhook_deliveries')
+    endpoint = models.ForeignKey(WebhookEndpoint, on_delete=models.CASCADE, related_name='deliveries')
+    event_type = models.CharField(max_length=120)
+    payload = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    attempt_count = models.PositiveIntegerField(default=0)
+    max_attempts = models.PositiveIntegerField(default=5)
+    response_status = models.PositiveIntegerField(null=True, blank=True)
+    response_body = models.TextField(blank=True)
+    error_message = models.TextField(blank=True)
+    next_attempt_at = models.DateTimeField(null=True, blank=True)
+    dead_lettered_at = models.DateTimeField(null=True, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['organization', 'status', 'next_attempt_at'], name='webhook_org_stat_next_ix'),
+            models.Index(fields=['endpoint', 'status'], name='webhook_ep_stat_ix'),
+        ]
+
+    def __str__(self):
+        return f'{self.event_type} -> {self.endpoint_id} ({self.status})'
+
+
 class Client(models.Model):
     class ClientType(models.TextChoices):
         INDIVIDUAL = 'INDIVIDUAL', 'Individual'

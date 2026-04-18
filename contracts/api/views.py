@@ -31,6 +31,7 @@ from contracts.services.salesforce import (
     salesforce_oauth_is_configured,
     sync_salesforce_connection,
 )
+from contracts.services.webhooks import queue_webhook_event
 from contracts.domain.contracts import ListParams
 from contracts.middleware import log_action
 from contracts.permissions import can_manage_organization
@@ -44,6 +45,8 @@ from contracts.models import (
     SalesforceOrganizationConnection,
     OrganizationSCIMGroup,
     OrganizationSCIMGroupMembership,
+    WebhookDelivery,
+    WebhookEndpoint,
     SalesforceSyncRun,
     UserProfile,
     AuditLog,
@@ -1307,6 +1310,17 @@ def salesforce_sync_api(request):
         run.error_message = 'Salesforce sync failed.'
         run.completed_at = timezone.now()
         run.save(update_fields=['status', 'error_message', 'completed_at'])
+        queue_webhook_event(
+            organization=organization,
+            event_type='salesforce.sync.failed',
+            payload={
+                'run_id': run.id,
+                'status': run.status,
+                'error_message': run.error_message,
+                'dry_run': dry_run,
+                'limit': limit,
+            },
+        )
         return _error_response(request, 'Salesforce sync failed.', 502)
 
     run.status = SalesforceSyncRun.Status.SUCCESS
@@ -1330,6 +1344,16 @@ def salesforce_sync_api(request):
             'summary',
             'completed_at',
         ]
+    )
+    queue_webhook_event(
+        organization=organization,
+        event_type='salesforce.sync.completed',
+        payload={
+            'run_id': run.id,
+            'status': run.status,
+            'dry_run': dry_run,
+            'summary': summary,
+        },
     )
     return JsonResponse({'summary': summary, 'dry_run': dry_run})
 
@@ -1375,3 +1399,43 @@ def salesforce_sync_runs_api(request):
             }
         )
     return JsonResponse({'runs': payload})
+
+
+@login_required
+@require_http_methods(["GET"])
+def webhook_deliveries_api(request):
+    organization, error = _require_org_admin_for_salesforce(request)
+    if error:
+        return error
+
+    limit = request.GET.get('limit', 50)
+    try:
+        limit = int(limit)
+    except (TypeError, ValueError):
+        return _error_response(request, 'limit must be an integer.', 400)
+    limit = max(1, min(limit, 200))
+
+    deliveries = (
+        WebhookDelivery.objects.filter(organization=organization)
+        .select_related('endpoint')
+        .order_by('-created_at')[:limit]
+    )
+    payload = []
+    for item in deliveries:
+        payload.append(
+            {
+                'id': item.id,
+                'endpoint_id': item.endpoint_id,
+                'endpoint_name': item.endpoint.name if item.endpoint else '',
+                'event_type': item.event_type,
+                'status': item.status,
+                'attempt_count': item.attempt_count,
+                'max_attempts': item.max_attempts,
+                'response_status': item.response_status,
+                'error_message': item.error_message,
+                'next_attempt_at': item.next_attempt_at.isoformat() if item.next_attempt_at else None,
+                'dead_lettered_at': item.dead_lettered_at.isoformat() if item.dead_lettered_at else None,
+                'created_at': item.created_at.isoformat() if item.created_at else None,
+            }
+        )
+    return JsonResponse({'deliveries': payload})

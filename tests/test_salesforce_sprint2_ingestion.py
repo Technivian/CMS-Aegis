@@ -10,7 +10,16 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from contracts.models import BackgroundJob, Contract, Organization, OrganizationMembership, SalesforceOrganizationConnection, SalesforceSyncRun
+from contracts.models import (
+    BackgroundJob,
+    Contract,
+    Organization,
+    OrganizationMembership,
+    SalesforceOrganizationConnection,
+    SalesforceSyncRun,
+    WebhookDelivery,
+    WebhookEndpoint,
+)
 from contracts.services.background_jobs import process_background_job
 from contracts.services.salesforce import TOKEN_CIPHER_PREFIX, SalesforceTokenPayload, decrypt_salesforce_token
 
@@ -248,6 +257,81 @@ class SalesforceSprintTwoIngestionTests(TestCase):
                 status=BackgroundJob.Status.PENDING,
             ).exists()
         )
+
+    @patch('contracts.services.webhooks.urlopen')
+    def test_dispatch_webhook_deliveries_retries_to_dead_letter(self, mock_urlopen):
+        endpoint = WebhookEndpoint.objects.create(
+            organization=self.organization,
+            name='ERP Webhook',
+            url='https://example.invalid/webhook',
+            secret='top-secret',
+            event_types=['salesforce.sync.completed'],
+            max_attempts=2,
+        )
+        delivery = WebhookDelivery.objects.create(
+            organization=self.organization,
+            endpoint=endpoint,
+            event_type='salesforce.sync.completed',
+            payload={'ok': True},
+            max_attempts=2,
+            next_attempt_at=timezone.now(),
+        )
+        mock_urlopen.side_effect = RuntimeError('network down')
+        call_command('dispatch_webhook_deliveries', limit=10)
+        delivery.refresh_from_db()
+        self.assertEqual(delivery.status, WebhookDelivery.Status.FAILED)
+        self.assertEqual(delivery.attempt_count, 1)
+        self.assertIsNotNone(delivery.next_attempt_at)
+        delivery.next_attempt_at = timezone.now()
+        delivery.save(update_fields=['next_attempt_at'])
+
+        call_command('dispatch_webhook_deliveries', limit=10)
+        delivery.refresh_from_db()
+        self.assertEqual(delivery.status, WebhookDelivery.Status.DEAD_LETTER)
+        self.assertEqual(delivery.attempt_count, 2)
+        self.assertIsNotNone(delivery.dead_lettered_at)
+
+    def test_netsuite_ingest_command_creates_contract(self):
+        records = [
+            {
+                'id': 'NS-100',
+                'title': 'NetSuite Vendor Agreement',
+                'vendor_name': 'NetSuite Vendor',
+                'contract_type': 'VENDOR',
+                'status': 'ACTIVE',
+                'value': '3210.55',
+                'currency': 'USD',
+                'effective_date': '2026-04-01',
+                'end_date': '2027-03-31',
+            }
+        ]
+        with TemporaryDirectory() as tmpdir:
+            payload_path = Path(tmpdir) / 'netsuite_records.json'
+            payload_path.write_text(json.dumps(records), encoding='utf-8')
+            call_command(
+                'ingest_netsuite_records',
+                organization_slug='sf-org-2',
+                path=str(payload_path),
+            )
+        contract = Contract.objects.get(organization=self.organization, source_system='netsuite', source_system_id='NS-100')
+        self.assertEqual(contract.title, 'NetSuite Vendor Agreement')
+        self.assertEqual(contract.status, Contract.Status.ACTIVE)
+
+    def test_verify_postgres_cutover_command_outputs_json(self):
+        with patch('contracts.management.commands.verify_postgres_cutover.connection') as mock_connection, patch(
+            'contracts.management.commands.verify_postgres_cutover.MigrationExecutor'
+        ) as mock_executor:
+            mock_connection.settings_dict = {'ENGINE': 'django.db.backends.postgresql'}
+            cursor_context = mock_connection.cursor.return_value.__enter__.return_value
+            cursor_context.fetchone.side_effect = [
+                ['PostgreSQL 16.4'],
+                ['cms_aegis'],
+                ['postgres'],
+            ]
+            instance = mock_executor.return_value
+            instance.loader.graph.leaf_nodes.return_value = []
+            instance.migration_plan.return_value = []
+            call_command('verify_postgres_cutover')
 
     def test_encrypt_salesforce_tokens_command_backfills_plaintext_tokens(self):
         connection = SalesforceOrganizationConnection.objects.create(

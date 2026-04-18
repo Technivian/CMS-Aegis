@@ -11,7 +11,7 @@ from .models import (
     Counterparty, ClauseCategory, ClauseTemplate, SignatureRequest, DataInventoryRecord,
     DSARRequest, Subprocessor, TransferRecord, RetentionPolicy, LegalHold,
     ApprovalRule, ApprovalRequest, EthicalWall, SalesforceOrganizationConnection,
-    OrganizationContractFieldMap, SalesforceSyncRun,
+    OrganizationContractFieldMap, SalesforceSyncRun, WebhookEndpoint, WebhookDelivery,
 )
 
 
@@ -163,6 +163,32 @@ class SalesforceSyncRunAdmin(admin.ModelAdmin):
     list_filter = ('status', 'trigger_source', 'dry_run')
     search_fields = ('organization__name', 'organization__slug', 'error_message')
     readonly_fields = ('started_at', 'completed_at')
+
+
+@admin.register(WebhookEndpoint)
+class WebhookEndpointAdmin(admin.ModelAdmin):
+    list_display = ('organization', 'name', 'url', 'status', 'max_attempts', 'updated_at')
+    list_filter = ('status',)
+    search_fields = ('organization__name', 'name', 'url')
+    readonly_fields = ('created_at', 'updated_at')
+
+
+@admin.register(WebhookDelivery)
+class WebhookDeliveryAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'organization',
+        'endpoint',
+        'event_type',
+        'status',
+        'attempt_count',
+        'max_attempts',
+        'response_status',
+        'created_at',
+    )
+    list_filter = ('status', 'event_type')
+    search_fields = ('organization__name', 'endpoint__name', 'event_type', 'error_message')
+    readonly_fields = ('created_at', 'updated_at', 'dead_lettered_at', 'sent_at')
 
 
 @admin.register(Deadline)

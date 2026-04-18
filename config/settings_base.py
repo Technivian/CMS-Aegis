@@ -296,6 +296,9 @@ SALESFORCE_SYNC_DEFAULT_LIMIT = int(os.getenv('SALESFORCE_SYNC_DEFAULT_LIMIT', '
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@cms-aegis.local')
 SERVER_EMAIL = os.getenv('SERVER_EMAIL', DEFAULT_FROM_EMAIL)
 DJANGO_LOG_LEVEL = os.getenv('DJANGO_LOG_LEVEL', 'INFO').upper()
+LOG_SINK_ENABLED = _bool_env('LOG_SINK_ENABLED', default=False)
+LOG_SINK_URL = os.getenv('LOG_SINK_URL', '').strip()
+LOG_SINK_TIMEOUT_SECONDS = float(os.getenv('LOG_SINK_TIMEOUT_SECONDS', '2.0'))
 
 LOGGING = {
     'version': 1,
@@ -326,3 +329,12 @@ LOGGING = {
         'level': DJANGO_LOG_LEVEL,
     },
 }
+
+if LOG_SINK_ENABLED and LOG_SINK_URL:
+    LOGGING['handlers']['http_sink'] = {
+        'class': 'contracts.log_sinks.HttpJsonLogHandler',
+        'sink_url': LOG_SINK_URL,
+        'timeout_seconds': LOG_SINK_TIMEOUT_SECONDS,
+        'filters': ['request_context'],
+    }
+    LOGGING['root']['handlers'].append('http_sink')

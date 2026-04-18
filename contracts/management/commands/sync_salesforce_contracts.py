@@ -9,6 +9,7 @@ from contracts.services.salesforce import (
     create_salesforce_sync_run,
     sync_salesforce_connection,
 )
+from contracts.services.webhooks import queue_webhook_event
 
 
 class Command(BaseCommand):
@@ -52,6 +53,17 @@ class Command(BaseCommand):
             run.error_message = str(exc)
             run.completed_at = timezone.now()
             run.save(update_fields=['status', 'error_message', 'completed_at'])
+            queue_webhook_event(
+                organization=organization,
+                event_type='salesforce.sync.failed',
+                payload={
+                    'run_id': run.id,
+                    'status': run.status,
+                    'error_message': run.error_message,
+                    'dry_run': dry_run,
+                    'limit': limit,
+                },
+            )
             raise CommandError(str(exc))
 
         run.status = SalesforceSyncRun.Status.SUCCESS
@@ -75,6 +87,16 @@ class Command(BaseCommand):
                 'summary',
                 'completed_at',
             ]
+        )
+        queue_webhook_event(
+            organization=organization,
+            event_type='salesforce.sync.completed',
+            payload={
+                'run_id': run.id,
+                'status': run.status,
+                'dry_run': dry_run,
+                'summary': summary,
+            },
         )
 
         self.stdout.write(json.dumps(summary, indent=2, sort_keys=True))
