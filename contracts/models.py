@@ -1560,6 +1560,7 @@ CaseIntakeProcess.ProcessStatus = _CaseIntakeStatus
 PlacementRequest = DueDiligenceProcess
 PlacementRequest.Status = _PlacementStatus
 ProviderResponseRequest = DueDiligenceTask
+ProviderProfile = Client
 
 DueDiligenceProcess.AssessmentStatus = _CaseAssessmentStatus
 CaseAssessment = DueDiligenceProcess
