@@ -13,7 +13,7 @@ class Command(BaseCommand):
         payload = {
             'captured_at': timezone.now().isoformat(),
             'database_engine': engine,
-            'database_name': connection.settings_dict.get('NAME', ''),
+            'database_name': str(connection.settings_dict.get('NAME', '')),
             'checks': {
                 'connection_usable': True,
                 'engine_declared': bool(engine),
