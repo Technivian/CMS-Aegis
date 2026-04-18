@@ -1,0 +1,10 @@
+{
+  "actions": [],
+  "audit_entries_created": 0,
+  "captured_at": "2026-04-18T18:46:45.465185+00:00",
+  "contracts_archived": 0,
+  "contracts_evaluated": 0,
+  "dry_run": false,
+  "organizations_scanned": 14,
+  "policies_scanned": 8
+}

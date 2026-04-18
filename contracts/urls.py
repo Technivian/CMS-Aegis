@@ -27,7 +27,12 @@ urlpatterns = [
     path('api/integrations/salesforce/ingest-preview/', api_views.salesforce_ingest_preview_api, name='salesforce_ingest_preview_api'),
     path('api/integrations/salesforce/sync/', api_views.salesforce_sync_api, name='salesforce_sync_api'),
     path('api/integrations/salesforce/sync-runs/', api_views.salesforce_sync_runs_api, name='salesforce_sync_runs_api'),
+    path('api/integrations/netsuite/sync/', api_views.netsuite_sync_api, name='netsuite_sync_api'),
     path('api/integrations/webhooks/deliveries/', api_views.webhook_deliveries_api, name='webhook_deliveries_api'),
+    path('api/integrations/esign/webhook/', api_views.esign_webhook_api, name='esign_webhook_api'),
+    path('api/analytics/executive/', api_views.executive_analytics_api, name='executive_analytics_api'),
+    path('api/analytics/executive/presets/', api_views.executive_dashboard_presets_api, name='executive_dashboard_presets_api'),
+    path('api/analytics/executive/presets/<int:preset_id>/', api_views.executive_dashboard_preset_delete_api, name='executive_dashboard_preset_delete_api'),
 
     # Clients
     path('clients/', views.ClientListView.as_view(), name='client_list'),

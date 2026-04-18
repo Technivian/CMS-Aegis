@@ -492,6 +492,34 @@ class WebhookDelivery(models.Model):
         return f'{self.event_type} -> {self.endpoint_id} ({self.status})'
 
 
+class ExecutiveDashboardPreset(models.Model):
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name='executive_dashboard_presets',
+    )
+    name = models.CharField(max_length=120)
+    filters = models.JSONField(default=dict, blank=True)
+    layout = models.JSONField(default=dict, blank=True)
+    is_shared = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='executive_dashboard_presets',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['organization__name', 'name']
+        unique_together = ('organization', 'name')
+
+    def __str__(self):
+        return f'{self.organization.slug}:{self.name}'
+
+
 class Client(models.Model):
     class ClientType(models.TextChoices):
         INDIVIDUAL = 'INDIVIDUAL', 'Individual'

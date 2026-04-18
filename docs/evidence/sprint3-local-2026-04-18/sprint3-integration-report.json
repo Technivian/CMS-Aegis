@@ -1,0 +1,15 @@
+{
+  "captured_at": "2026-04-18T18:46:36.089247+00:00",
+  "observed": {
+    "salesforce_sync_run": null,
+    "webhook_dead_letter_delivery": null,
+    "webhook_sent_delivery": null
+  },
+  "requirements": {
+    "salesforce_sync_created_or_updated_gt_zero": true,
+    "webhook_dead_letter_present": false,
+    "webhook_sent_event_present": true
+  },
+  "status": "NO-GO",
+  "window_days": 14
+}

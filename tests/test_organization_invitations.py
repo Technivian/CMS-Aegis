@@ -404,6 +404,26 @@ class OrganizationInvitationTests(TestCase):
         response = self.client.get(reverse('contracts:organization_activity_export'))
         self.assertEqual(response.status_code, 403)
 
+    def test_owner_can_revoke_member_sessions(self):
+        target = OrganizationMembership.objects.get(organization=self.organization, user=self.member)
+
+        owner_client = self.client
+        member_client = self.client_class()
+        owner_client.login(username='owner', password='testpass123')
+        member_client.login(username='member', password='testpass123')
+
+        self.assertEqual(member_client.get(reverse('dashboard')).status_code, 200)
+
+        response = owner_client.post(
+            reverse('contracts:revoke_member_sessions', kwargs={'membership_id': target.id}),
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+
+        member_response = member_client.get(reverse('dashboard'))
+        self.assertEqual(member_response.status_code, 302)
+        self.assertIn(reverse('login'), member_response['Location'])
+
     def test_anonymous_user_is_redirected_from_organization_activity_export(self):
         response = self.client.get(reverse('contracts:organization_activity_export'))
         self.assertEqual(response.status_code, 302)

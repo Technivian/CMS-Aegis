@@ -23,6 +23,15 @@ def get_request_organization(request):
     return request._cached_organization
 
 
+def get_scoped_queryset_for_request(request, queryset_or_model):
+    organization = get_request_organization(request)
+    if hasattr(queryset_or_model, '_meta') and hasattr(queryset_or_model, 'objects'):
+        queryset = queryset_or_model.objects.all()
+    else:
+        queryset = queryset_or_model
+    return scope_queryset_for_organization(queryset, organization)
+
+
 class OrganizationContextMixin:
     """Provide a cached organization lookup for the current request."""
 

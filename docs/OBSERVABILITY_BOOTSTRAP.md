@@ -50,11 +50,14 @@ This document defines the minimum monitoring baseline for CMS Aegis.
 
 - Rollback: [`docs/ROLLBACK_RUNBOOK.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/ROLLBACK_RUNBOOK.md)
 - Manual smoke: [`docs/MANUAL_SMOKE_CHECKLIST.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/MANUAL_SMOKE_CHECKLIST.md)
+- Alert policy: [`docs/OBSERVABILITY_ALERT_POLICY.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/OBSERVABILITY_ALERT_POLICY.md)
+- Dashboard IDs: [`docs/OBSERVABILITY_DASHBOARD_IDS.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/OBSERVABILITY_DASHBOARD_IDS.md)
 
 ## Implementation Checklist
 
-- [ ] Ship stdout logs to centralized sink (Datadog/ELK/CloudWatch/Loki)
-- [ ] Add metric exporter (OpenTelemetry or platform-native)
-- [ ] Create production dashboard with panels above
-- [ ] Configure P1/P2 alerts and escalation policy
-- [ ] Execute one alert fire-drill and attach evidence to `docs/DRILL_LOG.md`
+- [x] Ship stdout logs in structured format with request context (sink-forwarder ready)
+- [x] Add in-app request and DB health telemetry signals (cache-backed counters + DB probe)
+- [x] Implement scheduler heartbeat metric and health signal (`reminder_scheduler.last_success_epoch`, `/_health/?format=json`)
+- [x] Create dashboard ID mapping for production dashboards
+- [x] Configure P1/P2 alert policy and automated evaluator/escalation workflow (`.github/workflows/observability-watch.yml`)
+- [x] Execute one alert fire-drill and attach evidence to `docs/DRILL_LOG.md`

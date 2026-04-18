@@ -1,89 +1,121 @@
+"""Clause service backed by persisted Django models."""
 
-"""
-Clause library service for managing reusable contract clauses
-"""
-from typing import List, Dict, Optional
-from datetime import datetime
-import uuid
-from config.feature_flags import is_test_mode
+from dataclasses import dataclass, field
+from typing import List, Optional
 
+from django.db.models import QuerySet
+from django.db.models import Q
+
+from contracts.models import ClauseCategory, ClauseTemplate, Organization
+
+
+@dataclass
 class Clause:
-    def __init__(self, id: str, title: str, content: str, category: str = "general",
-                 tags: List[str] = None, version: str = "1.0", created_by: str = ""):
-        self.id = id
-        self.title = title
-        self.content = content
-        self.category = category
-        self.tags = tags or []
-        self.version = version
-        self.created_by = created_by
-        self.created_at = datetime.now().isoformat()
+    id: str
+    title: str
+    content: str
+    category: str = "general"
+    tags: List[str] = field(default_factory=list)
+    version: str = "1"
+    created_by: str = ""
+    created_at: str = ""
+
 
 class ClauseService:
-    def __init__(self):
-        self._clauses = self._get_mock_clauses() if is_test_mode() else {}
-    
-    def _get_mock_clauses(self) -> Dict[str, Clause]:
-        """Generate mock clause data for testing"""
-        mock_clauses = [
-            Clause("cls-1", "Limitation of Liability", 
-                  "IN NO EVENT SHALL THE COMPANY BE LIABLE...", "liability",
-                  tags=["liability", "protection"]),
-            Clause("cls-2", "Force Majeure", 
-                  "Neither party shall be liable for any delay...", "general",
-                  tags=["force-majeure", "delays"]),
-            Clause("cls-3", "Confidentiality", 
-                  "Each party acknowledges that it may receive...", "confidentiality",
-                  tags=["confidentiality", "nda"]),
-            Clause("cls-4", "Termination", 
-                  "This agreement may be terminated by either party...", "termination",
-                  tags=["termination", "cancellation"]),
-            Clause("cls-5", "Intellectual Property", 
-                  "All intellectual property rights in...", "ip",
-                  tags=["ip", "ownership"]),
-        ]
-        return {clause.id: clause for clause in mock_clauses}
-    
-    def search_clauses(self, query: str = "", category: Optional[str] = None,
-                      tags: List[str] = None) -> List[Clause]:
-        """Search clauses by content, category, or tags"""
-        clauses = list(self._clauses.values())
-        
-        if query:
-            query_lower = query.lower()
-            clauses = [c for c in clauses 
-                      if query_lower in c.title.lower() or query_lower in c.content.lower()]
-        
-        if category:
-            clauses = [c for c in clauses if c.category == category]
-        
-        if tags:
-            clauses = [c for c in clauses if any(tag in c.tags for tag in tags)]
-        
-        return sorted(clauses, key=lambda c: c.created_at, reverse=True)
-    
-    def get_clause(self, clause_id: str) -> Optional[Clause]:
-        """Get a specific clause by ID"""
-        return self._clauses.get(clause_id)
-    
-    def create_clause(self, title: str, content: str, category: str = "general",
-                     tags: List[str] = None) -> Clause:
-        """Create a new clause"""
-        clause_id = f"cls-{uuid.uuid4().hex[:8]}"
-        clause = Clause(clause_id, title, content, category, tags=tags or [])
-        self._clauses[clause_id] = clause
-        return clause
-    
-    def get_categories(self) -> List[str]:
-        """Get all unique clause categories"""
-        return list(set(clause.category for clause in self._clauses.values()))
-    
-    def get_all_tags(self) -> List[str]:
-        """Get all unique tags used in clauses"""
-        all_tags = set()
-        for clause in self._clauses.values():
-            all_tags.update(clause.tags)
-        return sorted(list(all_tags))
+    """Persisted clause library service."""
 
-# Global service instance
-clause_service = ClauseService()
+    def __init__(self, organization: Optional[Organization] = None):
+        self.organization = organization
+
+    def _base_queryset(self) -> QuerySet[ClauseTemplate]:
+        qs = ClauseTemplate.objects.select_related("category")
+        if self.organization is not None:
+            qs = qs.filter(organization=self.organization)
+        return qs
+
+    @staticmethod
+    def _parse_tags(tags: str) -> List[str]:
+        return [token.strip() for token in (tags or "").split(",") if token.strip()]
+
+    @staticmethod
+    def _to_dto(clause: ClauseTemplate) -> Clause:
+        return Clause(
+            id=str(clause.pk),
+            title=clause.title,
+            content=clause.content,
+            category=clause.category.name if clause.category else "general",
+            tags=ClauseService._parse_tags(clause.tags),
+            version=str(clause.version),
+            created_by=clause.created_by.username if clause.created_by else "",
+            created_at=clause.created_at.isoformat() if clause.created_at else "",
+        )
+
+    def search_clauses(
+        self,
+        query: str = "",
+        category: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+    ) -> List[Clause]:
+        """Search persisted clauses by text/category/tags."""
+        qs = self._base_queryset().order_by("-created_at")
+
+        if query:
+            qs = qs.filter(Q(title__icontains=query) | Q(content__icontains=query))
+
+        if category:
+            qs = qs.filter(category__name__iexact=category)
+
+        clauses = [self._to_dto(item) for item in qs]
+        if tags:
+            normalized = {tag.strip().lower() for tag in tags if tag and tag.strip()}
+            if normalized:
+                clauses = [
+                    item for item in clauses
+                    if normalized.intersection({tag.lower() for tag in item.tags})
+                ]
+        return clauses
+
+    def get_clause(self, clause_id: str) -> Optional[Clause]:
+        clause = self._base_queryset().filter(pk=clause_id).first()
+        return self._to_dto(clause) if clause else None
+
+    def create_clause(
+        self,
+        title: str,
+        content: str,
+        category: str = "general",
+        tags: Optional[List[str]] = None,
+    ) -> Clause:
+        category_obj = None
+        category_name = (category or "general").strip() or "general"
+        if category_name:
+            category_obj, _ = ClauseCategory.objects.get_or_create(
+                organization=self.organization,
+                name=category_name,
+                defaults={"description": "", "order": 0},
+            )
+
+        clause = ClauseTemplate.objects.create(
+            organization=self.organization,
+            title=title,
+            category=category_obj,
+            content=content,
+            tags=", ".join([tag.strip() for tag in (tags or []) if tag and tag.strip()]),
+        )
+        return self._to_dto(clause)
+
+    def get_categories(self) -> List[str]:
+        qs = ClauseCategory.objects.all()
+        if self.organization is not None:
+            qs = qs.filter(organization=self.organization)
+        return list(qs.order_by("name").values_list("name", flat=True))
+
+    def get_all_tags(self) -> List[str]:
+        tags: set[str] = set()
+        for item in self._base_queryset().values_list("tags", flat=True):
+            tags.update(self._parse_tags(item))
+        return sorted(tags)
+
+
+def get_clause_service(organization: Optional[Organization] = None) -> ClauseService:
+    return ClauseService(organization=organization)

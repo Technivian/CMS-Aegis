@@ -1,89 +1,114 @@
+"""Template service backed by persisted Django models."""
 
-"""
-Template service for managing contract templates
-"""
-from typing import List, Dict, Optional
-from datetime import datetime
-import uuid
-from config.feature_flags import is_test_mode
+from dataclasses import dataclass, field
+from typing import List, Optional
 
+from django.db.models import QuerySet
+
+from contracts.models import Organization, WorkflowTemplate
+
+
+@dataclass
 class Template:
-    def __init__(self, id: str, title: str, content: str, category: str = "general", 
-                 created_by: str = "", created_at: str = "", tags: List[str] = None):
-        self.id = id
-        self.title = title
-        self.content = content
-        self.category = category
-        self.created_by = created_by
-        self.created_at = created_at or datetime.now().isoformat()
-        self.tags = tags or []
+    id: str
+    title: str
+    content: str
+    category: str = "general"
+    version: int = 1
+    created_by: str = ""
+    created_at: str = ""
+    tags: List[str] = field(default_factory=list)
+
 
 class TemplateService:
-    def __init__(self):
-        self._templates = self._get_mock_templates() if is_test_mode() else {}
-    
-    def _get_mock_templates(self) -> Dict[str, Template]:
-        """Generate mock template data for testing"""
-        mock_templates = [
-            Template("tpl-1", "Software License Agreement", 
-                    "This Software License Agreement...", "licensing",
-                    "admin", tags=["software", "licensing"]),
-            Template("tpl-2", "Service Agreement", 
-                    "This Service Agreement outlines...", "services",
-                    "admin", tags=["services", "general"]),
-            Template("tpl-3", "NDA Template", 
-                    "This Non-Disclosure Agreement...", "confidentiality",
-                    "admin", tags=["nda", "confidentiality"]),
-            Template("tpl-4", "Employment Contract", 
-                    "This Employment Contract establishes...", "employment",
-                    "admin", tags=["employment", "hr"]),
-        ]
-        return {template.id: template for template in mock_templates}
-    
-    def list_templates(self, category: Optional[str] = None, 
-                      tags: List[str] = None) -> List[Template]:
-        """List all templates with optional filtering"""
-        templates = list(self._templates.values())
-        
+    """Persisted template operations over WorkflowTemplate."""
+
+    def __init__(self, organization: Optional[Organization] = None):
+        self.organization = organization
+
+    def _base_queryset(self) -> QuerySet[WorkflowTemplate]:
+        qs = WorkflowTemplate.objects.all()
+        if self.organization is not None:
+            # WorkflowTemplate is currently global; keep organization arg for forward compatibility.
+            return qs
+        return qs
+
+    @staticmethod
+    def _to_dto(template: WorkflowTemplate) -> Template:
+        return Template(
+            id=str(template.pk),
+            title=template.name,
+            content=template.description,
+            category=(template.category or "GENERAL").lower(),
+            version=template.version,
+            created_at=template.created_at.isoformat() if template.created_at else "",
+        )
+
+    def list_templates(self, category: Optional[str] = None, tags: Optional[List[str]] = None) -> List[Template]:
+        """List persisted templates with optional category and lightweight tag filtering."""
+        qs = self._base_queryset().order_by("-created_at")
+
         if category:
-            templates = [t for t in templates if t.category == category]
-        
+            qs = qs.filter(category=str(category).upper())
+
+        results = [self._to_dto(item) for item in qs]
         if tags:
-            templates = [t for t in templates if any(tag in t.tags for tag in tags)]
-        
-        return sorted(templates, key=lambda t: t.created_at, reverse=True)
-    
+            lowered = [tag.strip().lower() for tag in tags if tag and tag.strip()]
+            if lowered:
+                results = [
+                    item for item in results
+                    if any(tag in item.title.lower() or tag in item.content.lower() for tag in lowered)
+                ]
+        return results
+
     def get_template(self, template_id: str) -> Optional[Template]:
-        """Get a specific template by ID"""
-        return self._templates.get(template_id)
-    
-    def create_template(self, title: str, content: str, category: str = "general",
-                       tags: List[str] = None) -> Template:
-        """Create a new template"""
-        template_id = f"tpl-{uuid.uuid4().hex[:8]}"
-        template = Template(template_id, title, content, category, 
-                          "current_user", tags=tags or [])
-        self._templates[template_id] = template
-        return template
-    
+        """Get a specific persisted template by id."""
+        template = self._base_queryset().filter(pk=template_id).first()
+        return self._to_dto(template) if template else None
+
+    def create_template(
+        self,
+        title: str,
+        content: str,
+        category: str = "general",
+        tags: Optional[List[str]] = None,
+    ) -> Template:
+        """Create a persisted template."""
+        template = WorkflowTemplate.objects.create(
+            name=title,
+            description=content,
+            category=str(category or "general").upper(),
+            version=1,
+            is_active=True,
+        )
+        dto = self._to_dto(template)
+        dto.tags = [tag.strip() for tag in (tags or []) if tag and tag.strip()]
+        return dto
+
     def update_template(self, template_id: str, **kwargs) -> Optional[Template]:
-        """Update an existing template"""
-        template = self._templates.get(template_id)
+        """Update a persisted template."""
+        template = self._base_queryset().filter(pk=template_id).first()
         if not template:
             return None
-        
-        for key, value in kwargs.items():
-            if hasattr(template, key):
-                setattr(template, key, value)
-        
-        return template
-    
-    def delete_template(self, template_id: str) -> bool:
-        """Delete a template"""
-        if template_id in self._templates:
-            del self._templates[template_id]
-            return True
-        return False
 
-# Global service instance
-template_service = TemplateService()
+        if "title" in kwargs:
+            template.name = kwargs["title"]
+        if "content" in kwargs:
+            template.description = kwargs["content"]
+        if "category" in kwargs:
+            template.category = str(kwargs["category"] or "general").upper()
+        template.save(update_fields=["name", "description", "category"])
+
+        dto = self._to_dto(template)
+        if "tags" in kwargs:
+            dto.tags = [tag.strip() for tag in (kwargs.get("tags") or []) if tag and tag.strip()]
+        return dto
+
+    def delete_template(self, template_id: str) -> bool:
+        """Delete a persisted template."""
+        deleted, _ = self._base_queryset().filter(pk=template_id).delete()
+        return deleted > 0
+
+
+def get_template_service(organization: Optional[Organization] = None) -> TemplateService:
+    return TemplateService(organization=organization)

@@ -6,6 +6,7 @@ django-debug-toolbar==4.4.6
 
 # Test/data helpers
 Faker==17.3.0
+pip-audit==2.9.0
 
 # Legacy browser/robot automation toolchain (kept for compatibility)
 robotframework==7.3.2

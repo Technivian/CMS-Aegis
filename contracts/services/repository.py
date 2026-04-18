@@ -7,10 +7,15 @@ from django.contrib.auth.models import User
 from contracts.models import Contract
 from contracts.domain.contracts import ListParams, ContractData, ListResult, ContractStatus
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Case, When, Value, IntegerField
 import time
 from typing import List, Optional
 from contracts.tenancy import get_user_organization, scope_queryset_for_organization
+
+
+class BulkUpdateValidationError(Exception):
+    """Raised when bulk update payload fails validation."""
+
 
 def get_repository_service(user: User, use_mock: bool = False):
     """Factory function to get repository service"""
@@ -33,6 +38,7 @@ class RepositoryServiceInterface:
 
 class DjangoRepositoryService(RepositoryServiceInterface):
     """Production repository service using Django ORM"""
+    ALLOWED_BULK_UPDATE_FIELDS = {'status', 'lifecycle_stage'}
     
     def __init__(self, user: User):
         self.user = user
@@ -40,7 +46,10 @@ class DjangoRepositoryService(RepositoryServiceInterface):
     
     def list(self, params: ListParams) -> ListResult:
         """List contracts with filtering and pagination"""
-        queryset = scope_queryset_for_organization(Contract.objects.all(), self.organization)
+        queryset = scope_queryset_for_organization(
+            Contract.objects.select_related('created_by').all(),
+            self.organization,
+        )
         
         # Apply search
         if params.q:
@@ -49,25 +58,35 @@ class DjangoRepositoryService(RepositoryServiceInterface):
                 Q(counterparty__icontains=params.q) |
                 Q(content__icontains=params.q)
             )
-        
+            queryset = queryset.annotate(
+                search_rank=Case(
+                    When(title__iexact=params.q, then=Value(0)),
+                    When(title__istartswith=params.q, then=Value(1)),
+                    default=Value(2),
+                    output_field=IntegerField(),
+                )
+            )
+
         # Apply status filter
         if params.status:
             queryset = queryset.filter(status__in=params.status)
             
         # Apply type filter (if we had a contract_type field)
         if params.contract_type:
-            # queryset = queryset.filter(contract_type__in=params.contract_type)
-            pass
+            if hasattr(Contract, 'contract_type'):
+                queryset = queryset.filter(contract_type__in=params.contract_type)
         
         # Apply sorting
         if params.sort == 'updated_desc':
-            queryset = queryset.order_by('-updated_at')
+            queryset = queryset.order_by('search_rank', '-updated_at') if params.q else queryset.order_by('-updated_at')
         elif params.sort == 'updated_asc':
-            queryset = queryset.order_by('updated_at')
+            queryset = queryset.order_by('search_rank', 'updated_at') if params.q else queryset.order_by('updated_at')
         elif params.sort == 'title':
-            queryset = queryset.order_by('title')
+            queryset = queryset.order_by('search_rank', 'title') if params.q else queryset.order_by('title')
         elif params.sort == 'status':
-            queryset = queryset.order_by('status')
+            queryset = queryset.order_by('search_rank', 'status') if params.q else queryset.order_by('status')
+        elif params.q:
+            queryset = queryset.order_by('search_rank', '-updated_at')
             
         # Paginate
         paginator = Paginator(queryset, params.page_size)
@@ -120,8 +139,47 @@ class DjangoRepositoryService(RepositoryServiceInterface):
     
     def bulk_update(self, contract_ids: List[str], updates: dict) -> int:
         """Bulk update contracts"""
+        if not isinstance(updates, dict) or not updates:
+            raise BulkUpdateValidationError('updates must be a non-empty object')
+
+        disallowed_fields = set(updates.keys()) - self.ALLOWED_BULK_UPDATE_FIELDS
+        if disallowed_fields:
+            disallowed = ', '.join(sorted(disallowed_fields))
+            raise BulkUpdateValidationError(f'updates contain unsupported fields: {disallowed}')
+
+        if 'status' in updates:
+            allowed_statuses = {value for value, _ in Contract.Status.choices}
+            if updates['status'] not in allowed_statuses:
+                raise BulkUpdateValidationError('status must be a valid contract status')
+
+        if 'lifecycle_stage' in updates:
+            allowed_stages = {
+                value
+                for value, _ in Contract._meta.get_field('lifecycle_stage').choices
+            }
+            if updates['lifecycle_stage'] not in allowed_stages:
+                raise BulkUpdateValidationError('lifecycle_stage must be a valid lifecycle stage')
+
         queryset = scope_queryset_for_organization(Contract.objects.filter(id__in=contract_ids), self.organization)
-        return queryset.update(**updates)
+        updated_count = 0
+        for contract in queryset.select_related('organization', 'created_by'):
+            update_fields = []
+            if 'status' in updates and contract.status != updates['status']:
+                contract.status = updates['status']
+                update_fields.append('status')
+            if 'lifecycle_stage' in updates and contract.lifecycle_stage != updates['lifecycle_stage']:
+                if not contract.can_transition_lifecycle_stage(updates['lifecycle_stage']):
+                    raise BulkUpdateValidationError(
+                        f'Contract {contract.id} cannot transition from {contract.lifecycle_stage} to {updates["lifecycle_stage"]}'
+                    )
+                contract.lifecycle_stage = updates['lifecycle_stage']
+                update_fields.append('lifecycle_stage')
+            if contract.pk:
+                if update_fields:
+                    contract.save(update_fields=update_fields + ['updated_at'])
+                    updated_count += 1
+
+        return updated_count
 
 class MockRepositoryService(RepositoryServiceInterface):
     """Mock service for testing with simulated latency"""

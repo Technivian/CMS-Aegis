@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -35,6 +36,10 @@ User = get_user_model()
     SALESFORCE_REDIRECT_URI='http://testserver/contracts/api/integrations/salesforce/oauth/callback/',
     SALESFORCE_SCOPES='api refresh_token offline_access',
     SALESFORCE_TOKEN_ENCRYPTION_SALT='tests-v1',
+    NETSUITE_CLIENT_ID='ns-client-id',
+    NETSUITE_CLIENT_SECRET='ns-client-secret',
+    NETSUITE_TOKEN_URL='https://sandbox.netsuite.com/oauth2/v1/token',
+    NETSUITE_API_URL='https://sandbox.netsuite.com/app/site/hosting/restlet.nl',
 )
 class SalesforceSprintTwoIngestionTests(TestCase):
     def setUp(self):
@@ -317,13 +322,103 @@ class SalesforceSprintTwoIngestionTests(TestCase):
         self.assertEqual(contract.title, 'NetSuite Vendor Agreement')
         self.assertEqual(contract.status, Contract.Status.ACTIVE)
 
+    @patch('contracts.management.commands.sync_netsuite_contracts.fetch_netsuite_records')
+    def test_sync_netsuite_contracts_command_fetches_and_upserts(self, mock_fetch):
+        mock_fetch.return_value = [
+            {
+                'id': 'NS-200',
+                'title': 'NetSuite API Synced Contract',
+                'vendor_name': 'Acme Vendor',
+                'contract_type': 'MSA',
+                'status': 'ACTIVE',
+                'value': '9000.00',
+                'currency': 'USD',
+            }
+        ]
+        call_command('sync_netsuite_contracts', organization_slug='sf-org-2', limit=25)
+        contract = Contract.objects.get(
+            organization=self.organization,
+            source_system='netsuite',
+            source_system_id='NS-200',
+        )
+        self.assertEqual(contract.title, 'NetSuite API Synced Contract')
+        self.assertEqual(contract.contract_type, Contract.ContractType.MSA)
+
+    @patch('contracts.management.commands.sync_netsuite_contracts.fetch_netsuite_records')
+    def test_sync_netsuite_contracts_command_supports_dry_run(self, mock_fetch):
+        Contract.objects.create(
+            organization=self.organization,
+            title='Existing NS Contract',
+            source_system='netsuite',
+            source_system_id='NS-201',
+        )
+        mock_fetch.return_value = [
+            {'id': 'NS-201', 'title': 'Existing NS Contract'},
+            {'id': 'NS-202', 'title': 'New NS Contract'},
+            {'id': '', 'title': 'Missing ID'},
+        ]
+        call_command('sync_netsuite_contracts', organization_slug='sf-org-2', limit=25, dry_run=True)
+        self.assertFalse(
+            Contract.objects.filter(
+                organization=self.organization,
+                source_system='netsuite',
+                source_system_id='NS-202',
+            ).exists()
+        )
+
+    @patch('contracts.api.views.fetch_netsuite_records')
+    def test_netsuite_sync_api_returns_summary(self, mock_fetch):
+        mock_fetch.return_value = [
+            {'id': 'NS-301', 'title': 'API NetSuite Contract', 'contract_type': 'NDA', 'status': 'ACTIVE'}
+        ]
+        response = self.client.post(
+            reverse('contracts:netsuite_sync_api'),
+            data=json.dumps({'dry_run': False, 'limit': 25}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertFalse(payload['dry_run'])
+        self.assertEqual(payload['summary']['created'], 1)
+        self.assertTrue(
+            Contract.objects.filter(
+                organization=self.organization,
+                source_system='netsuite',
+                source_system_id='NS-301',
+            ).exists()
+        )
+
+    @patch('contracts.api.views.fetch_netsuite_records')
+    def test_netsuite_sync_api_dry_run_does_not_persist(self, mock_fetch):
+        mock_fetch.return_value = [
+            {'id': 'NS-302', 'title': 'Dry Run NetSuite Contract', 'contract_type': 'MSA', 'status': 'ACTIVE'}
+        ]
+        response = self.client.post(
+            reverse('contracts:netsuite_sync_api'),
+            data=json.dumps({'dry_run': True, 'limit': 25}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload['dry_run'])
+        self.assertEqual(payload['summary']['created'], 1)
+        self.assertFalse(
+            Contract.objects.filter(
+                organization=self.organization,
+                source_system='netsuite',
+                source_system_id='NS-302',
+            ).exists()
+        )
+
     def test_verify_postgres_cutover_command_outputs_json(self):
         with patch('contracts.management.commands.verify_postgres_cutover.connection') as mock_connection, patch(
             'contracts.management.commands.verify_postgres_cutover.MigrationExecutor'
         ) as mock_executor:
             mock_connection.settings_dict = {'ENGINE': 'django.db.backends.postgresql'}
+            mock_connection.vendor = 'postgresql'
             cursor_context = mock_connection.cursor.return_value.__enter__.return_value
             cursor_context.fetchone.side_effect = [
+                [1],
                 ['PostgreSQL 16.4'],
                 ['cms_aegis'],
                 ['postgres'],
@@ -332,6 +427,20 @@ class SalesforceSprintTwoIngestionTests(TestCase):
             instance.loader.graph.leaf_nodes.return_value = []
             instance.migration_plan.return_value = []
             call_command('verify_postgres_cutover')
+
+    def test_verify_postgres_cutover_command_handles_sqlite_non_production(self):
+        with patch('contracts.management.commands.verify_postgres_cutover.connection') as mock_connection, patch(
+            'contracts.management.commands.verify_postgres_cutover.MigrationExecutor'
+        ) as mock_executor:
+            mock_connection.settings_dict = {'ENGINE': 'django.db.backends.sqlite3', 'NAME': 'db.sqlite3'}
+            mock_connection.vendor = 'sqlite'
+            cursor_context = mock_connection.cursor.return_value.__enter__.return_value
+            cursor_context.fetchone.return_value = [1]
+            instance = mock_executor.return_value
+            instance.loader.graph.leaf_nodes.return_value = []
+            instance.migration_plan.return_value = []
+            with self.assertRaises(CommandError):
+                call_command('verify_postgres_cutover')
 
     def test_encrypt_salesforce_tokens_command_backfills_plaintext_tokens(self):
         connection = SalesforceOrganizationConnection.objects.create(

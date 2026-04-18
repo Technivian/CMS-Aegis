@@ -32,6 +32,15 @@ from contracts.services.salesforce import (
     sync_salesforce_connection,
 )
 from contracts.services.webhooks import queue_webhook_event
+from contracts.services.esign import ESignReconciliationError, apply_esign_event
+from contracts.services.executive_analytics import build_executive_analytics_snapshot
+from contracts.services.netsuite import (
+    NetSuiteSyncError,
+    fetch_netsuite_records,
+    ingest_netsuite_records,
+    map_netsuite_record,
+    netsuite_is_configured,
+)
 from contracts.domain.contracts import ListParams
 from contracts.middleware import log_action
 from contracts.permissions import can_manage_organization
@@ -45,11 +54,13 @@ from contracts.models import (
     SalesforceOrganizationConnection,
     OrganizationSCIMGroup,
     OrganizationSCIMGroupMembership,
+    ExecutiveDashboardPreset,
     WebhookDelivery,
     WebhookEndpoint,
     SalesforceSyncRun,
     UserProfile,
     AuditLog,
+    SignatureRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -1048,6 +1059,22 @@ def _require_org_admin_for_salesforce(request):
     return organization, None
 
 
+def _require_org_member_context(request):
+    if not getattr(request.user, 'is_authenticated', False):
+        return None, _error_response(request, 'Authentication required.', 401)
+    organization = get_user_organization(request.user)
+    if organization is None:
+        return None, _error_response(request, 'No active organization context.', 403)
+    membership = OrganizationMembership.objects.filter(
+        organization=organization,
+        user=request.user,
+        is_active=True,
+    ).first()
+    if membership is None:
+        return None, _error_response(request, 'No active organization membership.', 403)
+    return organization, None
+
+
 @login_required
 @require_http_methods(["GET"])
 def salesforce_connection_status_api(request):
@@ -1402,6 +1429,65 @@ def salesforce_sync_runs_api(request):
 
 
 @login_required
+@require_http_methods(["POST"])
+def netsuite_sync_api(request):
+    organization, error = _require_org_admin_for_salesforce(request)
+    if error:
+        return error
+
+    if not netsuite_is_configured():
+        return _error_response(request, 'NetSuite integration is not configured.', 400)
+
+    try:
+        payload = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return _error_response(request, 'Invalid JSON body.', 400)
+
+    dry_run = bool(payload.get('dry_run', False))
+    limit = payload.get('limit', 200)
+    try:
+        limit = int(limit)
+    except (TypeError, ValueError):
+        return _error_response(request, 'limit must be an integer.', 400)
+    if limit <= 0 or limit > 2000:
+        return _error_response(request, 'limit must be between 1 and 2000.', 400)
+
+    try:
+        records = fetch_netsuite_records(limit=limit)
+    except NetSuiteSyncError as exc:
+        return _error_response(request, str(exc), 502)
+
+    if dry_run:
+        summary = {'total_records': len(records), 'created': 0, 'updated': 0, 'skipped': 0, 'errors': []}
+        for index, record in enumerate(records):
+            try:
+                mapped = map_netsuite_record(record)
+                source_id = str(mapped.get('source_system_id', '') or '').strip()
+                title = str(mapped.get('contract_title', '') or '').strip()
+                if not source_id or not title:
+                    summary['skipped'] += 1
+                    continue
+                exists = Contract.objects.filter(
+                    organization=organization,
+                    source_system='netsuite',
+                    source_system_id=source_id,
+                ).exists()
+                if exists:
+                    summary['updated'] += 1
+                else:
+                    summary['created'] += 1
+            except Exception as exc:
+                summary['errors'].append({'index': index, 'error': str(exc)})
+    else:
+        summary = ingest_netsuite_records(organization, records)
+
+    summary['fetched_records'] = len(records)
+    summary['dry_run'] = dry_run
+    summary['source'] = 'netsuite_api'
+    return JsonResponse({'summary': summary, 'dry_run': dry_run})
+
+
+@login_required
 @require_http_methods(["GET"])
 def webhook_deliveries_api(request):
     organization, error = _require_org_admin_for_salesforce(request)
@@ -1439,3 +1525,142 @@ def webhook_deliveries_api(request):
             }
         )
     return JsonResponse({'deliveries': payload})
+
+
+@login_required
+@require_http_methods(["GET"])
+def executive_analytics_api(request):
+    organization, error = _require_org_member_context(request)
+    if error:
+        return error
+    return JsonResponse(build_executive_analytics_snapshot(organization))
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def executive_dashboard_presets_api(request):
+    organization, error = _require_org_member_context(request)
+    if error:
+        return error
+
+    if request.method == 'GET':
+        presets = (
+            ExecutiveDashboardPreset.objects.filter(organization=organization, is_shared=True)
+            .select_related('created_by')
+            .order_by('name')
+        )
+        payload = [
+            {
+                'id': preset.id,
+                'name': preset.name,
+                'filters': preset.filters,
+                'layout': preset.layout,
+                'created_by': preset.created_by.username if preset.created_by else None,
+                'created_at': preset.created_at.isoformat() if preset.created_at else None,
+                'updated_at': preset.updated_at.isoformat() if preset.updated_at else None,
+            }
+            for preset in presets
+        ]
+        return JsonResponse({'presets': payload})
+
+    if not can_manage_organization(request.user, organization):
+        return _error_response(request, 'Only organization admins/owners can manage shared dashboards.', 403)
+
+    try:
+        payload = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return _error_response(request, 'Invalid JSON body.', 400)
+    name = str(payload.get('name') or '').strip()
+    if not name:
+        return _error_response(request, 'name is required.', 400)
+    filters = payload.get('filters') if isinstance(payload.get('filters'), dict) else {}
+    layout = payload.get('layout') if isinstance(payload.get('layout'), dict) else {}
+
+    preset, _ = ExecutiveDashboardPreset.objects.update_or_create(
+        organization=organization,
+        name=name,
+        defaults={
+            'filters': filters,
+            'layout': layout,
+            'is_shared': True,
+            'created_by': request.user,
+        },
+    )
+    return JsonResponse(
+        {
+            'preset': {
+                'id': preset.id,
+                'name': preset.name,
+                'filters': preset.filters,
+                'layout': preset.layout,
+            }
+        }
+    )
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def executive_dashboard_preset_delete_api(request, preset_id):
+    organization, error = _require_org_member_context(request)
+    if error:
+        return error
+    if not can_manage_organization(request.user, organization):
+        return _error_response(request, 'Only organization admins/owners can manage shared dashboards.', 403)
+
+    preset = ExecutiveDashboardPreset.objects.filter(organization=organization, id=preset_id).first()
+    if preset is None:
+        return _error_response(request, 'Preset not found.', 404)
+    preset.delete()
+    return JsonResponse({'deleted': True, 'preset_id': preset_id})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def esign_webhook_api(request):
+    secret = str(getattr(settings, 'ESIGN_WEBHOOK_SECRET', '') or '').strip()
+    if not secret:
+        return _error_response(request, 'E-sign webhook secret is not configured.', 503)
+    provided_secret = str(request.headers.get('X-Esign-Webhook-Secret', '') or '').strip()
+    if not provided_secret or not secrets.compare_digest(secret, provided_secret):
+        return _error_response(request, 'Invalid webhook secret.', 403)
+
+    try:
+        payload = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return _error_response(request, 'Invalid JSON body.', 400)
+    events = payload if isinstance(payload, list) else [payload]
+    if not all(isinstance(event, dict) for event in events):
+        return _error_response(request, 'Events payload must be an object or list of objects.', 400)
+
+    summary = {
+        'total_events': len(events),
+        'applied': 0,
+        'duplicate': 0,
+        'stale': 0,
+        'errors': [],
+    }
+    for index, event in enumerate(events):
+        signature_request = None
+        signature_request_id = event.get('signature_request_id')
+        external_id = str(event.get('external_id') or '').strip()
+        if signature_request_id:
+            signature_request = SignatureRequest.objects.filter(id=signature_request_id).first()
+        if signature_request is None and external_id:
+            signature_request = SignatureRequest.objects.filter(external_id=external_id).order_by('-id').first()
+        if signature_request is None:
+            summary['errors'].append({'index': index, 'error': 'Signature request not found.'})
+            continue
+
+        try:
+            result = apply_esign_event(signature_request, event, dry_run=False)
+        except ESignReconciliationError as exc:
+            summary['errors'].append({'index': index, 'error': str(exc)})
+            continue
+
+        result_key = str(result.get('result') or '')
+        if result_key in summary:
+            summary[result_key] += 1
+        else:
+            summary['errors'].append({'index': index, 'error': f'Unknown reconciliation result: {result_key}'})
+
+    return JsonResponse({'summary': summary})

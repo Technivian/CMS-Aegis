@@ -73,6 +73,54 @@
     </div>
 </div>
 
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold text-gray-900 mb-3">Executive Cycle Time</h3>
+        <div class="text-sm text-gray-500">Average contract cycle (last 180 days)</div>
+        <div class="text-3xl font-bold text-gray-900 mt-1">
+            {% if executive_cycle_time_days is not None %}
+            {{ executive_cycle_time_days }} days
+            {% else %}
+            --
+            {% endif %}
+        </div>
+        <div class="mt-4">
+            <h4 class="text-sm font-semibold text-gray-900 mb-2">Top Bottlenecks</h4>
+            <div class="space-y-2">
+                {% for item in executive_bottlenecks %}
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-gray-700">{{ item.lifecycle_stage }}</span>
+                    <span class="text-gray-500">{{ item.count }}</span>
+                </div>
+                {% empty %}
+                <p class="text-sm text-gray-400">No bottleneck data yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold text-gray-900 mb-3">Risk Trend (High + Critical)</h3>
+        <div id="risk-trend-chart" class="h-48 flex items-end gap-2 justify-between"></div>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 p-5 mt-6">
+    <h3 class="font-semibold text-gray-900 mb-3">Saved Executive Dashboards</h3>
+    <div class="space-y-2">
+        {% for preset in executive_saved_dashboards %}
+        <div class="flex items-center justify-between border border-gray-100 rounded-lg px-3 py-2">
+            <div>
+                <div class="text-sm font-medium text-gray-900">{{ preset.name }}</div>
+                <div class="text-xs text-gray-500">Updated {{ preset.updated_at|date:"Y-m-d H:i" }}</div>
+            </div>
+            <div class="text-xs text-gray-500">#{{ preset.id }}</div>
+        </div>
+        {% empty %}
+        <p class="text-sm text-gray-400">No shared dashboard presets saved yet.</p>
+        {% endfor %}
+    </div>
+</div>
+
 {% endblock %}
 {% block extra_js %}
 <script>
@@ -86,6 +134,19 @@
             const height = Math.max((d.total / max) * 160, 4);
             bar.innerHTML = `<div class="text-xs text-gray-500 mb-1">$${Math.round(d.total/1000)}k</div><div class="w-full bg-blue-500 rounded-t" style="height:${height}px"></div><div class="text-xs text-gray-500 mt-1">${d.month.split(' ')[0]}</div>`;
             chart.appendChild(bar);
+        });
+    }
+
+    const riskTrendData = JSON.parse('{{ executive_risk_trend|safe }}');
+    const riskTrendChart = document.getElementById('risk-trend-chart');
+    if (riskTrendChart && riskTrendData.length > 0) {
+        const maxRisk = Math.max(...riskTrendData.map(d => d.total), 1);
+        riskTrendData.forEach(d => {
+            const bar = document.createElement('div');
+            bar.className = 'flex flex-col items-center flex-1';
+            const height = Math.max((d.total / maxRisk) * 160, 4);
+            bar.innerHTML = `<div class="text-xs text-gray-500 mb-1">${d.total}</div><div class="w-full bg-red-500 rounded-t" style="height:${height}px"></div><div class="text-xs text-gray-500 mt-1">${d.month.split(' ')[0]}</div>`;
+            riskTrendChart.appendChild(bar);
         });
     }
 </script>

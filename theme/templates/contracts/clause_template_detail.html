@@ -18,8 +18,75 @@
             <div class="py-3 border-b border-gray-100"><span class="text-xs font-medium text-gray-500 uppercase">Applicable Types</span><p class="mt-1 text-sm text-gray-900">{{ object.applicable_contract_types|default:"All" }}</p></div>
             <div class="py-3 border-b border-gray-100"><span class="text-xs font-medium text-gray-500 uppercase">Standard Clause Text</span><p class="mt-1 text-sm text-gray-900"><pre class="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded-lg mt-1">{{ object.content }}</pre></p></div>
             <div class="py-3 border-b border-gray-100"><span class="text-xs font-medium text-gray-500 uppercase">Fallback Position</span><p class="mt-1 text-sm text-gray-900"><pre class="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded-lg mt-1">{{ object.fallback_content|default:"None" }}</pre></p></div>
+            <div class="py-3 border-b border-gray-100"><span class="text-xs font-medium text-gray-500 uppercase">Fallback Coverage</span><p class="mt-1 text-sm text-gray-900">{% if fallback_summary.has_fallback %}Available{% else %}Not provided{% endif %}</p></div>
             <div class="py-3 border-b border-gray-100"><span class="text-xs font-medium text-gray-500 uppercase">Negotiation Playbook</span><p class="mt-1 text-sm text-gray-900">{{ object.playbook_notes|default:"No playbook notes" }}</p></div>
             <div class="py-3 border-b border-gray-100"><span class="text-xs font-medium text-gray-500 uppercase">Tags</span><p class="mt-1 text-sm text-gray-900">{{ object.tags|default:"-" }}</p></div>
     </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 p-6 mt-6">
+        <h2 class="font-semibold text-gray-900 mb-3">Resolved playbook</h2>
+        <p class="text-sm text-gray-600 mb-2">Best-fit variant score: {{ resolved_variant.score }}</p>
+        <div class="space-y-3">
+            <div class="py-3 border-b border-gray-100">
+                <span class="text-xs font-medium text-gray-500 uppercase">Matched variant</span>
+                <p class="mt-1 text-sm text-gray-900">{% if resolved_variant.variant %}Priority {{ resolved_variant.variant.priority }}{% else %}Default template fallback{% endif %}</p>
+            </div>
+            <div class="py-3 border-b border-gray-100">
+                <span class="text-xs font-medium text-gray-500 uppercase">Playbook</span>
+                <p class="mt-1 text-sm text-gray-900">{{ resolved_variant.playbook_name|default:"No playbook selected" }}</p>
+            </div>
+            <div class="py-3 border-b border-gray-100">
+                <span class="text-xs font-medium text-gray-500 uppercase">Fallback position</span>
+                <pre class="mt-1 whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded-lg">{{ resolved_variant.fallback_content|default:"None" }}</pre>
+            </div>
+            <div class="py-3">
+                <span class="text-xs font-medium text-gray-500 uppercase">Playbook notes</span>
+                <p class="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{{ resolved_variant.playbook_notes|default:"No playbook notes" }}</p>
+            </div>
+        </div>
+    </div>
+
+    {% if variants %}
+    <div class="bg-white rounded-xl border border-gray-200 p-6 mt-6">
+        <h2 class="font-semibold text-gray-900 mb-3">Active variants</h2>
+        <div class="space-y-3">
+            {% for variant in variants %}
+            <div class="rounded-lg border border-gray-100 p-4">
+                <div class="flex items-center justify-between gap-3">
+                    <p class="font-medium text-gray-900">Priority {{ variant.priority }}{% if variant.playbook %} · {{ variant.playbook.name }}{% endif %}</p>
+                    <span class="text-xs text-gray-500">{{ variant.get_jurisdiction_scope_display }}</span>
+                </div>
+                <p class="text-sm text-gray-600 mt-2">{{ variant.playbook_notes|default:"No playbook notes" }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if playbooks %}
+    <div class="bg-white rounded-xl border border-gray-200 p-6 mt-6">
+        <h2 class="font-semibold text-gray-900 mb-3">Active playbooks</h2>
+        <div class="space-y-3">
+            {% for playbook in playbooks %}
+            <div class="rounded-lg border border-gray-100 p-4">
+                <p class="font-medium text-gray-900">{{ playbook.name }}</p>
+                <p class="text-sm text-gray-600 mt-2">{{ playbook.description|default:"No description" }}</p>
+                <p class="text-xs text-gray-500 mt-2">{{ playbook.get_jurisdiction_scope_display }}{% if playbook.risk_level %} · {{ playbook.risk_level }}{% endif %}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if policy_issues %}
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 mt-6">
+        <h2 class="font-semibold text-amber-900 mb-2">Policy Notes</h2>
+        <ul class="list-disc pl-5 text-sm text-amber-800 space-y-1">
+            {% for issue in policy_issues %}
+            <li>{{ issue }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

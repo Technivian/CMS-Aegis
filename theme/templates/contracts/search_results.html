@@ -21,6 +21,17 @@
             <input type="text" name="jurisdiction" value="{{ request.GET.jurisdiction }}" placeholder="Filter jurisdiction"
                 class="px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
         </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <select name="search_mode"
+                class="px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="hybrid" {% if search_mode == 'hybrid' %}selected{% endif %}>Search mode: Hybrid</option>
+                <option value="semantic" {% if search_mode == 'semantic' %}selected{% endif %}>Search mode: Semantic</option>
+                <option value="keyword" {% if search_mode == 'keyword' %}selected{% endif %}>Search mode: Keyword</option>
+            </select>
+            <div class="md:col-span-2 text-xs text-gray-500 flex items-center px-1">
+                Semantic mode expands clause terms (for example NDA, confidentiality, and non-disclosure).
+            </div>
+        </div>
     </div>
 </form>
 {% if q %}

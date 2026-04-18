@@ -35,6 +35,12 @@ from contracts.models import (
     WebhookDelivery,
 )
 from contracts.permissions import can_manage_organization, is_organization_owner
+from contracts.services.executive_analytics import (
+    build_executive_bottlenecks,
+    build_executive_cycle_time_snapshot,
+    build_executive_risk_trend,
+    build_executive_saved_dashboards,
+)
 from contracts.session_security import revoke_user_sessions
 from contracts.tenancy import get_user_organization, scope_queryset_for_organization
 from contracts.view_support import get_scoped_queryset_for_request
@@ -693,6 +699,21 @@ def reports_dashboard(request):
 
     high_risks = risks_qs.filter(risk_level__in=['HIGH', 'CRITICAL']).count()
 
+    cycle_snapshot = build_executive_cycle_time_snapshot(org) if org else {'average_days': None}
+    executive_cycle_time_days = cycle_snapshot.get('average_days')
+    executive_bottlenecks = build_executive_bottlenecks(org, limit=5) if org else []
+    risk_trend_rows = build_executive_risk_trend(org, months=6) if org else []
+    executive_risk_trend = []
+    for item in risk_trend_rows:
+        raw_month = str(item.get('month') or '')
+        executive_risk_trend.append(
+            {
+                'month': raw_month[:7] if len(raw_month) >= 7 else raw_month,
+                'total': item.get('high_or_critical_count', 0),
+            }
+        )
+    executive_saved_dashboards = build_executive_saved_dashboards(org, limit=10) if org else []
+
     six_months_ago = today.replace(day=1) - timedelta(days=155)
     monthly_rows = (
         invoices_qs
@@ -738,5 +759,9 @@ def reports_dashboard(request):
         'total_matters': total_case_matters,
         'active_matters': active_case_matters,
         'monthly_hours': monthly_hours,
+        'executive_cycle_time_days': executive_cycle_time_days,
+        'executive_bottlenecks': executive_bottlenecks,
+        'executive_risk_trend': json.dumps(executive_risk_trend),
+        'executive_saved_dashboards': executive_saved_dashboards,
     }
     return render(request, 'contracts/reports_dashboard.html', context)

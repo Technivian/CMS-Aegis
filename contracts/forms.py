@@ -1,6 +1,10 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
+from .permissions import can_manage_organization
+from .services.clause_policy import validate_clause_policy
+from .services.contract_policies import get_required_fields_for_contract_type
+from .services.contract_lifecycle import can_transition_lifecycle_stage
 from .models import (
     Contract, NegotiationThread, TrademarkRequest, LegalTask, RiskLog, ComplianceChecklist, ChecklistItem,
     Workflow, WorkflowTemplate, WorkflowTemplateStep, WorkflowStep,
@@ -10,6 +14,9 @@ from .models import (
     Counterparty, ClauseCategory, ClauseTemplate, EthicalWall, SignatureRequest,
     DataInventoryRecord, DSARRequest, Subprocessor, TransferRecord, RetentionPolicy,
     LegalHold, ApprovalRule, ApprovalRequest,
+    ClausePlaybook, ClauseVariant,
+    DocumentOCRReview,
+    Organization,
     OrganizationInvitation,
 )
 
@@ -26,10 +33,18 @@ class UserProfileForm(forms.ModelForm):
     first_name = forms.CharField(max_length=30, required=False, widget=forms.TextInput(attrs={'class': TAILWIND_INPUT}))
     last_name = forms.CharField(max_length=30, required=False, widget=forms.TextInput(attrs={'class': TAILWIND_INPUT}))
     email = forms.EmailField(required=False, widget=forms.EmailInput(attrs={'class': TAILWIND_INPUT}))
+    mfa_enrollment_code = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': TAILWIND_INPUT, 'autocomplete': 'one-time-code', 'inputmode': 'numeric'}),
+    )
+    mfa_recovery_code = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': TAILWIND_INPUT, 'autocomplete': 'one-time-code', 'inputmode': 'numeric'}),
+    )
 
     class Meta:
         model = UserProfile
-        fields = ['role', 'phone', 'bar_number', 'department', 'hourly_rate', 'bio']
+        fields = ['role', 'phone', 'bar_number', 'department', 'hourly_rate', 'bio', 'mfa_enabled']
         widgets = {
             'role': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'phone': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
@@ -37,6 +52,30 @@ class UserProfileForm(forms.ModelForm):
             'department': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
             'hourly_rate': forms.NumberInput(attrs={'class': TAILWIND_INPUT, 'step': '0.01'}),
             'bio': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 3}),
+            'mfa_enabled': forms.CheckboxInput(attrs={'class': TAILWIND_CHECKBOX}),
+        }
+
+
+class OrganizationIdentitySettingsForm(forms.ModelForm):
+    class Meta:
+        model = Organization
+        fields = [
+            'identity_provider',
+            'saml_entity_id',
+            'saml_sso_url',
+            'saml_slo_url',
+            'saml_metadata_url',
+            'saml_x509_certificate',
+            'scim_enabled',
+        ]
+        widgets = {
+            'identity_provider': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'saml_entity_id': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
+            'saml_sso_url': forms.URLInput(attrs={'class': TAILWIND_INPUT}),
+            'saml_slo_url': forms.URLInput(attrs={'class': TAILWIND_INPUT}),
+            'saml_metadata_url': forms.URLInput(attrs={'class': TAILWIND_INPUT}),
+            'saml_x509_certificate': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 6}),
+            'scim_enabled': forms.CheckboxInput(attrs={'class': TAILWIND_CHECKBOX}),
         }
 
 
@@ -118,6 +157,26 @@ class DocumentForm(forms.ModelForm):
         }
 
 
+class DocumentOCRReviewForm(forms.ModelForm):
+    class Meta:
+        model = DocumentOCRReview
+        fields = ['status', 'extracted_text', 'confidence_score', 'review_notes']
+        widgets = {
+            'status': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'extracted_text': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 8}),
+            'confidence_score': forms.NumberInput(attrs={'class': TAILWIND_INPUT, 'step': '0.01', 'min': '0', 'max': '1'}),
+            'review_notes': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 3}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        status = cleaned_data.get('status')
+        extracted_text = (cleaned_data.get('extracted_text') or '').strip()
+        if status == DocumentOCRReview.Status.VERIFIED and not extracted_text:
+            self.add_error('extracted_text', 'Verified OCR reviews must include extracted text.')
+        return cleaned_data
+
+
 class TimeEntryForm(forms.ModelForm):
     class Meta:
         model = TimeEntry
@@ -131,6 +190,16 @@ class TimeEntryForm(forms.ModelForm):
             'rate': forms.NumberInput(attrs={'class': TAILWIND_INPUT, 'step': '0.01'}),
             'is_billable': forms.CheckboxInput(attrs={'class': TAILWIND_CHECKBOX}),
         }
+
+    def clean_hours(self):
+        hours = self.cleaned_data.get('hours')
+        if hours is None:
+            return hours
+        if hours < 0.1:
+            raise forms.ValidationError('Hours must be at least 0.1.')
+        if hours > 999.99:
+            raise forms.ValidationError('Hours cannot exceed 999.99.')
+        return hours
 
 
 class InvoiceForm(forms.ModelForm):
@@ -148,6 +217,24 @@ class InvoiceForm(forms.ModelForm):
             'notes': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 3}),
             'payment_terms': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
         }
+
+    def clean_tax_rate(self):
+        tax_rate = self.cleaned_data.get('tax_rate')
+        if tax_rate is None:
+            return tax_rate
+        if tax_rate < 0:
+            raise forms.ValidationError('Tax rate cannot be negative.')
+        if tax_rate > 100:
+            raise forms.ValidationError('Tax rate cannot exceed 100%.')
+        return tax_rate
+
+    def clean(self):
+        cleaned_data = super().clean()
+        issue_date = cleaned_data.get('issue_date')
+        due_date = cleaned_data.get('due_date')
+        if issue_date and due_date and due_date < issue_date:
+            self.add_error('due_date', 'Due date must be on or after the issue date.')
+        return cleaned_data
 
 
 class TrustAccountForm(forms.ModelForm):
@@ -241,6 +328,26 @@ class ContractForm(forms.ModelForm):
             'client': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'matter': forms.Select(attrs={'class': TAILWIND_SELECT}),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        contract_type = cleaned_data.get('contract_type')
+        required_fields = get_required_fields_for_contract_type(contract_type)
+
+        for field_name in required_fields:
+            value = cleaned_data.get(field_name)
+            if value in (None, '', []):
+                self.add_error(field_name, f'{field_name.replace("_", " ").capitalize()} is required for this contract type.')
+
+        lifecycle_stage = cleaned_data.get('lifecycle_stage')
+        if self.instance and self.instance.pk and lifecycle_stage:
+            if not can_transition_lifecycle_stage(self.instance, lifecycle_stage):
+                self.add_error(
+                    'lifecycle_stage',
+                    f'Invalid lifecycle stage transition from {self.instance.lifecycle_stage} to {lifecycle_stage}.',
+                )
+
+        return cleaned_data
 
 
 class NegotiationThreadForm(forms.ModelForm):
@@ -485,6 +592,22 @@ class ClauseTemplateForm(forms.ModelForm):
             'tags': forms.TextInput(attrs={'class': TAILWIND_INPUT, 'placeholder': 'comma-separated tags'}),
         }
 
+    def clean(self):
+        cleaned_data = super().clean()
+        clause = ClauseTemplate(
+            title=cleaned_data.get('title') or '',
+            content=cleaned_data.get('content') or '',
+            fallback_content=cleaned_data.get('fallback_content') or '',
+            jurisdiction_scope=cleaned_data.get('jurisdiction_scope') or ClauseTemplate.JurisdictionScope.GLOBAL,
+            is_mandatory=cleaned_data.get('is_mandatory') or False,
+            applicable_contract_types=cleaned_data.get('applicable_contract_types') or '',
+            playbook_notes=cleaned_data.get('playbook_notes') or '',
+            tags=cleaned_data.get('tags') or '',
+        )
+        for issue in validate_clause_policy(clause):
+            self.add_error(None, issue)
+        return cleaned_data
+
 
 class EthicalWallForm(forms.ModelForm):
     class Meta:
@@ -503,6 +626,10 @@ class EthicalWallForm(forms.ModelForm):
 
 
 class SignatureRequestForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.actor = kwargs.pop('actor', None)
+        super().__init__(*args, **kwargs)
+
     class Meta:
         model = SignatureRequest
         fields = ['contract', 'document', 'signer_name', 'signer_email', 'signer_role', 'status', 'order']
@@ -515,6 +642,20 @@ class SignatureRequestForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'order': forms.NumberInput(attrs={'class': TAILWIND_INPUT}),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_status = cleaned_data.get('status')
+        if not self.instance.pk or not new_status:
+            return cleaned_data
+
+        if not self.instance.can_transition_to(new_status):
+            self.add_error('status', 'Invalid signature status transition.')
+            return cleaned_data
+
+        if new_status != self.instance.status and not self.instance.can_actor_transition(self.actor, new_status):
+            self.add_error('status', 'You are not authorized to perform this signature transition.')
+        return cleaned_data
 
 
 class DataInventoryForm(forms.ModelForm):
@@ -682,14 +823,41 @@ class ApprovalRuleForm(forms.ModelForm):
 
 
 class ApprovalRequestForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.actor = kwargs.pop('actor', None)
+        super().__init__(*args, **kwargs)
+
     class Meta:
         model = ApprovalRequest
-        fields = ['contract', 'approval_step', 'status', 'assigned_to', 'comments', 'due_date']
+        fields = ['contract', 'approval_step', 'status', 'assigned_to', 'delegated_to', 'comments', 'due_date']
         widgets = {
             'contract': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'approval_step': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
             'status': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'assigned_to': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'delegated_to': forms.Select(attrs={'class': TAILWIND_SELECT}),
             'comments': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 4}),
             'due_date': forms.DateTimeInput(attrs={'class': TAILWIND_INPUT, 'type': 'datetime-local'}),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_status = cleaned_data.get('status')
+        if not self.instance.pk or not new_status:
+            return cleaned_data
+
+        if not self.instance.can_transition_to(new_status):
+            self.add_error('status', 'Invalid approval status transition.')
+            return cleaned_data
+
+        if new_status != self.instance.status and not self.instance.can_actor_transition(self.actor):
+            self.add_error('status', 'You are not authorized to perform this approval transition.')
+
+        assigned_to = cleaned_data.get('assigned_to')
+        delegated_to = cleaned_data.get('delegated_to')
+        actor = self.actor
+        if actor and assigned_to and assigned_to != actor and not can_manage_organization(actor, self.instance.organization):
+            self.add_error('assigned_to', 'Only organization admins or owners can reassign approval requests.')
+        if actor and delegated_to and delegated_to != actor and not can_manage_organization(actor, self.instance.organization):
+            self.add_error('delegated_to', 'Only organization admins or owners can delegate approval requests.')
+        return cleaned_data

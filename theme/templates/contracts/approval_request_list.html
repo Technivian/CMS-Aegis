@@ -18,6 +18,7 @@
                 <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Contract</th>
                 <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Step</th>
                 <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Assigned To</th>
+                <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Delegated To</th>
                 <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
                 <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Created</th>
                 <th class="text-right px-5 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
@@ -29,6 +30,7 @@
                 <td class="px-5 py-3 text-sm text-gray-700">{{ item.contract.title }}</td>
                 <td class="px-5 py-3 text-sm text-gray-700">{{ item.approval_step }}</td>
                 <td class="px-5 py-3 text-sm text-gray-700">{{ item.assigned_to|default:"-" }}</td>
+                <td class="px-5 py-3 text-sm text-gray-700">{{ item.delegated_to|default:"-" }}</td>
                 <td class="px-5 py-3 text-sm text-gray-700"><span class="px-2 py-1 text-xs rounded-full {% if item.status == 'APPROVED' %}bg-green-100 text-green-700{% elif item.status == 'PENDING' %}bg-yellow-100 text-yellow-700{% elif item.status == 'REJECTED' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">{{ item.get_status_display }}</span></td>
                 <td class="px-5 py-3 text-sm text-gray-700">{{ item.created_at|date:"M d, Y" }}</td>
                 <td class="px-5 py-3 text-right">
@@ -36,7 +38,7 @@
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="6" class="px-5 py-8 text-center text-sm text-gray-400">No approval requests found</td></tr>
+            <tr><td colspan="7" class="px-5 py-8 text-center text-sm text-gray-400">No approval requests found</td></tr>
             {% endfor %}
         </tbody>
     </table>

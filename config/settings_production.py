@@ -18,6 +18,15 @@ if not CSRF_TRUSTED_ORIGINS:
 if DEFAULT_FROM_EMAIL == 'noreply@cms-aegis.local':
     raise ImproperlyConfigured('DEFAULT_FROM_EMAIL must be set in production.')
 
+ALLOW_SQLITE_IN_PRODUCTION = base._bool_env('ALLOW_SQLITE_IN_PRODUCTION', default=False)
+if not ALLOW_SQLITE_IN_PRODUCTION:
+    db_engine = DATABASES.get('default', {}).get('ENGINE', '')
+    if db_engine != 'django.db.backends.postgresql':
+        raise ImproperlyConfigured(
+            'Production requires PostgreSQL. Set DATABASE_URL=postgresql://... '
+            'or explicitly set ALLOW_SQLITE_IN_PRODUCTION=true for temporary emergency use.'
+        )
+
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_CONTENT_TYPE_NOSNIFF = True

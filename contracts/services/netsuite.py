@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from decimal import Decimal
+import json
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
+from django.conf import settings
 from django.utils.dateparse import parse_date, parse_datetime
 
 from contracts.models import Contract
@@ -22,6 +26,10 @@ DEFAULT_NETSUITE_FIELD_MAP = {
     'source_system_url': 'record_url',
     'updated_at': 'last_modified_at',
 }
+
+
+class NetSuiteSyncError(RuntimeError):
+    pass
 
 
 def _get(record: dict, key: str):
@@ -51,6 +59,68 @@ def _normalize_choice(raw, choices, default):
     value = str(raw or '').strip().upper()
     allowed = {code for code, _ in choices}
     return value if value in allowed else default
+
+
+def netsuite_is_configured() -> bool:
+    return bool(
+        settings.NETSUITE_CLIENT_ID
+        and settings.NETSUITE_CLIENT_SECRET
+        and settings.NETSUITE_TOKEN_URL
+        and settings.NETSUITE_API_URL
+    )
+
+
+def fetch_netsuite_access_token() -> str:
+    if not netsuite_is_configured():
+        raise NetSuiteSyncError('NetSuite integration is not configured.')
+
+    payload = urlencode(
+        {
+            'grant_type': 'client_credentials',
+            'client_id': settings.NETSUITE_CLIENT_ID,
+            'client_secret': settings.NETSUITE_CLIENT_SECRET,
+        }
+    ).encode('utf-8')
+    request = Request(
+        settings.NETSUITE_TOKEN_URL,
+        data=payload,
+        headers={'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json'},
+        method='POST',
+    )
+    timeout = max(1, int(getattr(settings, 'NETSUITE_TIMEOUT_SECONDS', 30)))
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            data = json.loads(response.read().decode('utf-8'))
+    except Exception as exc:
+        raise NetSuiteSyncError(f'NetSuite token fetch failed: {exc}') from exc
+
+    token = str(data.get('access_token', '')).strip()
+    if not token:
+        raise NetSuiteSyncError('NetSuite token response missing access_token.')
+    return token
+
+
+def fetch_netsuite_records(limit: int = 200) -> list[dict]:
+    access_token = fetch_netsuite_access_token()
+    url = f'{settings.NETSUITE_API_URL.rstrip("/")}?{urlencode({"limit": max(1, int(limit))})}'
+    request = Request(
+        url,
+        headers={'Authorization': f'Bearer {access_token}', 'Accept': 'application/json'},
+        method='GET',
+    )
+    timeout = max(1, int(getattr(settings, 'NETSUITE_TIMEOUT_SECONDS', 30)))
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            payload = json.loads(response.read().decode('utf-8'))
+    except Exception as exc:
+        raise NetSuiteSyncError(f'NetSuite record fetch failed: {exc}') from exc
+
+    if isinstance(payload, list):
+        return [item for item in payload if isinstance(item, dict)]
+    records = payload.get('records')
+    if isinstance(records, list):
+        return [item for item in records if isinstance(item, dict)]
+    raise NetSuiteSyncError('NetSuite records response must be a list or contain a "records" list.')
 
 
 def map_netsuite_record(record: dict, field_map: dict | None = None) -> dict:

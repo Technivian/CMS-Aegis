@@ -86,7 +86,10 @@
                              class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
                             <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Profile</a>
                             <a href="{% url 'settings_hub' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Settings</a>
-                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Sign out</a>
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Sign out</button>
+                            </form>
                         </div>
                     </div>
                 </div>

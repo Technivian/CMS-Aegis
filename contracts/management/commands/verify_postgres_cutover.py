@@ -1,5 +1,6 @@
 import json
 import os
+import sqlite3
 import time
 
 from django.core.management.base import BaseCommand, CommandError
@@ -19,13 +20,22 @@ class Command(BaseCommand):
 
         started = time.perf_counter()
         with connection.cursor() as cursor:
-            cursor.execute('SELECT version()')
-            version = cursor.fetchone()[0]
-            cursor.execute('SELECT current_database()')
-            database_name = cursor.fetchone()[0]
-            cursor.execute('SELECT current_user')
-            db_user = cursor.fetchone()[0]
+            cursor.execute('SELECT 1')
+            cursor.fetchone()
         latency_ms = round((time.perf_counter() - started) * 1000, 2)
+
+        if connection.vendor == 'postgresql':
+            with connection.cursor() as cursor:
+                cursor.execute('SELECT version()')
+                version = cursor.fetchone()[0]
+                cursor.execute('SELECT current_database()')
+                database_name = cursor.fetchone()[0]
+                cursor.execute('SELECT current_user')
+                db_user = cursor.fetchone()[0]
+        else:
+            version = f"SQLite {sqlite3.sqlite_version}" if connection.vendor == 'sqlite' else connection.vendor
+            database_name = connection.settings_dict.get('NAME') or 'unknown'
+            db_user = connection.settings_dict.get('USER') or 'n/a'
 
         executor = MigrationExecutor(connection)
         targets = executor.loader.graph.leaf_nodes()

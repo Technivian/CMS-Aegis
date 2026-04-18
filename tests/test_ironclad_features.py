@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from contracts.models import Contract, Organization, OrganizationMembership
+from contracts.models import AuditLog, Contract, Organization, OrganizationMembership
 
 
 class IroncladFeaturesTests(TestCase):
@@ -74,6 +74,75 @@ class IroncladFeaturesTests(TestCase):
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertTrue(payload.get('success'))
+        self.contract.refresh_from_db()
+        self.assertEqual(self.contract.status, Contract.Status.DRAFT)
+
+    def test_bulk_update_api_lifecycle_stage_and_audit_log(self):
+        body = {
+            'contract_ids': [str(self.contract.pk)],
+            'updates': {'lifecycle_stage': 'INTERNAL_REVIEW'},
+        }
+        response = self.client.post(
+            reverse('contracts:contracts_bulk_update_api'),
+            data=json.dumps(body),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload.get('success'))
+        self.contract.refresh_from_db()
+        self.assertEqual(self.contract.lifecycle_stage, 'INTERNAL_REVIEW')
+        self.assertTrue(
+            AuditLog.objects.filter(
+                user=self.user,
+                model_name='Contract',
+                changes__event='bulk_contract_update',
+            ).exists()
+        )
+
+    def test_bulk_update_api_rejects_disallowed_fields(self):
+        body = {
+            'contract_ids': [str(self.contract.pk)],
+            'updates': {'title': 'Injected Title'},
+        }
+        response = self.client.post(
+            reverse('contracts:contracts_bulk_update_api'),
+            data=json.dumps(body),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+        payload = response.json()
+        self.assertIn('unsupported fields', payload.get('error', ''))
+        self.contract.refresh_from_db()
+        self.assertEqual(self.contract.title, 'Test Contract')
+
+    def test_bulk_update_api_rejects_invalid_status(self):
+        body = {
+            'contract_ids': [str(self.contract.pk)],
+            'updates': {'status': 'NOT_A_REAL_STATUS'},
+        }
+        response = self.client.post(
+            reverse('contracts:contracts_bulk_update_api'),
+            data=json.dumps(body),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('valid contract status', response.json().get('error', ''))
+
+    def test_bulk_update_api_requires_csrf_token(self):
+        csrf_client = Client(enforce_csrf_checks=True)
+        self.assertTrue(csrf_client.login(username='testuser', password='testpass123'))
+
+        body = {
+            'contract_ids': [str(self.contract.pk)],
+            'updates': {'status': 'DRAFT'},
+        }
+        response = csrf_client.post(
+            reverse('contracts:contracts_bulk_update_api'),
+            data=json.dumps(body),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 403)
 
     def tearDown(self):
         if 'FEATURE_REDESIGN' in os.environ:

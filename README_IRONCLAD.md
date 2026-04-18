@@ -81,6 +81,12 @@ Detailed provider guide:
 - `docs/SSO_AZURE_SETUP.md`
 - `docs/SSO_GOOGLE_SETUP.md`
 
+SAML support:
+
+- Install dependency: `python3-saml`
+- Enable the SAML flow with `SAML_ENABLED=true`
+- Configure each organization in the Identity Provider settings page; the login screen includes a SAML organization selector.
+
 Operational takeover guide:
 
 - `docs/TAKEOVER_30_60_90_PLAN.md`
@@ -111,6 +117,16 @@ The redesign and contract list/dashboard markers are covered by the test suite a
 
 ## Running Locally
 
+Runtime target:
+
+- Python `3.12.x` (aligned with CI/staging)
+
+Bootstrap local runtime and venv:
+
+```bash
+bash scripts/bootstrap_python312.sh
+```
+
 ```bash
 .venv/bin/python manage.py migrate
 .venv/bin/python manage.py runserver 127.0.0.1:8000
@@ -130,6 +146,7 @@ Required in production:
 
 - `DJANGO_ENV=production`
 - `DJANGO_SECRET_KEY`
+- `DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>`
 - `ALLOWED_HOSTS`
 - `CSRF_TRUSTED_ORIGINS`
 - `DEFAULT_FROM_EMAIL`
@@ -138,6 +155,8 @@ Recommended in production:
 
 - `DJANGO_LOG_LEVEL=INFO`
 - `SERVER_EMAIL`
+- `DB_CONN_MAX_AGE=60`
+- `DB_SSL_REQUIRE=true` (or use `?sslmode=require` in `DATABASE_URL`)
 - `SECURE_SSL_REDIRECT=true`
 - `SECURE_HSTS_PRELOAD=true`
 - `SSO_ENABLED` and the relevant OIDC variables if SSO is in use
@@ -153,6 +172,18 @@ Minimum production verification sequence:
 .venv/bin/python manage.py migrate --noinput
 .venv/bin/python manage.py audit_null_organizations
 .venv/bin/python manage.py test tests.test_cross_tenant_isolation -v 1
+```
+
+Quick config sanity check for production DB engine:
+
+```bash
+DJANGO_ENV=production \
+DJANGO_SECRET_KEY=tmp \
+ALLOWED_HOSTS=example.com \
+CSRF_TRUSTED_ORIGINS=https://example.com \
+DEFAULT_FROM_EMAIL=ops@example.com \
+DATABASE_URL=postgresql://user:pass@localhost:5432/cms_aegis \
+.venv/bin/python manage.py shell -c "from django.conf import settings; print(settings.DATABASES['default']['ENGINE'])"
 ```
 
 ## Logging
@@ -241,5 +272,6 @@ As of the latest validation pass:
 - `README_IRONCLAD.md`: current operational overview
 - `DECISIONS.md`: implemented architectural and product decisions
 - `docs/OBSERVABILITY_BOOTSTRAP.md`: SLO, dashboard, and alert bootstrap
+- `docs/STAGING_POSTGRES_REHEARSAL.md`: exact `ICL-002` staging runbook and evidence template
 
 Old Replit-era handover notes and duplicate decision logs have been removed to keep the docs aligned with the codebase.

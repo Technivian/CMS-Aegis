@@ -737,6 +737,20 @@ class PrivacyAndSearchIsolationTest(CrossTenantFixtureMixin, TestCase):
         self.assertEqual(list(response.context['results']['contracts']), [])
         self.assertEqual(list(response.context['results']['clients']), [])
 
+    def test_global_search_semantic_clause_mode_excludes_other_org_results(self):
+        self.clause_a.title = 'NDA Confidentiality Covenant'
+        self.clause_a.content = 'Each party must protect trade secrets and confidential information.'
+        self.clause_a.tags = 'nda, confidentiality'
+        self.clause_a.save(update_fields=['title', 'content', 'tags'])
+
+        self.client.login(username='user_b', password='passB1234!')
+        response = self.client.get(
+            reverse('contracts:global_search'),
+            {'q': 'non disclosure obligations', 'type': 'clause', 'search_mode': 'semantic'},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(list(response.context['results']['clauses']), [])
+
 
 class CounterpartyIsolationTest(CrossTenantFixtureMixin, TestCase):
     def test_list_excludes_other_org(self):
