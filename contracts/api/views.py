@@ -19,12 +19,14 @@ from contracts.services.repository import BulkUpdateValidationError, get_reposit
 from contracts.services.salesforce import (
     CANONICAL_CONTRACT_FIELDS,
     build_salesforce_authorize_url,
+    create_salesforce_sync_run,
     decrypt_salesforce_token,
     default_field_map_records,
     encrypt_salesforce_token,
     exchange_salesforce_code_for_tokens,
     get_effective_field_map_records,
     ingest_salesforce_records,
+    SalesforceSyncError,
     refresh_salesforce_access_token,
     salesforce_oauth_is_configured,
     sync_salesforce_connection,
@@ -1285,15 +1287,17 @@ def salesforce_sync_api(request):
     if limit <= 0 or limit > 2000:
         return _error_response(request, 'limit must be between 1 and 2000.', 400)
 
-    run = SalesforceSyncRun.objects.create(
-        organization=organization,
-        connection=connection,
-        triggered_by=request.user,
-        trigger_source=SalesforceSyncRun.TriggerSource.API,
-        status=SalesforceSyncRun.Status.RUNNING,
-        dry_run=dry_run,
-        limit_applied=limit,
-    )
+    try:
+        run = create_salesforce_sync_run(
+            organization=organization,
+            connection=connection,
+            trigger_source=SalesforceSyncRun.TriggerSource.API,
+            dry_run=dry_run,
+            limit=limit,
+            triggered_by=request.user,
+        )
+    except SalesforceSyncError as exc:
+        return _error_response(request, str(exc), 409)
 
     try:
         summary = sync_salesforce_connection(connection, dry_run=dry_run, limit=limit)

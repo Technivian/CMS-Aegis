@@ -13,6 +13,7 @@ import json
 
 from cryptography.fernet import Fernet, InvalidToken
 from django.conf import settings
+from django.db import transaction
 from django.utils.dateparse import parse_date, parse_datetime
 from django.utils import timezone
 
@@ -511,3 +512,43 @@ def sync_salesforce_connection(connection, dry_run: bool = False, limit: int = 2
         connection.last_sync_at = timezone.now()
         connection.save(update_fields=['last_sync_at', 'updated_at'])
     return summary
+
+
+def has_running_salesforce_sync(organization, max_age_minutes: int = 120, exclude_run_id: int | None = None) -> bool:
+    from contracts.models import SalesforceSyncRun
+
+    since = timezone.now() - timedelta(minutes=max(1, int(max_age_minutes)))
+    queryset = SalesforceSyncRun.objects.filter(
+        organization=organization,
+        status=SalesforceSyncRun.Status.RUNNING,
+        started_at__gte=since,
+    )
+    if exclude_run_id:
+        queryset = queryset.exclude(id=exclude_run_id)
+    return queryset.exists()
+
+
+@transaction.atomic
+def create_salesforce_sync_run(
+    *,
+    organization,
+    connection,
+    trigger_source: str,
+    dry_run: bool,
+    limit: int,
+    triggered_by=None,
+):
+    from contracts.models import SalesforceOrganizationConnection, SalesforceSyncRun
+
+    SalesforceOrganizationConnection.objects.select_for_update().filter(id=connection.id).first()
+    if has_running_salesforce_sync(organization, exclude_run_id=None):
+        raise SalesforceSyncError('A Salesforce sync is already running for this organization.')
+    return SalesforceSyncRun.objects.create(
+        organization=organization,
+        connection=connection,
+        triggered_by=triggered_by,
+        trigger_source=trigger_source,
+        status=SalesforceSyncRun.Status.RUNNING,
+        dry_run=dry_run,
+        limit_applied=limit,
+    )

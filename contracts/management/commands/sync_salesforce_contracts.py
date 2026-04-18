@@ -4,7 +4,11 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from contracts.models import Organization, SalesforceOrganizationConnection, SalesforceSyncRun
-from contracts.services.salesforce import SalesforceSyncError, sync_salesforce_connection
+from contracts.services.salesforce import (
+    SalesforceSyncError,
+    create_salesforce_sync_run,
+    sync_salesforce_connection,
+)
 
 
 class Command(BaseCommand):
@@ -26,14 +30,16 @@ class Command(BaseCommand):
 
         dry_run = bool(options['dry_run'])
         limit = max(1, int(options['limit']))
-        run = SalesforceSyncRun.objects.create(
-            organization=organization,
-            connection=connection,
-            trigger_source=SalesforceSyncRun.TriggerSource.COMMAND,
-            status=SalesforceSyncRun.Status.RUNNING,
-            dry_run=dry_run,
-            limit_applied=limit,
-        )
+        try:
+            run = create_salesforce_sync_run(
+                organization=organization,
+                connection=connection,
+                trigger_source=SalesforceSyncRun.TriggerSource.COMMAND,
+                dry_run=dry_run,
+                limit=limit,
+            )
+        except SalesforceSyncError as exc:
+            raise CommandError(str(exc))
 
         try:
             summary = sync_salesforce_connection(

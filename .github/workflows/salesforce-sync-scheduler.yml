@@ -1,0 +1,44 @@
+name: Salesforce Sync Scheduler
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  salesforce-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DJANGO_ENV: production
+      DJANGO_SECRET_KEY: this-is-only-for-ci-not-production-change-me-1234567890
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      CSRF_TRUSTED_ORIGINS: http://localhost
+      DEFAULT_FROM_EMAIL: noreply@example.com
+      ALLOW_SQLITE_IN_PRODUCTION: 'true'
+      SALESFORCE_CLIENT_ID: ${{ secrets.SALESFORCE_CLIENT_ID }}
+      SALESFORCE_CLIENT_SECRET: ${{ secrets.SALESFORCE_CLIENT_SECRET }}
+      SALESFORCE_REDIRECT_URI: ${{ secrets.SALESFORCE_REDIRECT_URI }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/runtime.txt
+
+      - name: Apply migrations
+        run: python manage.py migrate --noinput
+
+      - name: Queue background jobs
+        run: python manage.py queue_background_jobs
+
+      - name: Process background jobs
+        run: python manage.py process_background_jobs --limit 100

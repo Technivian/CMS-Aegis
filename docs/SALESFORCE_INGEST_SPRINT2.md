@@ -43,6 +43,7 @@ This sprint adds deterministic contract reconciliation for Salesforce imports.
 
 - Endpoint: `GET /contracts/api/integrations/salesforce/sync-runs/?limit=20`
 - Returns most recent sync execution records for audit and troubleshooting.
+- Identity settings page now shows recent sync runs and connection status.
 
 ### CLI Import
 
@@ -62,6 +63,17 @@ This sprint adds deterministic contract reconciliation for Salesforce imports.
   --organization-slug <org-slug> \
   --limit 200
 ```
+
+## Scheduler + Retry Operations
+
+- Automated scheduler workflow:
+  - `.github/workflows/salesforce-sync-scheduler.yml`
+  - queues and processes background jobs every 30 minutes.
+- Salesforce sync background jobs use retry with backoff and dead-lettering:
+  - first failure: re-queued with delay
+  - terminal failure after max attempts: `FAILED` with `dead_lettered_at` populated
+- Overlap protection:
+  - sync creation is blocked when another run is already `RUNNING` for the organization.
 
 ## Token Hardening
 

@@ -8,8 +8,10 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
-from contracts.models import Contract, Organization, OrganizationMembership, SalesforceOrganizationConnection, SalesforceSyncRun
+from contracts.models import BackgroundJob, Contract, Organization, OrganizationMembership, SalesforceOrganizationConnection, SalesforceSyncRun
+from contracts.services.background_jobs import process_background_job
 from contracts.services.salesforce import TOKEN_CIPHER_PREFIX, SalesforceTokenPayload, decrypt_salesforce_token
 
 
@@ -109,6 +111,29 @@ class SalesforceSprintTwoIngestionTests(TestCase):
         self.assertEqual(run.trigger_source, SalesforceSyncRun.TriggerSource.API)
         self.assertEqual(run.created_count, 1)
 
+    def test_sync_api_blocks_when_run_is_already_running(self):
+        connection = SalesforceOrganizationConnection.objects.create(
+            organization=self.organization,
+            connected_by=self.owner,
+            access_token='plain-access',
+            refresh_token='plain-refresh',
+            instance_url='https://example.my.salesforce.com',
+            is_active=True,
+        )
+        SalesforceSyncRun.objects.create(
+            organization=self.organization,
+            connection=connection,
+            trigger_source=SalesforceSyncRun.TriggerSource.COMMAND,
+            status=SalesforceSyncRun.Status.RUNNING,
+        )
+        response = self.client.post(
+            reverse('contracts:salesforce_sync_api'),
+            data=json.dumps({'dry_run': False, 'limit': 20}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 409)
+        self.assertIn('already running', response.json().get('error', '').lower())
+
     def test_sync_runs_api_returns_recent_runs(self):
         SalesforceSyncRun.objects.create(
             organization=self.organization,
@@ -181,6 +206,48 @@ class SalesforceSprintTwoIngestionTests(TestCase):
         run = SalesforceSyncRun.objects.get(organization=self.organization, trigger_source=SalesforceSyncRun.TriggerSource.COMMAND)
         self.assertEqual(run.status, SalesforceSyncRun.Status.SUCCESS)
         self.assertEqual(run.fetched_records, 1)
+
+    def test_process_background_sync_job_retries_then_dead_letters(self):
+        job = BackgroundJob.objects.create(
+            organization=self.organization,
+            job_type='sync_salesforce_contracts',
+            payload={'limit': 50},
+            max_attempts=2,
+            scheduled_at=timezone.now(),
+        )
+        with patch('contracts.services.background_jobs.call_command', side_effect=RuntimeError('sync boom')):
+            with self.assertRaises(RuntimeError):
+                process_background_job(job)
+        job.refresh_from_db()
+        self.assertEqual(job.status, BackgroundJob.Status.PENDING)
+        self.assertEqual(job.attempt_count, 1)
+        self.assertIsNone(job.dead_lettered_at)
+
+        with patch('contracts.services.background_jobs.call_command', side_effect=RuntimeError('sync boom')):
+            with self.assertRaises(RuntimeError):
+                process_background_job(job)
+        job.refresh_from_db()
+        self.assertEqual(job.status, BackgroundJob.Status.FAILED)
+        self.assertEqual(job.attempt_count, 2)
+        self.assertIsNotNone(job.dead_lettered_at)
+
+    def test_queue_background_jobs_queues_salesforce_sync_for_active_connection(self):
+        SalesforceOrganizationConnection.objects.create(
+            organization=self.organization,
+            connected_by=self.owner,
+            access_token='plain-access',
+            refresh_token='plain-refresh',
+            instance_url='https://example.my.salesforce.com',
+            is_active=True,
+        )
+        call_command('queue_background_jobs')
+        self.assertTrue(
+            BackgroundJob.objects.filter(
+                organization=self.organization,
+                job_type='sync_salesforce_contracts',
+                status=BackgroundJob.Status.PENDING,
+            ).exists()
+        )
 
     def test_encrypt_salesforce_tokens_command_backfills_plaintext_tokens(self):
         connection = SalesforceOrganizationConnection.objects.create(
