@@ -12,6 +12,10 @@ class ContractAction:
     EDIT = 'edit'
 
 
+# Backward-compatible aliases for legacy care workflow call sites.
+CaseAction = ContractAction
+
+
 def get_active_org_membership(user, organization):
     if not user or not getattr(user, 'is_authenticated', False) or organization is None:
         return None
@@ -56,3 +60,7 @@ def can_access_contract_action(user, contract, action=ContractAction.VIEW):
         return bool(contract.created_by_id and contract.created_by_id == user.id)
 
     return False
+
+
+def can_access_case_action(user, case, action=CaseAction.VIEW):
+    return can_access_contract_action(user, case, action)
