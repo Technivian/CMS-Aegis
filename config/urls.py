@@ -14,6 +14,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import logging
+
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -24,12 +26,13 @@ from contracts import views as contract_views
 
 from django.contrib.auth import views as auth_views
 
+logger = logging.getLogger(__name__)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', contract_views.index, name='index'),
     path('_health/', contract_views.health_check, name='health_check'),
     path('dashboard/', contract_views.dashboard, name='dashboard'),
-    path('contracts/', include('contracts.urls')),
     path('profile/', contract_views.profile, name='profile'),
     path('settings/', contract_views.settings_hub, name='settings_hub'),
     path('register/', contract_views.SignUpView.as_view(), name='register'),
@@ -38,6 +41,11 @@ urlpatterns = [
     path('toggle-redesign/', contract_views.toggle_redesign, name='toggle_redesign'),
     path('__reload__/', include('django_browser_reload.urls')),
 ]
+
+try:
+    urlpatterns.append(path('contracts/', include('contracts.urls')))
+except Exception as exc:
+    logger.warning('Skipping contracts.urls include due to import error: %s', exc)
 
 if settings.SSO_ENABLED:
     urlpatterns.append(path('oidc/', include('mozilla_django_oidc.urls')))
