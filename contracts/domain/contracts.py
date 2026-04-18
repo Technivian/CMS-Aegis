@@ -48,6 +48,12 @@ class ContractData:
         """Convert to dictionary for JSON serialization"""
         return asdict(self)
 
+
+@dataclass
+class CareCaseData(ContractData):
+    """Backward-compatible care case DTO used by legacy API views."""
+    preferred_provider: str = ""
+
 @dataclass
 class ListResult:
     """Result of contract listing operation"""
