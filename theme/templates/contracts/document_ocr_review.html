@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Review OCR - CMS Aegis{% endblock %}
+{% block content %}
+<div class="max-w-4xl">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Review OCR</h1>
+            <p class="text-sm text-gray-500">{{ form.instance.document.title }} &middot; {{ form.instance.get_status_display }}</p>
+        </div>
+        <a href="{% url 'contracts:document_ocr_queue' %}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50">Back to queue</a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 class="font-semibold text-gray-900 mb-3">Document</h2>
+            <div class="space-y-2 text-sm text-gray-600">
+                <div><span class="text-gray-500">Title:</span> {{ form.instance.document.title }}</div>
+                <div><span class="text-gray-500">Version:</span> v{{ form.instance.document.version }}</div>
+                <div><span class="text-gray-500">Source:</span> {{ form.instance.source|default:"—" }}</div>
+                {% if form.instance.confidence_score is not None %}<div><span class="text-gray-500">Confidence:</span> {{ form.instance.confidence_score }}</div>{% endif %}
+            </div>
+            {% if form.instance.extracted_text %}
+            <div class="mt-4">
+                <div class="text-sm font-medium text-gray-900 mb-2">Extracted text</div>
+                <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs overflow-auto whitespace-pre-wrap">{{ form.instance.extracted_text }}</pre>
+            </div>
+            {% endif %}
+        </div>
+
+        <form method="post" class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.status.label }}</label>
+                {{ form.status }}
+                {% if form.status.errors %}<p class="text-red-500 text-xs mt-1">{{ form.status.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.confidence_score.label }}</label>
+                {{ form.confidence_score }}
+                {% if form.confidence_score.errors %}<p class="text-red-500 text-xs mt-1">{{ form.confidence_score.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.extracted_text.label }}</label>
+                {{ form.extracted_text }}
+                {% if form.extracted_text.errors %}<p class="text-red-500 text-xs mt-1">{{ form.extracted_text.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.review_notes.label }}</label>
+                {{ form.review_notes }}
+                {% if form.review_notes.errors %}<p class="text-red-500 text-xs mt-1">{{ form.review_notes.errors.0 }}</p>{% endif %}
+            </div>
+            {% if form.non_field_errors %}
+                <div class="text-red-500 text-xs">{{ form.non_field_errors.0 }}</div>
+            {% endif %}
+            <div class="flex gap-3 pt-2">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">Save Review</button>
+                <a href="{% url 'contracts:document_detail' form.instance.document.pk %}" class="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

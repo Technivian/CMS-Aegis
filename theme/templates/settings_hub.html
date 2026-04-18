@@ -32,11 +32,46 @@
             <p style="font-size: 13px; color: var(--text-secondary);">Review organization-level activity logs.</p>
         </a>
 
+        <a href="{% url 'organization_security_settings' %}" style="display: block; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); text-decoration: none; transition: all 0.2s ease;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Organization Security</h2>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary);">Control MFA policy and revoke active sessions.</p>
+        </a>
+
+        <a href="{% url 'organization_session_audit' %}" style="display: block; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); text-decoration: none; transition: all 0.2s ease;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Session Audit</h2>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary);">Review and revoke active sessions by device or browser session key.</p>
+        </a>
+
+        <a href="{% url 'organization_identity_settings' %}" style="display: block; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); text-decoration: none; transition: all 0.2s ease;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Identity Provider</h2>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary);">Configure SAML metadata and SCIM provisioning.</p>
+        </a>
+
+        <a href="{% url 'contracts:identity_telemetry_dashboard' %}" style="display: block; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); text-decoration: none; transition: all 0.2s ease;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Identity Telemetry</h2>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary);">Track MFA, SAML, SCIM, and recovery-code activity.</p>
+        </a>
+
         <a href="{% url 'contracts:privacy_dashboard' %}" style="display: block; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); text-decoration: none; transition: all 0.2s ease;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                 <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Privacy Center</h2>
             </div>
             <p style="font-size: 13px; color: var(--text-secondary);">Manage GDPR workflows, DSARs, and data inventories.</p>
+        </a>
+
+        <a href="{% url 'operations_dashboard' %}" style="display: block; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); text-decoration: none; transition: all 0.2s ease;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Operations</h2>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary);">Monitor background jobs, request health, and drill readiness.</p>
         </a>
     </div>
 </div>

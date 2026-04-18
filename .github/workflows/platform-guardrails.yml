@@ -7,6 +7,41 @@ on:
       - main
 
 jobs:
+  pr-release-evidence:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate PR release evidence checklist
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = (context.payload.pull_request.body || '');
+            const requiredChecks = [
+              /-\s*\[x\]\s*`python manage\.py check`/i,
+              /-\s*\[x\]\s*`python manage\.py test tests\.test_cross_tenant_isolation -v 1`/i,
+              /-\s*\[x\]\s*`python manage\.py audit_null_organizations`/i,
+            ];
+            const smokeSatisfied =
+              /-\s*\[x\]\s*Manual smoke paths validated/i.test(body) ||
+              /-\s*\[x\]\s*Manual smoke not required/i.test(body);
+            const rollbackChecked = /-\s*\[x\]\s*Rollback steps tested on staging or drill link added below/i.test(body);
+            const smokeEvidenceProvided = /Smoke evidence:\s*\S+/i.test(body);
+            const rollbackEvidenceProvided = /Rollback evidence:\s*\S+/i.test(body);
+
+            const failures = [];
+            for (const check of requiredChecks) {
+              if (!check.test(body)) failures.push(`Missing checked verification item: ${check}`);
+            }
+            if (!smokeSatisfied) failures.push('Mark either manual smoke validated or manual smoke not required.');
+            if (!rollbackChecked) failures.push('Mark rollback steps tested checkbox.');
+            if (!smokeEvidenceProvided) failures.push('Provide smoke evidence under "Smoke evidence:".');
+            if (!rollbackEvidenceProvided) failures.push('Provide rollback evidence under "Rollback evidence:".');
+
+            if (failures.length) {
+              core.setFailed(`PR evidence gate failed:\n- ${failures.join('\n- ')}`);
+            }
+
   quality-and-tenancy:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -25,8 +60,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements/dev.txt
 
-      - name: Python compile smoke
-        run: python -m compileall config contracts
+      - name: Apply migrations
+        run: python manage.py migrate --noinput
+
+      - name: Ensure migrations are committed
+        run: python manage.py migrate --check
 
       - name: Deploy checks (production profile)
         env:
@@ -37,16 +75,25 @@ jobs:
           DEFAULT_FROM_EMAIL: noreply@example.com
           SECURE_SSL_REDIRECT: 'true'
           SECURE_HSTS_PRELOAD: 'true'
-        run: python manage.py check --deploy --fail-level WARNING || echo "Deploy check is non-blocking during migration refactor window"
+        run: python manage.py check --deploy --fail-level WARNING
 
       - name: Tenant integrity audit
-        run: python manage.py audit_null_organizations || echo "Tenant audit is non-blocking during migration refactor window"
+        run: python manage.py audit_null_organizations
 
       - name: Cross-tenant isolation tests
-        run: python manage.py test tests.test_cross_tenant_isolation -v 1 || echo "Cross-tenant suite is non-blocking during migration refactor window"
+        run: python manage.py test tests.test_cross_tenant_isolation tests.test_permission_matrix -v 1
 
       - name: Request context logging tests
-        run: python manage.py test tests.test_request_context_logging -v 1 || echo "Request context tests are non-blocking during migration refactor window"
+        run: python manage.py test tests.test_request_context_logging -v 1
+
+      - name: Performance query-scaling guardrails
+        run: python manage.py test tests.test_performance_guardrails -v 1
+
+      - name: Sprint 1 integration foundations
+        run: python manage.py test tests.test_salesforce_sprint1 -v 1
+
+      - name: Sprint 2 Salesforce ingestion guardrails
+        run: python manage.py test tests.test_salesforce_sprint2_ingestion -v 1
 
   security-scans:
     runs-on: ubuntu-latest
@@ -72,13 +119,13 @@ jobs:
           pip install pip-audit bandit
 
       - name: Python dependency vulnerability scan
-        run: pip-audit -r requirements/runtime.txt
+        run: pip-audit --disable-pip --no-deps -r requirements/runtime.txt
 
       - name: Python static security scan
         run: bandit -q -r contracts config -lll
 
       - name: Client dependency vulnerability scan
-        run: npm --prefix client audit --audit-level=high || echo "Client npm audit is non-blocking during migration refactor window"
+        run: npm --prefix client audit --audit-level=high
 
       - name: Theme dependency vulnerability scan
-        run: npm --prefix theme/static_src audit --audit-level=high || echo "Theme npm audit is non-blocking during migration refactor window"
+        run: npm --prefix theme/static_src audit --audit-level=high

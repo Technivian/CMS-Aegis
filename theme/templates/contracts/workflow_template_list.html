@@ -20,22 +20,24 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for template in workflow_templates %}
         <div class="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ template.name }}</h3>
+            <div class="flex items-start justify-between gap-3 mb-2">
+                <h3 class="text-lg font-semibold text-gray-900">{{ template.name }}</h3>
+                <span class="text-xs font-medium rounded-full px-2 py-1 bg-gray-100 text-gray-600">v{{ template.version }}</span>
+            </div>
             {% if template.description %}
             <p class="text-gray-500 text-sm mb-4">{{ template.description }}</p>
             {% endif %}
             <div class="text-sm text-gray-500 mb-4">
-                {{ template.template_steps.count }} step{{ template.template_steps.count|pluralize }}
-                {% if template.contract_type %} &middot; {{ template.get_contract_type_display }}{% endif %}
+                {{ template.steps.count }} step{{ template.steps.count|pluralize }}
             </div>
             <div class="space-y-2">
-                {% for step in template.template_steps.all|slice:":3" %}
+                {% for step in template.steps.all|slice:":3" %}
                 <div class="text-xs bg-gray-100 px-2 py-1 rounded">
-                    {{ step.order }}. {{ step.get_step_type_display }}
+                    {{ step.order }}. {{ step.name }}
                 </div>
                 {% endfor %}
-                {% if template.template_steps.count > 3 %}
-                <div class="text-xs text-gray-500">+{{ template.template_steps.count|add:"-3" }} more</div>
+                {% if template.steps.count > 3 %}
+                <div class="text-xs text-gray-500">+{{ template.steps.count|add:"-3" }} more</div>
                 {% endif %}
             </div>
             <div class="mt-4 pt-4 border-t border-gray-200">

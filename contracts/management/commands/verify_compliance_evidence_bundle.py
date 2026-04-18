@@ -1,44 +1,36 @@
-import hashlib
 import json
 from pathlib import Path
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.utils import timezone
+
+from contracts.services.evidence_bundle import verify_evidence_bundle
 
 
 class Command(BaseCommand):
-    help = 'Verify compliance evidence bundle integrity.'
+    help = 'Verify tamper-evident compliance evidence bundle integrity and signature.'
 
     def add_arguments(self, parser):
         parser.add_argument('--bundle-path', required=True)
-        parser.add_argument('--sha256-path', required=True)
-        parser.add_argument('--signature-path', required=True)
+        parser.add_argument('--sha256-path', default='')
+        parser.add_argument('--signature-path', default='')
+        parser.add_argument('--signing-key', default='')
 
     def handle(self, *args, **options):
-        bundle_path = Path(options['bundle_path']).resolve()
-        sha_path = Path(options['sha256_path']).resolve()
-        sig_path = Path(options['signature_path']).resolve()
+        bundle_path = str(options['bundle_path']).strip()
+        bundle = Path(bundle_path).expanduser().resolve()
+        sha_path = str(options.get('sha256_path') or '').strip() or str(bundle.with_suffix('').with_suffix('.sha256'))
+        sig_path = str(options.get('signature_path') or '').strip() or str(bundle.with_suffix('').with_suffix('.sig'))
+        signing_key = str(options.get('signing_key') or '').strip() or str(settings.SECRET_KEY)
 
-        for path in (bundle_path, sha_path, sig_path):
-            if not path.exists():
-                raise CommandError(f'Missing verification input: {path}')
+        try:
+            result = verify_evidence_bundle(
+                bundle_path=bundle_path,
+                sha256_path=sha_path,
+                signature_path=sig_path,
+                signing_key=signing_key,
+            )
+        except ValueError as exc:
+            raise CommandError(str(exc))
 
-        expected_hash = sha_path.read_text(encoding='utf-8').split()[0].strip()
-        actual_hash = hashlib.sha256(bundle_path.read_bytes()).hexdigest()
-        hash_match = bool(expected_hash) and expected_hash == actual_hash
-
-        signature_marker = sig_path.read_text(encoding='utf-8').strip()
-        signature_present = bool(signature_marker)
-
-        status = 'VERIFIED' if hash_match and signature_present else 'FAILED'
-        payload = {
-            'captured_at': timezone.now().isoformat(),
-            'bundle_path': str(bundle_path),
-            'hash_match': hash_match,
-            'signature_present': signature_present,
-            'status': status,
-        }
-        self.stdout.write(json.dumps(payload, indent=2, sort_keys=True))
-
-        if status != 'VERIFIED':
-            raise CommandError('Compliance evidence bundle verification failed.')
+        self.stdout.write(json.dumps(result, indent=2, sort_keys=True))

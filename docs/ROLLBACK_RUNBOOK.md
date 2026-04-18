@@ -15,6 +15,7 @@
 | Activate the virtualenv | `source /opt/cms-aegis/.venv/bin/activate` |
 | Confirm current HEAD | `git -C /opt/cms-aegis log -1 --oneline` |
 | Check migration state | `python manage.py showmigrations` |
+| Confirm production DB is PostgreSQL | `python manage.py shell -c "from django.conf import settings; print(settings.DATABASES['default']['ENGINE'])"` |
 | Verify backup exists | `ls -lth /backups/cms-aegis/ \| head -5` |
 
 > **Never roll back without a database backup confirmed within the last hour.**
@@ -165,6 +166,36 @@ Operational conclusion:
 - reverse migration on clean scratch data is validated
 - reverse migration on populated tenant-owned starter-content data is **not** currently safe without a bespoke downgrade/data-collapse step
 - do not run a live rollback from `0006` to `0005` on populated environments without additional migration work
+
+### 4.5 Staging Postgres Migration Rehearsal Template (required for ICL-002)
+
+Run and record these on staging before production cutover:
+
+```bash
+# Preconditions
+python manage.py shell -c "from django.conf import settings; print(settings.DATABASES['default']['ENGINE'])"
+python manage.py check --deploy --fail-level WARNING
+
+# Backup + migrate
+pg_dump -Fc "$PGDATABASE" > /backups/cms-aegis/pre-cutover-$(date +%Y%m%dT%H%M%S).dump
+python manage.py migrate --noinput
+python manage.py audit_null_organizations
+python manage.py test tests.test_cross_tenant_isolation -v 1
+
+# Rollback validation (restore)
+sudo systemctl stop gunicorn-cms-aegis
+dropdb "$PGDATABASE"
+createdb "$PGDATABASE"
+pg_restore -Fc -d "$PGDATABASE" /backups/cms-aegis/<pre-cutover-backup>.dump
+sudo systemctl start gunicorn-cms-aegis
+```
+
+Capture evidence in [`docs/DRILL_LOG.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/DRILL_LOG.md):
+- start and finish timestamps
+- migration duration
+- restore duration
+- verification command outputs
+- any errors and mitigations
 
 ### 4.3 Reverting all contracts migrations to zero (emergency only)
 

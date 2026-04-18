@@ -23,6 +23,17 @@
     <div class="rounded-xl p-5 border" style="background:rgba(245,158,11,0.07);border-color:rgba(245,158,11,0.28)"><p class="text-xs font-semibold uppercase tracking-widest mb-2" style="color:rgba(251,191,36,0.85)">Expiring 30d</p><p class="text-3xl font-bold" style="color:#FBBF24">{{ expiring_documents }}</p></div>
 </div>
 
+<div class="rounded-xl border p-4 mb-4" style="background:var(--card-bg);border-color:var(--card-border)">
+    <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+        <div>
+            <p class="text-xs font-semibold uppercase tracking-widest" style="color:var(--text-muted)">Saved views</p>
+            <p class="text-sm mt-1" style="color:var(--text-muted)">Capture the current repository filter state for quick reuse.</p>
+        </div>
+        <button type="button" onclick="window.ironclad.saveCurrentView()" class="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-lg border" style="background:var(--surface);border-color:var(--border);color:var(--text-primary)">Save current view</button>
+    </div>
+    <div id="saved-views"></div>
+</div>
+
 <div class="flex items-center gap-3 mb-4 flex-wrap">
     <div class="relative flex-1 min-w-0">
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style="color:var(--text-muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
@@ -39,12 +50,22 @@
     </a>
 </div>
 
+<div class="flex items-center gap-2 mb-4 flex-wrap">
+    <button type="button" class="repo-mini-btn repo-status-filter" data-status-filter="">All</button>
+    <button type="button" class="repo-mini-btn repo-status-filter" data-status-filter="ACTIVE">Active</button>
+    <button type="button" class="repo-mini-btn repo-status-filter" data-status-filter="DRAFT">Draft</button>
+    <button type="button" class="repo-mini-btn repo-status-filter" data-status-filter="PENDING">Pending</button>
+    <button type="button" class="repo-mini-btn repo-status-filter" data-status-filter="EXPIRED">Expired</button>
+</div>
+
+<div id="filter-chips" class="mb-4"></div>
+
 <div id="bulk-action-bar" class="repo-bulk-bar">
     <div class="font-medium" id="selected-count" style="color:var(--text-primary)">0 selected</div>
     <div class="flex items-center gap-2 flex-wrap">
-        <button class="repo-mini-btn">Change Status</button>
-        <button class="repo-mini-btn">Assign to Me</button>
-        <button class="repo-mini-btn">Export CSV</button>
+        <button id="repo-bulk-status" class="repo-mini-btn">Change Status</button>
+        <button id="repo-bulk-assign" class="repo-mini-btn">Assign to Me</button>
+        <button id="repo-bulk-export" class="repo-mini-btn">Export CSV</button>
         <button onclick="window.ironclad.clearSelection()" class="repo-mini-btn">Clear</button>
     </div>
 </div>

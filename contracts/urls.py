@@ -5,9 +5,34 @@ from .api import views as api_views
 app_name = 'contracts'
 
 urlpatterns = [
+    path('scim/v2/Users', api_views.scim_users_api, name='scim_users_api'),
+    path('scim/v2/Users/<str:scim_id>', api_views.scim_user_api, name='scim_user_api'),
+    path('scim/v2/Groups', api_views.scim_groups_api, name='scim_groups_api'),
+    path('scim/v2/Groups/<str:scim_id>', api_views.scim_group_api, name='scim_group_api'),
+    path('saml/', views.saml_select, name='saml_select'),
+    path('saml/<slug:organization_slug>/login/', views.saml_login, name='saml_login'),
+    path('saml/<slug:organization_slug>/acs/', views.saml_acs, name='saml_acs'),
+    path('saml/<slug:organization_slug>/logout/', views.saml_logout, name='saml_logout'),
+    path('saml/<slug:organization_slug>/metadata/', views.saml_metadata, name='saml_metadata'),
     path('api/contracts/', api_views.contracts_api, name='contracts_api'),
+    path('api/v1/contracts/', api_views.contracts_api_v1, name='contracts_api_v1'),
+    path('api/v1/contracts/<str:contract_id>/', api_views.contract_detail_api_v1, name='contract_detail_api_v1'),
     path('api/contracts/bulk-update/', api_views.contracts_bulk_update_api, name='contracts_bulk_update_api'),
     path('api/contracts/<str:contract_id>/', api_views.contract_detail_api, name='contract_detail_api'),
+    path('api/integrations/salesforce/status/', api_views.salesforce_connection_status_api, name='salesforce_connection_status_api'),
+    path('api/integrations/salesforce/oauth/start/', api_views.salesforce_oauth_start_api, name='salesforce_oauth_start_api'),
+    path('api/integrations/salesforce/oauth/callback/', api_views.salesforce_oauth_callback_api, name='salesforce_oauth_callback_api'),
+    path('api/integrations/salesforce/disconnect/', api_views.salesforce_disconnect_api, name='salesforce_disconnect_api'),
+    path('api/integrations/salesforce/field-map/', api_views.salesforce_field_map_api, name='salesforce_field_map_api'),
+    path('api/integrations/salesforce/ingest-preview/', api_views.salesforce_ingest_preview_api, name='salesforce_ingest_preview_api'),
+    path('api/integrations/salesforce/sync/', api_views.salesforce_sync_api, name='salesforce_sync_api'),
+    path('api/integrations/salesforce/sync-runs/', api_views.salesforce_sync_runs_api, name='salesforce_sync_runs_api'),
+    path('api/integrations/netsuite/sync/', api_views.netsuite_sync_api, name='netsuite_sync_api'),
+    path('api/integrations/webhooks/deliveries/', api_views.webhook_deliveries_api, name='webhook_deliveries_api'),
+    path('api/integrations/esign/webhook/', api_views.esign_webhook_api, name='esign_webhook_api'),
+    path('api/analytics/executive/', api_views.executive_analytics_api, name='executive_analytics_api'),
+    path('api/analytics/executive/presets/', api_views.executive_dashboard_presets_api, name='executive_dashboard_presets_api'),
+    path('api/analytics/executive/presets/<int:preset_id>/', api_views.executive_dashboard_preset_delete_api, name='executive_dashboard_preset_delete_api'),
 
     # Clients
     path('clients/', views.ClientListView.as_view(), name='client_list'),
@@ -26,6 +51,9 @@ urlpatterns = [
     path('documents/new/', views.DocumentCreateView.as_view(), name='document_create'),
     path('documents/<int:pk>/', views.DocumentDetailView.as_view(), name='document_detail'),
     path('documents/<int:pk>/edit/', views.DocumentUpdateView.as_view(), name='document_update'),
+    path('documents/<int:pk>/compare/<int:other_pk>/', views.DocumentCompareView.as_view(), name='document_compare'),
+    path('documents/ocr-queue/', views.DocumentOCRQueueView.as_view(), name='document_ocr_queue'),
+    path('documents/ocr-queue/<int:pk>/', views.DocumentOCRReviewUpdateView.as_view(), name='document_ocr_review'),
 
     # Time Entries
     path('time/', views.TimeEntryListView.as_view(), name='time_entry_list'),
@@ -70,14 +98,19 @@ urlpatterns = [
     path('organizations/members/<int:membership_id>/role/', views.update_membership_role, name='update_membership_role'),
     path('organizations/members/<int:membership_id>/deactivate/', views.deactivate_organization_member, name='deactivate_organization_member'),
     path('organizations/members/<int:membership_id>/reactivate/', views.reactivate_organization_member, name='reactivate_organization_member'),
+    path('organizations/members/<int:membership_id>/revoke-sessions/', views.revoke_member_sessions, name='revoke_member_sessions'),
     path('organizations/activity/', views.organization_activity, name='organization_activity'),
     path('organizations/activity/export/', views.organization_activity_export, name='organization_activity_export'),
+    path('organizations/identity-telemetry/', views.identity_telemetry_dashboard, name='identity_telemetry_dashboard'),
+    path('organizations/session-audit/', views.organization_session_audit, name='organization_session_audit'),
+    path('organizations/session-audit/export/', views.organization_session_audit_export, name='organization_session_audit_export'),
 
     # Reports
     path('reports/', views.reports_dashboard, name='reports_dashboard'),
 
     # Due Diligence
     path('due-diligence/', views.DueDiligenceListView.as_view(), name='due_diligence_list'),
+    path('due-diligence-processes/', views.DueDiligenceListView.as_view(), name='due_diligence_list_legacy'),
     path('due-diligence/new/', views.DueDiligenceCreateView.as_view(), name='due_diligence_create'),
     path('due-diligence/<int:pk>/', views.DueDiligenceDetailView.as_view(), name='due_diligence_detail'),
     path('due-diligence/<int:pk>/edit/', views.DueDiligenceUpdateView.as_view(), name='due_diligence_update'),
@@ -92,12 +125,14 @@ urlpatterns = [
 
     # Trademarks
     path('trademarks/', views.TrademarkRequestListView.as_view(), name='trademark_request_list'),
+    path('trademark-requests/', views.TrademarkRequestListView.as_view(), name='trademark_request_list_legacy'),
     path('trademarks/new/', views.TrademarkRequestCreateView.as_view(), name='trademark_request_create'),
     path('trademarks/<int:pk>/', views.TrademarkRequestDetailView.as_view(), name='trademark_request_detail'),
     path('trademarks/<int:pk>/edit/', views.TrademarkRequestUpdateView.as_view(), name='trademark_request_update'),
 
     # Risks
     path('risks/', views.RiskLogListView.as_view(), name='risk_log_list'),
+    path('risk-log/', views.RiskLogListView.as_view(), name='risk_log_list_legacy'),
     path('risks/new/', views.RiskLogCreateView.as_view(), name='risk_log_create'),
     path('risks/<int:pk>/edit/', views.RiskLogUpdateView.as_view(), name='risk_log_update'),
 
@@ -118,10 +153,14 @@ urlpatterns = [
 
     # Workflows
     path('workflows/', views.workflow_dashboard, name='workflow_dashboard'),
+    path('workflow-dashboard/', views.workflow_dashboard, name='workflow_dashboard_legacy'),
     path('workflows/create/', views.workflow_create, name='workflow_create'),
     path('workflows/templates/', views.workflow_template_list, name='workflow_template_list'),
     path('workflows/templates/create/', views.workflow_template_create, name='workflow_template_create'),
     path('workflows/templates/<int:pk>/', views.workflow_template_detail, name='workflow_template_detail'),
+    path('workflows/templates/<int:pk>/clone-version/', views.workflow_template_clone_version, name='workflow_template_clone_version'),
+    path('workflows/templates/<int:pk>/restore-version/', views.workflow_template_restore_version, name='workflow_template_restore_version'),
+    path('workflows/templates/<int:pk>/compare/<int:other_pk>/', views.workflow_template_compare, name='workflow_template_compare'),
     path('workflows/<int:pk>/', views.workflow_detail, name='workflow_detail'),
     path('workflows/step/<int:pk>/update/', views.update_workflow_step, name='update_workflow_step'),
 
@@ -159,6 +198,7 @@ urlpatterns = [
 
     # Privacy & GDPR
     path('privacy/', views.privacy_dashboard, name='privacy_dashboard'),
+    path('privacy/evidence-export/', views.privacy_evidence_export, name='privacy_evidence_export'),
     path('privacy/data-inventory/', views.DataInventoryListView.as_view(), name='data_inventory_list'),
     path('privacy/data-inventory/new/', views.DataInventoryCreateView.as_view(), name='data_inventory_create'),
     path('privacy/data-inventory/<int:pk>/', views.DataInventoryDetailView.as_view(), name='data_inventory_detail'),

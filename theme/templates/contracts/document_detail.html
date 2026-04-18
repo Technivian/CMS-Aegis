@@ -20,6 +20,7 @@
             <div><span class="text-gray-500">Uploaded by:</span> {{ document.uploaded_by.get_full_name|default:"—" }}</div>
             <div><span class="text-gray-500">Created:</span> {{ document.created_at|date:"M d, Y H:i" }}</div>
             {% if document.file_size %}<div><span class="text-gray-500">Size:</span> {{ document.file_size|filesizeformat }}</div>{% endif %}
+            {% if document.file_hash %}<div class="md:col-span-2"><span class="text-gray-500">File hash:</span> <code class="text-xs bg-gray-100 px-2 py-1 rounded">{{ document.file_hash }}</code></div>{% endif %}
             {% if document.tags %}<div><span class="text-gray-500">Tags:</span> {{ document.tags }}</div>{% endif %}
         </div>
         {% if document.is_privileged or document.is_confidential %}
@@ -42,9 +43,48 @@
             {% for v in versions %}
             <div class="px-5 py-3 flex items-center justify-between">
                 <div class="text-sm">v{{ v.version }} - {{ v.created_at|date:"M d, Y" }}</div>
-                {% if v.file %}<a href="{{ v.file.url }}" class="text-xs text-blue-600" download>Download</a>{% endif %}
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'contracts:document_compare' document.pk v.pk %}" class="text-xs text-gray-700 hover:text-blue-700">Compare</a>
+                    {% if v.file %}<a href="{{ v.file.url }}" class="text-xs text-blue-600" download>Download</a>{% endif %}
+                </div>
             </div>
             {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if version_chain %}
+    <div class="bg-white rounded-xl border border-gray-200 mt-6">
+        <div class="px-5 py-4 border-b border-gray-100"><h2 class="font-semibold text-gray-900">Version Lineage</h2></div>
+        <div class="divide-y divide-gray-100">
+            {% for version in version_chain %}
+            <div class="px-5 py-3 flex items-center justify-between">
+                <div class="text-sm">v{{ version.version }} - {{ version.created_at|date:"M d, Y" }}</div>
+                {% if version.file %}<a href="{{ version.file.url }}" class="text-xs text-blue-600" download>Download</a>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if document.ocr_review %}
+    <div class="bg-white rounded-xl border border-gray-200 mt-6 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="font-semibold text-gray-900">OCR Review</h2>
+            <a href="{% url 'contracts:document_ocr_review' document.ocr_review.pk %}" class="text-sm text-blue-600 hover:text-blue-800">Review queue item</a>
+        </div>
+        <div class="text-sm text-gray-600 space-y-2">
+            <div>Status: <span class="font-medium text-gray-900">{{ document.ocr_review.get_status_display }}</span></div>
+            <div>Source: <span class="font-medium text-gray-900">{{ document.ocr_review.source|default:"—" }}</span></div>
+            {% if document.ocr_review.confidence_score is not None %}
+            <div>Confidence: <span class="font-medium text-gray-900">{{ document.ocr_review.confidence_score }}</span></div>
+            {% endif %}
+            {% if document.ocr_review.extracted_text %}
+            <div>
+                <div class="font-medium text-gray-900 mb-1">Extracted text</div>
+                <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs overflow-auto whitespace-pre-wrap">{{ document.ocr_review.extracted_text }}</pre>
+            </div>
+            {% endif %}
         </div>
     </div>
     {% endif %}

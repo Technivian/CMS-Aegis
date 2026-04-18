@@ -1,9 +1,12 @@
+from django.conf import settings
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.utils import timezone
 from decimal import Decimal
-from datetime import date
+from datetime import date, timedelta
+import hashlib
+import secrets
 import uuid
 import os
 
@@ -15,9 +18,28 @@ def document_upload_path(instance, filename):
 
 
 class Organization(models.Model):
+    class IdentityProvider(models.TextChoices):
+        OIDC = 'OIDC', 'OpenID Connect'
+        SAML = 'SAML', 'SAML'
+
     name = models.CharField(max_length=200, unique=True)
     slug = models.SlugField(max_length=120, unique=True)
     is_active = models.BooleanField(default=True)
+    require_mfa = models.BooleanField(default=False)
+    session_idle_timeout_minutes = models.PositiveIntegerField(
+        default=120,
+        validators=[MinValueValidator(5)],
+    )
+    identity_provider = models.CharField(max_length=20, choices=IdentityProvider.choices, default=IdentityProvider.OIDC)
+    saml_entity_id = models.CharField(max_length=255, blank=True)
+    saml_sso_url = models.URLField(blank=True)
+    saml_slo_url = models.URLField(blank=True)
+    saml_metadata_url = models.URLField(blank=True)
+    saml_x509_certificate = models.TextField(blank=True)
+    scim_enabled = models.BooleanField(default=False)
+    scim_token_hash = models.CharField(max_length=64, blank=True)
+    scim_token_last4 = models.CharField(max_length=4, blank=True)
+    scim_token_created_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -26,6 +48,37 @@ class Organization(models.Model):
 
     def __str__(self):
         return self.name
+
+    def rotate_scim_token(self):
+        raw_token = secrets.token_urlsafe(32)
+        self.scim_token_hash = hashlib.sha256(raw_token.encode('utf-8')).hexdigest()
+        self.scim_token_last4 = raw_token[-4:]
+        self.scim_token_created_at = timezone.now()
+        self.scim_enabled = True
+        self.save(
+            update_fields=[
+                'scim_token_hash',
+                'scim_token_last4',
+                'scim_token_created_at',
+                'scim_enabled',
+                'updated_at',
+            ]
+        )
+        return raw_token
+
+    def matches_scim_token(self, raw_token):
+        if not raw_token or not self.scim_token_hash:
+            return False
+        return hashlib.sha256(raw_token.encode('utf-8')).hexdigest() == self.scim_token_hash
+
+    def rotate_api_token(self, scopes=None, label='API token', created_by=None):
+        token_scopes = scopes or ['contracts:read']
+        return OrganizationAPIToken.create_token(
+            organization=self,
+            scopes=token_scopes,
+            label=label,
+            created_by=created_by,
+        )
 
 
 class OrganizationMembership(models.Model):
@@ -36,6 +89,7 @@ class OrganizationMembership(models.Model):
 
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='memberships')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organization_memberships')
+    scim_external_id = models.CharField(max_length=255, blank=True)
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.MEMBER)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -96,11 +150,92 @@ class UserProfile(models.Model):
     bio = models.TextField(blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    mfa_enabled = models.BooleanField(default=False)
+    mfa_verified_at = models.DateTimeField(null=True, blank=True)
+    mfa_enrollment_code_hash = models.CharField(max_length=64, blank=True)
+    mfa_enrollment_code_expires_at = models.DateTimeField(null=True, blank=True)
+    mfa_enrollment_code_sent_at = models.DateTimeField(null=True, blank=True)
+    mfa_recovery_code_hashes = models.JSONField(default=list, blank=True)
+    session_revocation_counter = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f'{self.user.get_full_name() or self.user.username} ({self.get_role_display()})'
+
+    def save(self, *args, **kwargs):
+        if not self.mfa_enabled:
+            self.mfa_verified_at = None
+        super().save(*args, **kwargs)
+
+    def _mfa_code_hash(self, code):
+        material = f'{self.user_id}:{code}:{settings.SECRET_KEY}'
+        return hashlib.sha256(material.encode('utf-8')).hexdigest()
+
+    def issue_mfa_enrollment_code(self, ttl_minutes=10):
+        code = f'{secrets.randbelow(1_000_000):06d}'
+        self.mfa_enrollment_code_hash = self._mfa_code_hash(code)
+        self.mfa_enrollment_code_expires_at = timezone.now() + timedelta(minutes=ttl_minutes)
+        self.mfa_enrollment_code_sent_at = timezone.now()
+        self.save(
+            update_fields=[
+                'mfa_enrollment_code_hash',
+                'mfa_enrollment_code_expires_at',
+                'mfa_enrollment_code_sent_at',
+                'updated_at',
+            ]
+        )
+        return code
+
+    def verify_mfa_enrollment_code(self, code):
+        if not code or not self.mfa_enrollment_code_hash:
+            return False
+        if self.mfa_enrollment_code_expires_at and timezone.now() > self.mfa_enrollment_code_expires_at:
+            return False
+        if self.mfa_enrollment_code_hash != self._mfa_code_hash(str(code).strip()):
+            return False
+        self.mfa_enabled = True
+        self.mfa_verified_at = timezone.now()
+        self.mfa_enrollment_code_hash = ''
+        self.mfa_enrollment_code_expires_at = None
+        self.mfa_enrollment_code_sent_at = None
+        self.save(
+            update_fields=[
+                'mfa_enabled',
+                'mfa_verified_at',
+                'mfa_enrollment_code_hash',
+                'mfa_enrollment_code_expires_at',
+                'mfa_enrollment_code_sent_at',
+                'updated_at',
+            ]
+        )
+        return True
+
+    def issue_mfa_recovery_codes(self, count=8):
+        codes = []
+        code_hashes = []
+        for _ in range(max(1, int(count))):
+            code = f'{secrets.randbelow(1_000_000):06d}'
+            codes.append(code)
+            code_hashes.append(self._mfa_code_hash(code))
+        self.mfa_recovery_code_hashes = code_hashes
+        self.save(update_fields=['mfa_recovery_code_hashes', 'updated_at'])
+        return codes
+
+    def verify_mfa_recovery_code(self, code):
+        if not code or not self.mfa_recovery_code_hashes:
+            return False
+        code_hash = self._mfa_code_hash(str(code).strip())
+        if code_hash not in self.mfa_recovery_code_hashes:
+            return False
+        self.mfa_recovery_code_hashes = [existing_hash for existing_hash in self.mfa_recovery_code_hashes if existing_hash != code_hash]
+        self.session_revocation_counter += 1
+        self.save(update_fields=['mfa_recovery_code_hashes', 'session_revocation_counter', 'updated_at'])
+        return True
+
+    @property
+    def mfa_recovery_code_count(self):
+        return len(self.mfa_recovery_code_hashes or [])
 
     @property
     def can_approve(self):
@@ -109,6 +244,280 @@ class UserProfile(models.Model):
     @property
     def is_attorney(self):
         return self.role in [self.Role.PARTNER, self.Role.SENIOR_ASSOCIATE, self.Role.ASSOCIATE]
+
+
+class OrganizationSCIMGroup(models.Model):
+    ROLE_CHOICES = [
+        ('OWNER', 'Owner'),
+        ('ADMIN', 'Admin'),
+        ('MEMBER', 'Member'),
+    ]
+
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='scim_groups')
+    external_id = models.CharField(max_length=255, blank=True)
+    display_name = models.CharField(max_length=255)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='MEMBER')
+    is_active = models.BooleanField(default=True)
+    members = models.ManyToManyField(
+        OrganizationMembership,
+        through='OrganizationSCIMGroupMembership',
+        related_name='scim_group_memberships',
+        blank=True,
+    )
+    nested_groups = models.ManyToManyField(
+        'self',
+        symmetrical=False,
+        related_name='parent_groups',
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('organization', 'display_name')
+        ordering = ['organization__name', 'display_name']
+
+    def __str__(self):
+        return f'{self.display_name} @ {self.organization.name}'
+
+
+class OrganizationSCIMGroupMembership(models.Model):
+    group = models.ForeignKey(OrganizationSCIMGroup, on_delete=models.CASCADE, related_name='group_memberships')
+    membership = models.ForeignKey(OrganizationMembership, on_delete=models.CASCADE, related_name='group_memberships')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('group', 'membership')
+
+
+class OrganizationAPIToken(models.Model):
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='api_tokens')
+    label = models.CharField(max_length=200, default='API token')
+    token_hash = models.CharField(max_length=64, unique=True)
+    token_last4 = models.CharField(max_length=4, blank=True)
+    scopes = models.JSONField(default=list, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_api_tokens')
+    last_used_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.label} @ {self.organization.name}'
+
+    @staticmethod
+    def _hash_token(raw_token):
+        return hashlib.sha256(raw_token.encode('utf-8')).hexdigest()
+
+    @classmethod
+    def create_token(cls, organization, scopes=None, label='API token', created_by=None):
+        raw_token = secrets.token_urlsafe(32)
+        token = cls.objects.create(
+            organization=organization,
+            label=label,
+            token_hash=cls._hash_token(raw_token),
+            token_last4=raw_token[-4:],
+            scopes=list(scopes or ['contracts:read']),
+            created_by=created_by,
+        )
+        return token, raw_token
+
+    def matches_token(self, raw_token):
+        if not raw_token:
+            return False
+        return self._hash_token(raw_token) == self.token_hash
+
+    def has_scope(self, scope):
+        if not scope:
+            return True
+        normalized = {str(item).strip() for item in (self.scopes or []) if str(item).strip()}
+        return scope in normalized or 'contracts:*' in normalized or 'api:*' in normalized
+
+
+class SalesforceOrganizationConnection(models.Model):
+    organization = models.OneToOneField(Organization, on_delete=models.CASCADE, related_name='salesforce_connection')
+    connected_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='salesforce_connections')
+    external_org_id = models.CharField(max_length=255, blank=True)
+    instance_url = models.URLField(blank=True)
+    access_token = models.TextField(blank=True)
+    refresh_token = models.TextField(blank=True)
+    scope = models.CharField(max_length=255, blank=True)
+    token_expires_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    last_sync_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['organization__name']
+
+    def __str__(self):
+        return f'Salesforce connection @ {self.organization.name}'
+
+    @property
+    def token_expired(self):
+        return bool(self.token_expires_at and timezone.now() >= self.token_expires_at)
+
+
+class OrganizationContractFieldMap(models.Model):
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='contract_field_maps')
+    canonical_field = models.CharField(max_length=64)
+    salesforce_object = models.CharField(max_length=80, default='Opportunity')
+    salesforce_field = models.CharField(max_length=120)
+    is_required = models.BooleanField(default=False)
+    transform_rule = models.CharField(max_length=120, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_contract_field_maps')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='updated_contract_field_maps')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('organization', 'canonical_field')
+        ordering = ['organization__name', 'canonical_field']
+
+    def __str__(self):
+        return f'{self.organization.slug}:{self.canonical_field}->{self.salesforce_object}.{self.salesforce_field}'
+
+
+class SalesforceSyncRun(models.Model):
+    class TriggerSource(models.TextChoices):
+        API = 'API', 'API'
+        COMMAND = 'COMMAND', 'Command'
+        WORKER = 'WORKER', 'Worker'
+
+    class Status(models.TextChoices):
+        RUNNING = 'RUNNING', 'Running'
+        SUCCESS = 'SUCCESS', 'Success'
+        FAILED = 'FAILED', 'Failed'
+
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='salesforce_sync_runs')
+    connection = models.ForeignKey(
+        SalesforceOrganizationConnection,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='sync_runs',
+    )
+    triggered_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='salesforce_sync_runs',
+    )
+    trigger_source = models.CharField(max_length=20, choices=TriggerSource.choices, default=TriggerSource.API)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.RUNNING)
+    dry_run = models.BooleanField(default=False)
+    limit_applied = models.PositiveIntegerField(default=200)
+    source_object = models.CharField(max_length=80, blank=True)
+    fetched_records = models.PositiveIntegerField(default=0)
+    created_count = models.PositiveIntegerField(default=0)
+    updated_count = models.PositiveIntegerField(default=0)
+    skipped_count = models.PositiveIntegerField(default=0)
+    error_count = models.PositiveIntegerField(default=0)
+    error_message = models.TextField(blank=True)
+    summary = models.JSONField(default=dict, blank=True)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-started_at']
+        indexes = [
+            models.Index(fields=['organization', '-started_at'], name='sf_sync_org_time_ix'),
+            models.Index(fields=['organization', 'status'], name='sf_sync_org_status_ix'),
+        ]
+
+    def __str__(self):
+        return f'Salesforce sync {self.id} ({self.organization.slug}) {self.status}'
+
+
+class WebhookEndpoint(models.Model):
+    class Status(models.TextChoices):
+        ACTIVE = 'ACTIVE', 'Active'
+        DISABLED = 'DISABLED', 'Disabled'
+
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='webhook_endpoints')
+    name = models.CharField(max_length=120)
+    url = models.URLField()
+    secret = models.CharField(max_length=255, blank=True)
+    event_types = models.JSONField(default=list, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
+    max_attempts = models.PositiveIntegerField(default=5)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_webhook_endpoints')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['organization__name', 'name']
+
+    def __str__(self):
+        return f'{self.organization.slug}:{self.name}'
+
+
+class WebhookDelivery(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'PENDING', 'Pending'
+        SENT = 'SENT', 'Sent'
+        FAILED = 'FAILED', 'Failed'
+        DEAD_LETTER = 'DEAD_LETTER', 'Dead Letter'
+
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='webhook_deliveries')
+    endpoint = models.ForeignKey(WebhookEndpoint, on_delete=models.CASCADE, related_name='deliveries')
+    event_type = models.CharField(max_length=120)
+    payload = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    attempt_count = models.PositiveIntegerField(default=0)
+    max_attempts = models.PositiveIntegerField(default=5)
+    response_status = models.PositiveIntegerField(null=True, blank=True)
+    response_body = models.TextField(blank=True)
+    error_message = models.TextField(blank=True)
+    next_attempt_at = models.DateTimeField(null=True, blank=True)
+    dead_lettered_at = models.DateTimeField(null=True, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['organization', 'status', 'next_attempt_at'], name='webhook_org_stat_next_ix'),
+            models.Index(fields=['endpoint', 'status'], name='webhook_ep_stat_ix'),
+        ]
+
+    def __str__(self):
+        return f'{self.event_type} -> {self.endpoint_id} ({self.status})'
+
+
+class ExecutiveDashboardPreset(models.Model):
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name='executive_dashboard_presets',
+    )
+    name = models.CharField(max_length=120)
+    filters = models.JSONField(default=dict, blank=True)
+    layout = models.JSONField(default=dict, blank=True)
+    is_shared = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='executive_dashboard_presets',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['organization__name', 'name']
+        unique_together = ('organization', 'name')
+
+    def __str__(self):
+        return f'{self.organization.slug}:{self.name}'
 
 
 class Client(models.Model):
@@ -322,6 +731,10 @@ class Contract(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_contracts')
     approved_at = models.DateTimeField(null=True, blank=True)
+    source_system = models.CharField(max_length=40, blank=True, default='')
+    source_system_id = models.CharField(max_length=255, blank=True, default='')
+    source_system_url = models.URLField(blank=True)
+    source_last_modified_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -340,6 +753,21 @@ class Contract(models.Model):
         if self.end_date:
             return (self.end_date - date.today()).days
         return None
+
+    def can_transition_lifecycle_stage(self, new_stage):
+        from .services.contract_lifecycle import can_transition_lifecycle_stage as can_transition_contract_lifecycle_stage
+
+        return can_transition_contract_lifecycle_stage(self, new_stage)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['organization', 'status', '-updated_at'], name='ctr_org_stat_upd_ix'),
+            models.Index(fields=['organization', '-updated_at'], name='ctr_org_upd_ix'),
+            models.Index(fields=['organization', 'end_date'], name='ctr_org_end_ix'),
+            models.Index(fields=['organization', 'renewal_date'], name='ctr_org_renew_ix'),
+            models.Index(fields=['organization', 'created_at'], name='ctr_org_created_ix'),
+            models.Index(fields=['organization', 'source_system', 'source_system_id'], name='ctr_org_src_ref_ix'),
+        ]
 
 
 class Document(models.Model):
@@ -372,6 +800,7 @@ class Document(models.Model):
     file = models.FileField(upload_to=document_upload_path, blank=True, null=True)
     file_size = models.PositiveIntegerField(null=True, blank=True)
     mime_type = models.CharField(max_length=100, blank=True)
+    file_hash = models.CharField(max_length=64, blank=True)
     version = models.PositiveIntegerField(default=1)
     parent_document = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='versions')
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True, related_name='documents')
@@ -394,13 +823,65 @@ class Document(models.Model):
         if self.file:
             self.file_size = self.file.size
             self.mime_type = getattr(self.file, 'content_type', '')
+            try:
+                hasher = hashlib.sha256()
+                for chunk in self.file.chunks():
+                    hasher.update(chunk)
+                if hasattr(self.file, 'seek'):
+                    self.file.seek(0)
+                self.file_hash = hasher.hexdigest()
+            except Exception:
+                pass
         super().save(*args, **kwargs)
+        if self.file:
+            try:
+                from .services.document_ocr import queue_document_ocr_review
+
+                queue_document_ocr_review(self)
+            except Exception:
+                pass
 
     @property
     def file_extension(self):
         if self.file:
             return os.path.splitext(self.file.name)[1].lower()
         return ''
+
+
+class DocumentOCRReview(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'PENDING', 'Pending'
+        IN_REVIEW = 'IN_REVIEW', 'In Review'
+        VERIFIED = 'VERIFIED', 'Verified'
+        REJECTED = 'REJECTED', 'Rejected'
+
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='document_ocr_reviews')
+    document = models.OneToOneField(Document, on_delete=models.CASCADE, related_name='ocr_review')
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    extracted_text = models.TextField(blank=True)
+    confidence_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    source = models.CharField(max_length=50, blank=True)
+    review_notes = models.TextField(blank=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='ocr_reviews')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'OCR Review for {self.document.title} ({self.get_status_display()})'
+
+    def mark_verified(self, reviewer=None):
+        self.status = self.Status.VERIFIED
+        self.reviewed_by = reviewer
+        self.reviewed_at = timezone.now()
+
+    def mark_rejected(self, reviewer=None):
+        self.status = self.Status.REJECTED
+        self.reviewed_by = reviewer
+        self.reviewed_at = timezone.now()
 
 
 class TimeEntry(models.Model):
@@ -885,8 +1366,19 @@ class WorkflowTemplate(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
     category = models.CharField(max_length=30, choices=Category.choices, default=Category.GENERAL)
+    version = models.PositiveIntegerField(default=1)
+    parent_template = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='derived_versions',
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name', '-version', '-created_at']
 
     def __str__(self):
         return self.name
@@ -914,6 +1406,7 @@ class Workflow(models.Model):
 
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='workflows')
     template = models.ForeignKey(WorkflowTemplate, on_delete=models.SET_NULL, null=True, blank=True)
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
@@ -1130,6 +1623,7 @@ class Counterparty(models.Model):
         NON_PROFIT = 'NON_PROFIT', 'Non-Profit'
         OTHER = 'OTHER', 'Other'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='counterparties')
     name = models.CharField(max_length=300)
     entity_type = models.CharField(max_length=20, choices=EntityType.choices, default=EntityType.CORPORATION)
     jurisdiction = models.CharField(max_length=200, blank=True)
@@ -1152,7 +1646,8 @@ class Counterparty(models.Model):
 
 
 class ClauseCategory(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='clause_categories')
+    name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1160,6 +1655,7 @@ class ClauseCategory(models.Model):
     class Meta:
         verbose_name_plural = 'Clause categories'
         ordering = ['order', 'name']
+        unique_together = [('organization', 'name')]
 
     def __str__(self):
         return self.name
@@ -1173,6 +1669,7 @@ class ClauseTemplate(models.Model):
         GLOBAL = 'GLOBAL', 'Global/Universal'
         CUSTOM = 'CUSTOM', 'Custom'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='clause_templates')
     title = models.CharField(max_length=200)
     category = models.ForeignKey(ClauseCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='clauses')
     content = models.TextField(help_text='Standard clause text')
@@ -1194,7 +1691,55 @@ class ClauseTemplate(models.Model):
         return f'{self.title} (v{self.version})'
 
 
+class ClausePlaybook(models.Model):
+    class JurisdictionScope(models.TextChoices):
+        EU = 'EU', 'European Union'
+        US = 'US', 'United States'
+        UK = 'UK', 'United Kingdom'
+        GLOBAL = 'GLOBAL', 'Global/Universal'
+        CUSTOM = 'CUSTOM', 'Custom'
+
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='clause_playbooks')
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    fallback_position = models.TextField(blank=True)
+    jurisdiction_scope = models.CharField(max_length=10, choices=JurisdictionScope.choices, default=JurisdictionScope.GLOBAL)
+    risk_level = models.CharField(max_length=20, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_clause_playbooks')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class ClauseVariant(models.Model):
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='clause_variants')
+    template = models.ForeignKey(ClauseTemplate, on_delete=models.CASCADE, related_name='variants')
+    playbook = models.ForeignKey(ClausePlaybook, on_delete=models.SET_NULL, null=True, blank=True, related_name='variants')
+    jurisdiction_scope = models.CharField(max_length=10, choices=ClauseTemplate.JurisdictionScope.choices, default=ClauseTemplate.JurisdictionScope.GLOBAL)
+    contract_type = models.CharField(max_length=50, blank=True)
+    risk_level = models.CharField(max_length=20, blank=True)
+    fallback_content = models.TextField(blank=True)
+    playbook_notes = models.TextField(blank=True)
+    priority = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['priority', '-created_at']
+
+    def __str__(self):
+        return f'{self.template.title} variant {self.priority}'
+
+
 class EthicalWall(models.Model):
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='ethical_walls')
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     matter = models.ForeignKey(Matter, on_delete=models.CASCADE, null=True, blank=True, related_name='ethical_walls')
@@ -1220,6 +1765,7 @@ class SignatureRequest(models.Model):
         EXPIRED = 'EXPIRED', 'Expired'
         CANCELLED = 'CANCELLED', 'Cancelled'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='signature_requests')
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='signature_requests')
     document = models.ForeignKey(Document, on_delete=models.SET_NULL, null=True, blank=True, related_name='signature_requests')
     signer_name = models.CharField(max_length=200)
@@ -1244,6 +1790,49 @@ class SignatureRequest(models.Model):
     def __str__(self):
         return f'{self.contract.title} - {self.signer_name} ({self.get_status_display()})'
 
+    def can_transition_to(self, new_status):
+        if not new_status:
+            return False
+        if new_status == self.status:
+            return True
+        allowed_transitions = {
+            self.Status.PENDING: {self.Status.SENT, self.Status.CANCELLED},
+            self.Status.SENT: {
+                self.Status.VIEWED,
+                self.Status.SIGNED,
+                self.Status.DECLINED,
+                self.Status.EXPIRED,
+                self.Status.CANCELLED,
+            },
+            self.Status.VIEWED: {
+                self.Status.SIGNED,
+                self.Status.DECLINED,
+                self.Status.EXPIRED,
+                self.Status.CANCELLED,
+            },
+            self.Status.SIGNED: set(),
+            self.Status.DECLINED: set(),
+            self.Status.EXPIRED: set(),
+            self.Status.CANCELLED: set(),
+        }
+        return new_status in allowed_transitions.get(self.status, set())
+
+    def can_actor_transition(self, actor, new_status):
+        if actor is None or not getattr(actor, 'is_authenticated', False):
+            return False
+        if self.created_by_id and self.created_by_id == actor.id:
+            return True
+        if self.organization_id:
+            from .permissions import can_manage_organization
+            if can_manage_organization(actor, self.organization):
+                return True
+        signer_actions = {self.Status.VIEWED, self.Status.SIGNED, self.Status.DECLINED}
+        signer_email = (self.signer_email or '').strip().lower()
+        actor_email = (actor.email or '').strip().lower()
+        if new_status in signer_actions and signer_email and actor_email:
+            return signer_email == actor_email
+        return False
+
 
 class DataInventoryRecord(models.Model):
     class LawfulBasis(models.TextChoices):
@@ -1254,6 +1843,7 @@ class DataInventoryRecord(models.Model):
         PUBLIC_INTEREST = 'PUBLIC_INTEREST', 'Public Interest'
         LEGITIMATE_INTEREST = 'LEGITIMATE_INTEREST', 'Legitimate Interest'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='data_inventory_records')
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     data_categories = models.TextField(help_text='Categories of personal data processed')
@@ -1297,6 +1887,7 @@ class DSARRequest(models.Model):
         DENIED = 'DENIED', 'Denied'
         EXTENDED = 'EXTENDED', 'Extended'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='dsar_requests')
     reference_number = models.CharField(max_length=50, unique=True)
     request_type = models.CharField(max_length=15, choices=RequestType.choices)
     status = models.CharField(max_length=15, choices=Status.choices, default=Status.RECEIVED)
@@ -1337,6 +1928,7 @@ class DSARRequest(models.Model):
 
 
 class Subprocessor(models.Model):
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='subprocessors')
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     service_type = models.CharField(max_length=200, help_text='e.g. Cloud hosting, Payment processing')
@@ -1372,6 +1964,7 @@ class TransferRecord(models.Model):
         CONSENT = 'CONSENT', 'Explicit Consent'
         DEROGATION = 'DEROGATION', 'Derogation'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='transfer_records')
     title = models.CharField(max_length=200)
     source_country = models.CharField(max_length=100)
     destination_country = models.CharField(max_length=100)
@@ -1403,6 +1996,7 @@ class RetentionPolicy(models.Model):
         COMPLIANCE = 'COMPLIANCE', 'Compliance Records'
         OTHER = 'OTHER', 'Other'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='retention_policies')
     title = models.CharField(max_length=200)
     category = models.CharField(max_length=20, choices=Category.choices)
     description = models.TextField(blank=True)
@@ -1430,6 +2024,7 @@ class LegalHold(models.Model):
         RELEASED = 'RELEASED', 'Released'
         EXPIRED = 'EXPIRED', 'Expired'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='legal_holds')
     title = models.CharField(max_length=200)
     description = models.TextField()
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.ACTIVE)
@@ -1456,6 +2051,7 @@ class ApprovalRule(models.Model):
         RISK_LEVEL = 'RISK_LEVEL', 'Risk Level'
         DATA_TRANSFER = 'DATA_TRANSFER', 'Cross-border Data Transfer'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_rules')
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     trigger_type = models.CharField(max_length=20, choices=TriggerType.choices)
@@ -1489,11 +2085,15 @@ class ApprovalRequest(models.Model):
         REJECTED = 'REJECTED', 'Rejected'
         ESCALATED = 'ESCALATED', 'Escalated'
 
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_requests')
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='approval_requests')
     rule = models.ForeignKey(ApprovalRule, on_delete=models.SET_NULL, null=True, blank=True)
     approval_step = models.CharField(max_length=50)
     status = models.CharField(max_length=15, choices=Status.choices, default=Status.PENDING)
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approval_assignments')
+    delegated_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='delegated_approval_assignments')
+    delegated_at = models.DateTimeField(null=True, blank=True)
+    escalated_at = models.DateTimeField(null=True, blank=True)
     comments = models.TextField(blank=True)
     due_date = models.DateTimeField(null=True, blank=True)
     decided_at = models.DateTimeField(null=True, blank=True)
@@ -1503,88 +2103,61 @@ class ApprovalRequest(models.Model):
     def __str__(self):
         return f'{self.contract.title} - {self.approval_step} ({self.get_status_display()})'
 
+    def can_transition_to(self, new_status):
+        if not new_status:
+            return False
+        if new_status == self.status:
+            return True
+        allowed_transitions = {
+            self.Status.PENDING: {self.Status.APPROVED, self.Status.REJECTED, self.Status.ESCALATED},
+            self.Status.ESCALATED: {self.Status.APPROVED, self.Status.REJECTED},
+            self.Status.APPROVED: set(),
+            self.Status.REJECTED: set(),
+        }
+        return new_status in allowed_transitions.get(self.status, set())
 
-# Temporary compatibility aliases for legacy care-oriented views/forms.
-# These keep imports and URL checks operational while the care refactor is stabilized.
-class _CareScope(models.TextChoices):
-    GEMEENTE = 'GEMEENTE', 'Gemeente'
-    REGIO = 'REGIO', 'Regio'
-
-
-class _CareStatus(models.TextChoices):
-    ACTIVE = 'ACTIVE', 'Active'
-    ON_HOLD = 'ON_HOLD', 'On hold'
-
-
-class _CaseAssessmentStatus(models.TextChoices):
-    DRAFT = 'DRAFT', 'Draft'
-    UNDER_REVIEW = 'UNDER_REVIEW', 'Under review'
-    NEEDS_INFO = 'NEEDS_INFO', 'Needs info'
-    APPROVED_FOR_MATCHING = 'APPROVED_FOR_MATCHING', 'Approved for matching'
-
-
-class _CareCasePhase(models.TextChoices):
-    INTAKE = 'INTAKE', 'Intake'
-    BEOORDELING = 'BEOORDELING', 'Beoordeling'
-    MATCHING = 'MATCHING', 'Matching'
-    PLAATSING = 'PLAATSING', 'Plaatsing'
-    ACTIEF = 'ACTIEF', 'Actief'
-    AFGEROND = 'AFGEROND', 'Afgerond'
+    def can_actor_transition(self, actor):
+        if actor is None or not getattr(actor, 'is_authenticated', False):
+            return False
+        if self.assigned_to_id and self.assigned_to_id == actor.id:
+            return True
+        if self.organization_id:
+            from .permissions import can_manage_organization
+            return can_manage_organization(actor, self.organization)
+        return False
 
 
-class _PlacementStatus(models.TextChoices):
-    IN_REVIEW = 'IN_REVIEW', 'In review'
-    APPROVED = 'APPROVED', 'Approved'
-    REJECTED = 'REJECTED', 'Rejected'
-    NEEDS_INFO = 'NEEDS_INFO', 'Needs info'
+class BackgroundJob(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'PENDING', 'Pending'
+        RUNNING = 'RUNNING', 'Running'
+        COMPLETED = 'COMPLETED', 'Completed'
+        FAILED = 'FAILED', 'Failed'
+
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True, related_name='background_jobs')
+    job_type = models.CharField(max_length=80)
+    status = models.CharField(max_length=15, choices=Status.choices, default=Status.PENDING)
+    payload = models.JSONField(default=dict, blank=True)
+    result = models.JSONField(default=dict, blank=True)
+    error_message = models.TextField(blank=True)
+    attempt_count = models.PositiveIntegerField(default=0)
+    max_attempts = models.PositiveIntegerField(default=3)
+    dead_lettered_at = models.DateTimeField(null=True, blank=True)
+    scheduled_at = models.DateTimeField(null=True, blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_background_jobs')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.job_type} ({self.get_status_display()})'
 
 
-class _CaseIntakeStatus(models.TextChoices):
-    INTAKE = 'INTAKE', 'Intake'
-    ASSESSMENT = 'ASSESSMENT', 'Assessment'
-    MATCHING = 'MATCHING', 'Matching'
-    DECISION = 'DECISION', 'Decision'
-    COMPLETED = 'COMPLETED', 'Completed'
-
-
-class _DeadlinePriorityCompat(models.TextChoices):
-    LOW = 'LOW', 'Low'
-    MEDIUM = 'MEDIUM', 'Medium'
-    HIGH = 'HIGH', 'High'
-    URGENT = 'CRITICAL', 'Urgent'
-
-
-class _DeadlineTaskTypeCompat(models.TextChoices):
-    INTAKE_COMPLETE = 'INTAKE_COMPLETE', 'Intake complete'
-    ASSESSMENT_PERFORM = 'ASSESSMENT_PERFORM', 'Assessment perform'
-    SELECT_MATCH = 'SELECT_MATCH', 'Select match'
-    CONFIRM_PLACEMENT = 'CONFIRM_PLACEMENT', 'Confirm placement'
-
-
-class _DeadlineGenerationSourceCompat(models.TextChoices):
-    INTAKE = 'INTAKE', 'Intake'
-    ASSESSMENT = 'ASSESSMENT', 'Assessment'
-    MATCHING = 'MATCHING', 'Matching'
-    PLACEMENT = 'PLACEMENT', 'Placement'
-
-
-Matter.Scope = _CareScope
-Matter.Status = _CareStatus
-Contract.CasePhase = _CareCasePhase
-Deadline.Priority = _DeadlinePriorityCompat
-Deadline.TaskType = _DeadlineTaskTypeCompat
-Deadline.GenerationSource = _DeadlineGenerationSourceCompat
-CareConfiguration = Matter
-MunicipalityConfiguration = Matter
-RegionalConfiguration = Matter
-
-CareCase = Contract
-CaseIntakeProcess = DueDiligenceProcess
-CaseIntakeProcess.ProcessStatus = _CaseIntakeStatus
-PlacementRequest = DueDiligenceProcess
-PlacementRequest.Status = _PlacementStatus
-ProviderResponseRequest = DueDiligenceTask
-ProviderProfile = Client
-
-DueDiligenceProcess.AssessmentStatus = _CaseAssessmentStatus
-CaseAssessment = DueDiligenceProcess
+# Alias-first structural migration layer.
+# These symbols let care-native code paths move toward case-oriented names
+# without changing database tables, migration history, or legacy imports yet.
+Case = Contract
+CaseMatter = Matter
+CaseSignal = LegalTask
+CaseRiskSignal = RiskLog
+CaseApproval = ApprovalRequest

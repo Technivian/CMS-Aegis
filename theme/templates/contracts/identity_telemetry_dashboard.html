@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Identity Telemetry - CMS Aegis{% endblock %}
+{% block content %}
+<div class="max-w-6xl">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Identity Telemetry</h1>
+            <p class="text-sm text-gray-500">SAML, SCIM, MFA, and recovery-code activity for {{ organization.name }}</p>
+        </div>
+        <a href="{% url 'settings_hub' %}" class="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">Back to settings</a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+        {% for metric in telemetry_events %}
+        <div class="rounded-xl border border-gray-200 bg-white p-5" data-metric="{{ metric.key }}">
+            <p class="text-xs font-semibold uppercase tracking-widest text-gray-500">{{ metric.label }}</p>
+            <p class="mt-2 text-3xl font-bold text-gray-900">{{ metric.value }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="rounded-xl border border-gray-200 bg-white p-5 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="font-semibold text-gray-900">Recovery code inventory</h2>
+            <span class="text-sm text-gray-500">Counts are per active member profile</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="text-left px-4 py-2 text-xs font-medium uppercase text-gray-500">User</th>
+                        <th class="text-left px-4 py-2 text-xs font-medium uppercase text-gray-500">Recovery codes</th>
+                        <th class="text-left px-4 py-2 text-xs font-medium uppercase text-gray-500">MFA enabled</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for profile in recovery_code_counts %}
+                    <tr>
+                        <td class="px-4 py-3 text-gray-900">{{ profile.user.get_full_name|default:profile.user.username }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ profile.mfa_recovery_code_count }}</td>
+                        <td class="px-4 py-3 text-gray-700">{% if profile.mfa_enabled %}Yes{% else %}No{% endif %}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="px-4 py-6 text-center text-gray-500">No active members found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 bg-white p-5">
+        <h2 class="font-semibold text-gray-900 mb-4">Recent identity events</h2>
+        <div class="space-y-3">
+            {% for log in recent_logs %}
+            <div class="rounded-lg border border-gray-100 p-4">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <p class="font-medium text-gray-900">{{ log.changes.event|default:log.action }}</p>
+                        <p class="text-xs text-gray-500">{{ log.timestamp }}</p>
+                    </div>
+                    <span class="text-xs text-gray-500">{{ log.model_name }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-sm text-gray-500">No recent identity events.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

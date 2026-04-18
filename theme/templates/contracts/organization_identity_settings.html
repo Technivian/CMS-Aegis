@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% block title %}Identity Provider - CMS Aegis{% endblock %}
+
+{% block content %}
+<div style="max-width: 980px; margin: 0 auto;">
+    <div style="margin-bottom: 24px;">
+        <h1 style="font-size: 28px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Identity Provider</h1>
+        <p style="font-size: 14px; color: var(--text-secondary);">Configure enterprise SAML metadata and SCIM provisioning for this organization.</p>
+    </div>
+
+    <div style="display: grid; gap: 16px;">
+        <div style="padding: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface);">
+            <form method="post" style="display: grid; gap: 14px;">
+                {% csrf_token %}
+                <div style="display: grid; gap: 6px;">
+                    <label style="font-size: 14px; font-weight: 600; color: var(--text-primary);">Identity provider</label>
+                    {{ form.identity_provider }}
+                </div>
+
+                <div style="display: grid; gap: 6px;">
+                    <label style="font-size: 14px; font-weight: 600; color: var(--text-primary);">SAML entity ID</label>
+                    {{ form.saml_entity_id }}
+                </div>
+
+                <div style="display: grid; gap: 6px;">
+                    <label style="font-size: 14px; font-weight: 600; color: var(--text-primary);">SAML SSO URL</label>
+                    {{ form.saml_sso_url }}
+                </div>
+
+                <div style="display: grid; gap: 6px;">
+                    <label style="font-size: 14px; font-weight: 600; color: var(--text-primary);">SAML SLO URL</label>
+                    {{ form.saml_slo_url }}
+                </div>
+
+                <div style="display: grid; gap: 6px;">
+                    <label style="font-size: 14px; font-weight: 600; color: var(--text-primary);">SAML metadata URL</label>
+                    {{ form.saml_metadata_url }}
+                </div>
+
+                <div style="display: grid; gap: 6px;">
+                    <label style="font-size: 14px; font-weight: 600; color: var(--text-primary);">SAML x509 certificate</label>
+                    {{ form.saml_x509_certificate }}
+                </div>
+
+                <label style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-muted, rgba(0,0,0,0.02));">
+                    {{ form.scim_enabled }}
+                    <span>
+                        <span style="display: block; font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Enable SCIM provisioning</span>
+                        <span style="display: block; font-size: 13px; color: var(--text-secondary);">Bearer-token SCIM users API is enabled when checked.</span>
+                    </span>
+                </label>
+
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="submit" class="btn-primary">Save identity settings</button>
+                </div>
+            </form>
+        </div>
+
+        <div style="padding: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface);">
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">SAML endpoints</h2>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">Use these URLs to configure your identity provider.</p>
+            <div style="display: grid; gap: 12px;">
+                <div>
+                    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 4px;">Metadata</div>
+                    <code style="display: block; overflow-x: auto; padding: 12px; border-radius: 10px; background: var(--surface-muted, rgba(0,0,0,0.02)); color: var(--text-primary); font-size: 12px;">{{ saml_metadata_url }}</code>
+                </div>
+                <div>
+                    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 4px;">Login</div>
+                    <code style="display: block; overflow-x: auto; padding: 12px; border-radius: 10px; background: var(--surface-muted, rgba(0,0,0,0.02)); color: var(--text-primary); font-size: 12px;">{{ saml_login_url }}</code>
+                </div>
+                <div>
+                    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 4px;">Logout</div>
+                    <code style="display: block; overflow-x: auto; padding: 12px; border-radius: 10px; background: var(--surface-muted, rgba(0,0,0,0.02)); color: var(--text-primary); font-size: 12px;">{{ saml_slo_url }}</code>
+                </div>
+                <div>
+                    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 4px;">ACS</div>
+                    <code style="display: block; overflow-x: auto; padding: 12px; border-radius: 10px; background: var(--surface-muted, rgba(0,0,0,0.02)); color: var(--text-primary); font-size: 12px;">{{ saml_acs_url }}</code>
+                </div>
+            </div>
+        </div>
+
+        <div style="padding: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface);">
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">SCIM provisioning</h2>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">Rotate the SCIM token and use it with the `/scim/v2/Users` endpoint.</p>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                <div style="font-size: 13px; color: var(--text-secondary);">
+                    Enabled: <strong style="color: var(--text-primary);">{{ organization.scim_enabled|yesno:"Yes,No" }}</strong>
+                    {% if organization.scim_token_last4 %} · Token ending in <strong style="color: var(--text-primary);">{{ organization.scim_token_last4 }}</strong>{% endif %}
+                </div>
+                <form method="post" onsubmit="return confirm('Rotate the SCIM token? This will invalidate the existing token.');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="rotate_scim_token">
+                    <button type="submit" class="btn-secondary">Rotate SCIM token</button>
+                </form>
+            </div>
+                <div style="margin-top: 14px;">
+                    <a href="{% url 'contracts:identity_telemetry_dashboard' %}" class="btn-ghost">View identity telemetry</a>
+                </div>
+
+            {% if scim_token_preview %}
+            <div style="margin-top: 16px; padding: 14px; border-radius: 12px; border: 1px solid rgba(37,99,235,0.18); background: rgba(37,99,235,0.06);">
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">Copy this token now. It will not be shown again.</p>
+                <code style="display: block; overflow-x: auto; padding: 12px; border-radius: 10px; background: var(--surface); color: var(--text-primary); font-size: 12px;">{{ scim_token_preview }}</code>
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="padding: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface);">
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">API access</h2>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">Versioned REST access uses scoped bearer tokens. Read access defaults to `contracts:read`.</p>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                <div style="font-size: 13px; color: var(--text-secondary);">
+                    <div>Versioned endpoint: <strong style="color: var(--text-primary);">{{ api_v1_contracts_url }}</strong></div>
+                    {% if organization.api_tokens.exists %}
+                        <div style="margin-top: 4px;">Latest token: <strong style="color: var(--text-primary);">{{ organization.api_tokens.first.token_last4 }}</strong></div>
+                    {% endif %}
+                </div>
+                <form method="post" onsubmit="return confirm('Rotate the API token? This will invalidate the existing token value.');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="rotate_api_token">
+                    <button type="submit" class="btn-secondary">Rotate API token</button>
+                </form>
+            </div>
+            {% if api_token_preview %}
+            <div style="margin-top: 16px; padding: 14px; border-radius: 12px; border: 1px solid rgba(37,99,235,0.18); background: rgba(37,99,235,0.06);">
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">Copy this API token now. It will not be shown again.</p>
+                <code style="display: block; overflow-x: auto; padding: 12px; border-radius: 10px; background: var(--surface); color: var(--text-primary); font-size: 12px;">{{ api_token_preview.token }}</code>
+                <p style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">Scopes: {{ api_token_preview.scopes|join:", " }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="padding: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface);">
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Salesforce sync</h2>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">Connection state and recent sync run outcomes for CRM reconciliation.</p>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+                Connected:
+                <strong style="color: var(--text-primary);">
+                    {% if salesforce_connection and salesforce_connection.is_active %}Yes{% else %}No{% endif %}
+                </strong>
+                {% if salesforce_connection and salesforce_connection.last_sync_at %}
+                    · Last sync: <strong style="color: var(--text-primary);">{{ salesforce_connection.last_sync_at|date:"Y-m-d H:i" }}</strong>
+                {% endif %}
+            </div>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <thead>
+                        <tr style="text-align: left; border-bottom: 1px solid var(--border); color: var(--text-secondary);">
+                            <th style="padding: 8px 6px;">Started</th>
+                            <th style="padding: 8px 6px;">Status</th>
+                            <th style="padding: 8px 6px;">Source</th>
+                            <th style="padding: 8px 6px;">Fetched</th>
+                            <th style="padding: 8px 6px;">Created</th>
+                            <th style="padding: 8px 6px;">Updated</th>
+                            <th style="padding: 8px 6px;">Errors</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for run in salesforce_sync_runs %}
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 8px 6px; color: var(--text-primary);">{{ run.started_at|date:"Y-m-d H:i" }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-primary);">{{ run.status }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-secondary);">{{ run.trigger_source }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-secondary);">{{ run.fetched_records }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-secondary);">{{ run.created_count }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-secondary);">{{ run.updated_count }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-secondary);">{{ run.error_count }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" style="padding: 10px 6px; color: var(--text-secondary);">No Salesforce sync runs yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="padding: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface);">
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Webhook deliveries</h2>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">Diagnostics for outbound integration events, including retries and dead-letter items.</p>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <thead>
+                        <tr style="text-align: left; border-bottom: 1px solid var(--border); color: var(--text-secondary);">
+                            <th style="padding: 8px 6px;">Created</th>
+                            <th style="padding: 8px 6px;">Endpoint</th>
+                            <th style="padding: 8px 6px;">Event</th>
+                            <th style="padding: 8px 6px;">Status</th>
+                            <th style="padding: 8px 6px;">Attempts</th>
+                            <th style="padding: 8px 6px;">Response</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for delivery in webhook_deliveries %}
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 8px 6px; color: var(--text-primary);">{{ delivery.created_at|date:"Y-m-d H:i" }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-secondary);">{{ delivery.endpoint.name }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-secondary);">{{ delivery.event_type }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-primary);">{{ delivery.status }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-secondary);">{{ delivery.attempt_count }}/{{ delivery.max_attempts }}</td>
+                            <td style="padding: 8px 6px; color: var(--text-secondary);">{{ delivery.response_status|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="padding: 10px 6px; color: var(--text-secondary);">No webhook deliveries yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

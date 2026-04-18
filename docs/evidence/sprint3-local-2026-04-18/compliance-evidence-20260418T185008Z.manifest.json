@@ -1,0 +1,35 @@
+{
+  "files": [
+    {
+      "archive_path": "evidence/0_postgres-cutover-evidence.json",
+      "original_path": "/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/evidence/sprint3-local-2026-04-18/postgres-cutover-evidence.json",
+      "sha256": "8130b44ad581facf9630e039df06afdc090111fde652ba1f182b40bb7be35d92",
+      "size": 407
+    },
+    {
+      "archive_path": "evidence/1_release-gate-report.json",
+      "original_path": "/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/evidence/sprint3-local-2026-04-18/release-gate-report.json",
+      "sha256": "d5a793f6b0334dfbe590f0a4680b893250a4995fcef793a1a7e1085fb54bc1c8",
+      "size": 1391
+    },
+    {
+      "archive_path": "evidence/2_sprint3-integration-report.json",
+      "original_path": "/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/evidence/sprint3-local-2026-04-18/sprint3-integration-report.json",
+      "sha256": "2c30b046fe3add6c948512c9a78b1f81bce97cb998bdd65407dbccf546c555d1",
+      "size": 390
+    },
+    {
+      "archive_path": "evidence/3_executive-analytics-evidence.json",
+      "original_path": "/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/evidence/sprint3-local-2026-04-18/executive-analytics-evidence.json",
+      "sha256": "b442b510387e7901cf20e160ca4b46e8a26e695f7759dfc9d150a277c9b69a8e",
+      "size": 12207
+    },
+    {
+      "archive_path": "evidence/4_retention-audit-actions.json",
+      "original_path": "/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/evidence/sprint3-local-2026-04-18/retention-audit-actions.json",
+      "sha256": "5538f9ea738a70fe817d771fbf194b1ab64546ea8d75ca90868648aab608e306",
+      "size": 137
+    }
+  ],
+  "generated_at": "2026-04-18T18:50:08.445935+00:00"
+}

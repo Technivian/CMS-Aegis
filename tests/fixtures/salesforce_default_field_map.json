@@ -1,0 +1,22 @@
+[
+  {"canonical_field":"contract_title","salesforce_object":"Opportunity","salesforce_field":"Name","is_required":true},
+  {"canonical_field":"counterparty_name","salesforce_object":"Opportunity","salesforce_field":"Account.Name","is_required":true},
+  {"canonical_field":"contract_type","salesforce_object":"Opportunity","salesforce_field":"Type","is_required":true},
+  {"canonical_field":"contract_value","salesforce_object":"Opportunity","salesforce_field":"Amount","is_required":true},
+  {"canonical_field":"currency","salesforce_object":"Opportunity","salesforce_field":"CurrencyIsoCode","is_required":true},
+  {"canonical_field":"effective_date","salesforce_object":"Contract__c","salesforce_field":"Effective_Date__c","is_required":false},
+  {"canonical_field":"end_date","salesforce_object":"Contract__c","salesforce_field":"End_Date__c","is_required":false},
+  {"canonical_field":"renewal_date","salesforce_object":"Contract__c","salesforce_field":"Renewal_Date__c","is_required":false},
+  {"canonical_field":"governing_law","salesforce_object":"Contract__c","salesforce_field":"Governing_Law__c","is_required":false},
+  {"canonical_field":"jurisdiction","salesforce_object":"Contract__c","salesforce_field":"Jurisdiction__c","is_required":false},
+  {"canonical_field":"owner_email","salesforce_object":"Opportunity","salesforce_field":"Owner.Email","is_required":true},
+  {"canonical_field":"owner_name","salesforce_object":"Opportunity","salesforce_field":"Owner.Name","is_required":false},
+  {"canonical_field":"approver_email","salesforce_object":"Contract__c","salesforce_field":"Approver_Email__c","is_required":false},
+  {"canonical_field":"risk_level","salesforce_object":"Contract__c","salesforce_field":"Risk_Level__c","is_required":false},
+  {"canonical_field":"status","salesforce_object":"Contract__c","salesforce_field":"Status__c","is_required":true},
+  {"canonical_field":"workflow_template","salesforce_object":"Contract__c","salesforce_field":"Workflow_Template__c","is_required":false},
+  {"canonical_field":"source_system_id","salesforce_object":"Opportunity","salesforce_field":"Id","is_required":true},
+  {"canonical_field":"source_system_url","salesforce_object":"Opportunity","salesforce_field":"Record_URL__c","is_required":false},
+  {"canonical_field":"created_at","salesforce_object":"Opportunity","salesforce_field":"CreatedDate","is_required":false},
+  {"canonical_field":"updated_at","salesforce_object":"Opportunity","salesforce_field":"LastModifiedDate","is_required":false}
+]

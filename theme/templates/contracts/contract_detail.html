@@ -4,7 +4,7 @@
 <div class="flex items-center justify-between mb-6">
     <div>
         <h1 class="text-2xl font-bold text-gray-900">{{ contract.title }}</h1>
-        <p class="text-sm text-gray-500">{{ contract.get_contract_type_display }} &middot; {{ contract.get_status_display }} {% if contract.client %}&middot; {{ contract.client.name }}{% endif %}</p>
+        <p class="text-sm text-gray-500">Case Flow &middot; {{ contract.get_contract_type_display }} &middot; {{ contract.get_status_display }} {% if contract.client %}&middot; {{ contract.client.name }}{% endif %}</p>
     </div>
     <div class="flex gap-2">
         <a href="{% url 'contracts:contract_update' contract.pk %}" class="px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200">Edit</a>
@@ -13,7 +13,7 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
     <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Contract Details</h3>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Case Details<span class="sr-only">Contract Details</span></h3>
         <div class="space-y-2 text-sm">
             <div><span class="text-gray-500">Status:</span> <span class="px-2 py-0.5 rounded-full text-xs {% if contract.status == 'ACTIVE' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-600{% endif %}">{{ contract.get_status_display }}</span></div>
             <div><span class="text-gray-500">Counterparty:</span> {{ contract.counterparty|default:"—" }}</div>
@@ -25,16 +25,16 @@
         </div>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Relationships</h3>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Case Links</h3>
         <div class="space-y-2 text-sm">
             {% if contract.client %}<div><span class="text-gray-500">Client:</span> <a href="{% url 'contracts:client_detail' contract.client.pk %}" class="text-blue-600">{{ contract.client.name }}</a></div>{% endif %}
-            {% if contract.matter %}<div><span class="text-gray-500">Matter:</span> <a href="{% url 'contracts:matter_detail' contract.matter.pk %}" class="text-blue-600">{{ contract.matter.title }}</a></div>{% endif %}
+            {% if related_case_matter %}<div><span class="text-gray-500">Case matter:</span> <a href="{% url 'contracts:matter_detail' related_case_matter.pk %}" class="text-blue-600">{{ related_case_matter.title }}</a></div>{% endif %}
             <div><span class="text-gray-500">Created by:</span> {{ contract.created_by.get_full_name|default:"System" }}</div>
             <div><span class="text-gray-500">Created:</span> {{ contract.created_at|date:"M d, Y" }}</div>
         </div>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Quick Actions</h3>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Case Actions</h3>
         <div class="space-y-2">
             <a href="{% url 'contracts:document_create' %}" class="block text-sm text-blue-600 hover:text-blue-800">Attach Document</a>
             <a href="{% url 'contracts:deadline_create' %}" class="block text-sm text-blue-600 hover:text-blue-800">Add Deadline</a>
@@ -48,7 +48,7 @@
     <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Internal AI Assistant</h3>
     <p class="text-sm text-gray-600 mb-3">Closed-server assistant. Data stays in your tenant context and is processed by internal rules.</p>
     <div class="flex flex-col gap-3">
-        <textarea id="ai-assistant-prompt" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" rows="3" placeholder="Ask for risk, renewal, and action insights for this contract..."></textarea>
+        <textarea id="ai-assistant-prompt" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" rows="3" placeholder="Ask for risk, renewal, and action insights for this case..."></textarea>
         <div class="flex items-center gap-3">
             <button id="ai-assistant-submit" type="button" class="px-3 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800">Analyze</button>
             <span id="ai-assistant-status" class="text-xs text-gray-500"></span>

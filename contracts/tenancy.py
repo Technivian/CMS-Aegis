@@ -5,6 +5,7 @@ from django.db.models import Model, QuerySet
 from django.utils.text import slugify
 
 from .models import Organization, OrganizationMembership
+from .services.starter_content import ensure_org_starter_content
 
 User = get_user_model()
 
@@ -37,6 +38,7 @@ def ensure_user_organization(user: Optional[User]) -> Optional[Organization]:
         role=OrganizationMembership.Role.OWNER,
         is_active=True,
     )
+    ensure_org_starter_content(organization)
     return organization
 
 
@@ -66,7 +68,7 @@ def get_user_organization(user: Optional[User]) -> Optional[Organization]:
 
 def scope_queryset_for_organization(queryset: QuerySet, organization: Optional[Organization]) -> QuerySet:
     if organization is None:
-        return queryset
+        return queryset.none()
 
     model_cls: type[Model] = queryset.model
     field_names = {f.name for f in model_cls._meta.get_fields()}

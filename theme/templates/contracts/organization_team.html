@@ -43,10 +43,16 @@
                     <td class="px-5 py-3 text-sm text-gray-500">{{ membership.created_at|date:"M j, Y" }}</td>
                     <td class="px-5 py-3 text-right">
                         {% if membership.user_id != current_user_id %}
-                        <form method="post" action="{% url 'contracts:deactivate_organization_member' membership.id %}" class="inline">
-                            {% csrf_token %}
-                            <button type="submit" class="text-xs px-2 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100">Deactivate</button>
-                        </form>
+                        <div class="flex items-center justify-end gap-2">
+                            <form method="post" action="{% url 'contracts:revoke_member_sessions' membership.id %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="text-xs px-2 py-1 bg-amber-50 text-amber-700 rounded hover:bg-amber-100">Revoke Sessions</button>
+                            </form>
+                            <form method="post" action="{% url 'contracts:deactivate_organization_member' membership.id %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="text-xs px-2 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100">Deactivate</button>
+                            </form>
+                        </div>
                         {% else %}
                         <span class="text-xs text-gray-400">You</span>
                         {% endif %}

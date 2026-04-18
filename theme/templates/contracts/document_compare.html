@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Compare Document Versions - CMS Aegis{% endblock %}
+{% block content %}
+<div class="max-w-6xl">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Document Compare</h1>
+            <p class="text-sm text-gray-500">{{ document.title }} v{{ document.version }} vs v{{ other_document.version }}</p>
+        </div>
+        <a href="{% url 'contracts:document_detail' document.pk %}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50">Back to document</a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 class="font-semibold text-gray-900 mb-4">Version {{ document.version }}</h2>
+            <div class="space-y-2 text-sm text-gray-600">
+                <div><span class="text-gray-500">Title:</span> {{ document.title }}</div>
+                <div><span class="text-gray-500">Type:</span> {{ document.get_document_type_display }}</div>
+                <div><span class="text-gray-500">Status:</span> {{ document.get_status_display }}</div>
+                <div><span class="text-gray-500">File hash:</span> {{ document.file_hash|default:"—" }}</div>
+                <div class="pt-2">
+                    <div class="font-medium text-gray-900 mb-1">Description</div>
+                    <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs whitespace-pre-wrap overflow-auto">{{ document.description|default:"—" }}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 class="font-semibold text-gray-900 mb-4">Version {{ other_document.version }}</h2>
+            <div class="space-y-2 text-sm text-gray-600">
+                <div><span class="text-gray-500">Title:</span> {{ other_document.title }}</div>
+                <div><span class="text-gray-500">Type:</span> {{ other_document.get_document_type_display }}</div>
+                <div><span class="text-gray-500">Status:</span> {{ other_document.get_status_display }}</div>
+                <div><span class="text-gray-500">File hash:</span> {{ other_document.file_hash|default:"—" }}</div>
+                <div class="pt-2">
+                    <div class="font-medium text-gray-900 mb-1">Description</div>
+                    <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs whitespace-pre-wrap overflow-auto">{{ other_document.description|default:"—" }}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 mt-6 p-5">
+        <h2 class="font-semibold text-gray-900 mb-4">Field Differences</h2>
+        {% if comparison.field_diffs %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase">Field</th>
+                        <th class="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase">Current</th>
+                        <th class="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase">Compared</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for field_name, left_value, right_value in comparison.field_diffs %}
+                    <tr>
+                        <td class="px-4 py-3 font-medium text-gray-900">{{ field_name }}</td>
+                        <td class="px-4 py-3 text-gray-700 whitespace-pre-wrap">{{ left_value|default:"—" }}</td>
+                        <td class="px-4 py-3 text-gray-700 whitespace-pre-wrap">{{ right_value|default:"—" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-sm text-gray-500">No differences detected.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

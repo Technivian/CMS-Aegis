@@ -56,11 +56,6 @@ class Command(BaseCommand):
         )
 
         integrations_ok = applied_events.exists() and terminal_signatures.exists()
-        ci_fallback = False
-        if not integrations_ok and organization is None and not signature_ids:
-            # CI fallback: no live integration data is expected in ephemeral environments.
-            integrations_ok = True
-            ci_fallback = True
         payload = {
             'captured_at': timezone.now().isoformat(),
             'window_days': days,
@@ -84,7 +79,6 @@ class Command(BaseCommand):
                     else None
                 ),
                 'terminal_signature_count': terminal_signatures.count(),
-                'ci_fallback_applied': ci_fallback,
             },
             'status': 'GO' if integrations_ok else 'NO-GO',
         }

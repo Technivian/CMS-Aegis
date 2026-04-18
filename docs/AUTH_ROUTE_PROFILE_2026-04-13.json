@@ -1,0 +1,127 @@
+{
+  "iterations_per_route": 10,
+  "authenticated": true,
+  "username": "perf-probe-user",
+  "routes": {
+    "/dashboard/": {
+      "count": 10,
+      "p50_ms": 33.37,
+      "p95_ms": 37.87,
+      "max_ms": 117.67,
+      "mean_ms": 41.98,
+      "median_ms": 33.18,
+      "status_codes": [
+        200
+      ],
+      "success_rate": 1.0
+    },
+    "/contracts/": {
+      "count": 10,
+      "p50_ms": 22.63,
+      "p95_ms": 36.07,
+      "max_ms": 47.3,
+      "mean_ms": 26.32,
+      "median_ms": 22.55,
+      "status_codes": [
+        200
+      ],
+      "success_rate": 1.0
+    },
+    "/contracts/api/contracts/": {
+      "count": 10,
+      "p50_ms": 14.51,
+      "p95_ms": 15.48,
+      "max_ms": 19.53,
+      "mean_ms": 15.1,
+      "median_ms": 14.49,
+      "status_codes": [
+        200
+      ],
+      "success_rate": 1.0
+    },
+    "/contracts/repository/": {
+      "count": 10,
+      "p50_ms": 20.62,
+      "p95_ms": 21.49,
+      "max_ms": 22.34,
+      "mean_ms": 20.73,
+      "median_ms": 20.53,
+      "status_codes": [
+        200
+      ],
+      "success_rate": 1.0
+    },
+    "/contracts/workflows/": {
+      "count": 10,
+      "p50_ms": 18.82,
+      "p95_ms": 20.73,
+      "max_ms": 23.67,
+      "mean_ms": 19.39,
+      "median_ms": 18.7,
+      "status_codes": [
+        200
+      ],
+      "success_rate": 1.0
+    },
+    "/contracts/approvals/": {
+      "count": 10,
+      "p50_ms": 18.19,
+      "p95_ms": 19.43,
+      "max_ms": 61.48,
+      "mean_ms": 22.61,
+      "median_ms": 18.18,
+      "status_codes": [
+        200
+      ],
+      "success_rate": 1.0
+    },
+    "/contracts/signatures/": {
+      "count": 10,
+      "p50_ms": 23.71,
+      "p95_ms": 33.61,
+      "max_ms": 44.0,
+      "mean_ms": 26.14,
+      "median_ms": 22.96,
+      "status_codes": [
+        200
+      ],
+      "success_rate": 1.0
+    },
+    "/contracts/privacy/": {
+      "count": 10,
+      "p50_ms": 23.28,
+      "p95_ms": 31.79,
+      "max_ms": 35.7,
+      "mean_ms": 25.3,
+      "median_ms": 22.97,
+      "status_codes": [
+        200
+      ],
+      "success_rate": 1.0
+    },
+    "/contracts/reports/": {
+      "count": 10,
+      "p50_ms": 23.67,
+      "p95_ms": 35.91,
+      "max_ms": 67.89,
+      "mean_ms": 29.06,
+      "median_ms": 23.64,
+      "status_codes": [
+        200
+      ],
+      "success_rate": 1.0
+    },
+    "/contracts/notifications/": {
+      "count": 10,
+      "p50_ms": 16.88,
+      "p95_ms": 17.37,
+      "max_ms": 18.85,
+      "mean_ms": 16.84,
+      "median_ms": 16.82,
+      "status_codes": [
+        200
+      ],
+      "success_rate": 1.0
+    }
+  }
+}
