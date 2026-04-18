@@ -1,0 +1,40 @@
+{
+  "captured_at": "2026-04-18T18:48:34.957413+00:00",
+  "gates": {
+    "database": {
+      "status": "pass",
+      "unapplied_migrations": 0
+    },
+    "integrations": {
+      "latest_successful_salesforce_sync_at": null,
+      "reason": null,
+      "status": "warn",
+      "webhook_dead_letter_count": 0
+    },
+    "security": {
+      "npm_client_audit": {
+        "command": "npm --prefix client audit --audit-level=high",
+        "exit_code": 0,
+        "status": "pass",
+        "stderr": "",
+        "stdout": "found 0 vulnerabilities\n"
+      },
+      "npm_theme_audit": {
+        "command": "npm --prefix theme/static_src audit --audit-level=high",
+        "exit_code": 0,
+        "status": "pass",
+        "stderr": "",
+        "stdout": "found 0 vulnerabilities\n"
+      },
+      "pip_audit": {
+        "command": "/Users/haroonwahed/Documents/Projects/CMS-Aegis/.venv/bin/python -m pip_audit --disable-pip --no-deps -r requirements/runtime.txt",
+        "exit_code": 0,
+        "status": "pass",
+        "stderr": "WARNING:pip_audit._cli:--no-deps is supported, but users are encouraged to fully hash their pinned dependencies\nWARNING:pip_audit._cli:Consider using a tool like `pip-compile`: https://pip-tools.readthedocs.io/en/latest/#using-hashes\nNo known vulnerabilities found\n",
+        "stdout": ""
+      }
+    }
+  },
+  "go_no_go": "NO-GO",
+  "sprint_stage": "SPR3-001"
+}

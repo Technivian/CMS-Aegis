@@ -1,0 +1,38 @@
+name: Weekly Control Evidence
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+
+jobs:
+  collect-control-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/dev.txt
+
+      - name: Apply migrations
+        run: python manage.py migrate --noinput
+
+      - name: Collect control evidence
+        run: python manage.py collect_control_evidence --output-dir evidence
+
+      - name: Upload control evidence artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: control-evidence-weekly
+          path: evidence/
+          if-no-files-found: error

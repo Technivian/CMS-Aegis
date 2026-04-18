@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Template Comparison{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-6 py-8 space-y-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Template Comparison</h1>
+                <p class="text-sm text-gray-500 mt-1">{{ comparison.left_template.name }} v{{ comparison.left_template.version }} vs {{ comparison.right_template.name }} v{{ comparison.right_template.version }}</p>
+            </div>
+            <a href="{% url 'contracts:workflow_template_detail' comparison.left_template.pk %}" class="btn-secondary">Back</a>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mb-6">
+            {% for preset_key, preset in comparison_presets.items %}
+            <a href="?preset={{ preset_key }}" class="px-3 py-1.5 rounded-full text-xs font-medium border {% if comparison.preset == preset_key %}bg-blue-600 text-white border-blue-600{% else %}bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200{% endif %}">
+                {{ preset.label }}
+            </a>
+            {% endfor %}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="rounded-lg border border-gray-200 p-4 bg-gray-50">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="font-semibold text-gray-900">Left</h2>
+                    <span class="text-xs rounded-full px-2 py-1 bg-gray-100 text-gray-600">v{{ comparison.left_template.version }}</span>
+                </div>
+                <p class="text-sm text-gray-600">{{ comparison.left_template.description }}</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 p-4 bg-gray-50">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="font-semibold text-gray-900">Right</h2>
+                    <span class="text-xs rounded-full px-2 py-1 bg-gray-100 text-gray-600">v{{ comparison.right_template.version }}</span>
+                </div>
+                <p class="text-sm text-gray-600">{{ comparison.right_template.description }}</p>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900 mb-3">Field Differences</h2>
+                {% if comparison.preset == 'legal_ops' %}
+                <p class="text-xs text-gray-500 mb-3">Legal ops review keeps the comparison focused on operationally meaningful metadata.</p>
+                {% endif %}
+                {% if comparison.field_diffs %}
+                <div class="space-y-2">
+                    {% for field_name, left_value, right_value in comparison.field_diffs %}
+                    <div class="rounded-lg border border-gray-200 p-4 bg-white">
+                        <div class="text-sm font-medium text-gray-900">{{ field_name }}</div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2 text-sm">
+                            <div><span class="text-gray-500">Left:</span> {{ left_value }}</div>
+                            <div><span class="text-gray-500">Right:</span> {{ right_value }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-sm text-gray-500">No field differences.</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900 mb-3">Step Differences</h2>
+                {% if comparison.step_diffs %}
+                <ul class="space-y-2">
+                    {% for diff in comparison.step_diffs %}
+                    <li class="rounded-lg border border-gray-200 p-4 bg-white text-sm text-gray-700">{{ diff }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-sm text-gray-500">No step differences.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

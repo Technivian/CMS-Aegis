@@ -27,7 +27,7 @@ class Command(BaseCommand):
         run_once = options['once']
 
         if run_once:
-            call_command('send_contract_reminders')
+            call_command('send_contract_reminders', scheduler_interval_minutes=interval_minutes)
             self.stdout.write(self.style.SUCCESS('Reminder scheduler executed once.'))
             return
 
@@ -41,7 +41,7 @@ class Command(BaseCommand):
         while True:
             now = timezone.now()
             if now >= next_run:
-                call_command('send_contract_reminders')
+                call_command('send_contract_reminders', scheduler_interval_minutes=interval_minutes)
                 next_run = now + timedelta(minutes=interval_minutes)
                 self.stdout.write(
                     self.style.SUCCESS(f'Next reminder run scheduled at {next_run.isoformat()}.')

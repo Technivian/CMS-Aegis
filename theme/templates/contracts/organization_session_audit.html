@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Session Audit - CMS Aegis{% endblock %}
+
+{% block content %}
+<div style="max-width: 1100px; margin: 0 auto;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+        <div>
+            <h1 style="font-size: 28px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Session Audit</h1>
+            <p style="font-size: 14px; color: var(--text-secondary);">Review active sessions for {{ organization.name }} and revoke individual sessions when needed.</p>
+        </div>
+        <a href="{% url 'organization_session_audit_export' %}" class="btn-ghost">Export session audit CSV</a>
+    </div>
+
+    <div style="padding: 18px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface);">
+        {% if sessions %}
+        <div style="display: grid; gap: 12px;">
+            {% for session in sessions %}
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; border: 1px solid var(--border); border-radius: 12px;">
+                <div>
+                    <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">{{ session.username }}</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">{{ session.email }} · {{ session.role }}</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Session key: {{ session.session_key }}</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Last activity: {% if session.last_activity_at %}{{ session.last_activity_at|date:"Y-m-d H:i" }}{% else %}Unknown{% endif %} · Expires: {{ session.expire_date|date:"Y-m-d H:i" }}</div>
+                </div>
+                <form method="post" onsubmit="return confirm('Revoke this session now?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="revoke_session">
+                    <input type="hidden" name="session_key" value="{{ session.session_key }}">
+                    <button type="submit" class="btn-secondary">Revoke</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="font-size: 14px; color: var(--text-secondary);">No active sessions found for this organization.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

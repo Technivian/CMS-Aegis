@@ -6,6 +6,7 @@ django-debug-toolbar==4.4.6
 
 # Test/data helpers
 Faker==17.3.0
+pip-audit==2.9.0
 
 # Legacy browser/robot automation toolchain (kept for compatibility)
 robotframework==7.3.2
@@ -24,7 +25,7 @@ attrs==22.2.0
 bcrypt==4.0.1
 certifi==2022.12.7
 cffi==1.15.1
-cryptography==39.0.0
+cryptography==46.0.7
 h11==0.14.0
 idna==3.4
 outcome==1.2.0

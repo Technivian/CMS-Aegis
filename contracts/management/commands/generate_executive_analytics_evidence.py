@@ -1,46 +1,41 @@
 import json
+from pathlib import Path
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
-from contracts.models import Client, Contract, Organization
+from contracts.models import Organization
+from contracts.services.executive_analytics import build_executive_analytics_snapshot
 
 
 class Command(BaseCommand):
-    help = 'Generate executive analytics evidence snapshot.'
+    help = 'Generate multi-organization executive analytics evidence snapshot.'
 
     def add_arguments(self, parser):
-        parser.add_argument('--organization-slug', default='')
+        parser.add_argument('--organization-slug', action='append', default=[])
         parser.add_argument('--output', default='')
 
     def handle(self, *args, **options):
-        organization_slug = str(options.get('organization_slug') or '').strip()
-
-        contracts_qs = Contract.objects.all()
-        clients_qs = Client.objects.all()
-        org = None
-        if organization_slug:
-            org = Organization.objects.filter(slug=organization_slug).first()
-            if org:
-                contracts_qs = contracts_qs.filter(organization=org)
-                clients_qs = clients_qs.filter(organization=org)
+        requested_slugs = [str(slug).strip() for slug in (options.get('organization_slug') or []) if str(slug).strip()]
+        organizations = Organization.objects.all().order_by('slug')
+        if requested_slugs:
+            organizations = organizations.filter(slug__in=requested_slugs)
+            found = set(organizations.values_list('slug', flat=True))
+            missing = [slug for slug in requested_slugs if slug not in found]
+            if missing:
+                raise CommandError(f'Unknown organization slug(s): {", ".join(missing)}')
 
         payload = {
             'captured_at': timezone.now().isoformat(),
-            'organization_slug': organization_slug or None,
-            'organization_found': bool(org) if organization_slug else True,
-            'metrics': {
-                'contracts_total': contracts_qs.count(),
-                'contracts_active': contracts_qs.filter(status=Contract.Status.ACTIVE).count(),
-                'clients_total': clients_qs.count(),
-            },
-            'status': 'GO',
+            'organization_count': organizations.count(),
+            'snapshots': [build_executive_analytics_snapshot(org) for org in organizations],
         }
 
         rendered = json.dumps(payload, indent=2, sort_keys=True)
         output_path = str(options.get('output') or '').strip()
         if output_path:
-            with open(output_path, 'w', encoding='utf-8') as handle:
-                handle.write(rendered)
-                handle.write('\n')
+            target = Path(output_path)
+            if target.parent and not target.parent.exists():
+                target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(rendered + '\n', encoding='utf-8')
         self.stdout.write(rendered)

@@ -17,16 +17,53 @@
 
     <!-- Form -->
     <div class="card p-6">
+        {% if suggested_template %}
+        <div class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-sm font-semibold text-blue-900">Suggested template</h2>
+                    <p class="text-sm text-blue-800 mt-1">{{ suggested_template.name }} v{{ suggested_template.version }}</p>
+                </div>
+                <a href="{% url 'contracts:workflow_template_detail' suggested_template.pk %}" class="text-sm font-medium text-blue-700 hover:text-blue-900">View template</a>
+            </div>
+            {% if template_comparison %}
+            <div class="mt-4 rounded-lg border border-blue-200 bg-white p-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-gray-900">Compare against selected template</h3>
+                    <a href="{% url 'contracts:workflow_template_compare' selected_template.pk suggested_template.pk %}?preset=legal_ops" class="text-xs font-medium text-blue-700 hover:text-blue-900">Open legal ops diff</a>
+                </div>
+                {% if template_comparison.field_diffs %}
+                <ul class="mt-3 space-y-2 text-sm text-gray-700">
+                    {% for field_name, left_value, right_value in template_comparison.field_diffs %}
+                    <li class="rounded-md border border-gray-200 p-3">
+                        <div class="font-medium text-gray-900">{{ field_name }}</div>
+                        <div class="mt-1">Selected: {{ left_value }} &middot; Suggested: {{ right_value }}</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% if template_comparison.step_diffs %}
+                <ul class="mt-3 space-y-2 text-sm text-gray-700">
+                    {% for diff in template_comparison.step_diffs %}
+                    <li class="rounded-md border border-gray-200 p-3">{{ diff }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
         <form method="post">
             {% csrf_token %}
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Workflow Name -->
                 <div>
-                    {{ form.name.label_tag }}
-                    {{ form.name }}
-                    {% if form.name.errors %}
-                        <p class="mt-1 text-sm" style="color: var(--danger);">{{ form.name.errors.0 }}</p>
+                    {{ form.title.label_tag }}
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                        <p class="mt-1 text-sm" style="color: var(--danger);">{{ form.title.errors.0 }}</p>
                     {% endif %}
                 </div>
 

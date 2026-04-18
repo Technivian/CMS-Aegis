@@ -1,0 +1,54 @@
+{
+  "iterations": 20,
+  "authenticated": false,
+  "routes": {
+    "/_health/": {
+      "count": 20,
+      "p50_ms": 6.95,
+      "p95_ms": 10.17,
+      "max_ms": 49.17,
+      "mean_ms": 9.25,
+      "median_ms": 6.92,
+      "status_codes": [
+        200
+      ],
+      "success_rate": 1.0
+    },
+    "/_health/?format=json": {
+      "count": 20,
+      "p50_ms": 11.22,
+      "p95_ms": 21.48,
+      "max_ms": 24.19,
+      "mean_ms": 12.69,
+      "median_ms": 11.18,
+      "status_codes": [
+        200
+      ],
+      "success_rate": 1.0
+    },
+    "/contracts/": {
+      "count": 20,
+      "p50_ms": 7.38,
+      "p95_ms": 9.03,
+      "max_ms": 9.36,
+      "mean_ms": 7.51,
+      "median_ms": 7.34,
+      "status_codes": [
+        302
+      ],
+      "success_rate": 1.0
+    },
+    "/contracts/api/contracts/": {
+      "count": 20,
+      "p50_ms": 6.8,
+      "p95_ms": 7.38,
+      "max_ms": 8.54,
+      "mean_ms": 6.9,
+      "median_ms": 6.79,
+      "status_codes": [
+        302
+      ],
+      "success_rate": 1.0
+    }
+  }
+}

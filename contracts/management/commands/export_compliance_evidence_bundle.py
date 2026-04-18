@@ -1,49 +1,53 @@
-import hashlib
 import json
 from pathlib import Path
-import zipfile
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.utils import timezone
+
+from contracts.services.evidence_bundle import export_evidence_bundle
 
 
 class Command(BaseCommand):
-    help = 'Export tamper-evident compliance evidence bundle.'
+    help = 'Create tamper-evident compliance evidence bundle with hash and signature.'
 
     def add_arguments(self, parser):
-        parser.add_argument('--include', action='append', default=[])
-        parser.add_argument('--output-dir', required=True)
+        parser.add_argument(
+            '--include',
+            action='append',
+            default=[],
+            help='Absolute or relative file path to include. Repeat for multiple files.',
+        )
+        parser.add_argument('--output-dir', default='docs/evidence')
+        parser.add_argument('--signing-key', default='')
 
     def handle(self, *args, **options):
-        output_dir = Path(options['output_dir']).resolve()
-        output_dir.mkdir(parents=True, exist_ok=True)
+        include_paths = list(options['include'] or [])
+        if not include_paths:
+            defaults = [
+                'docs/RELEASE_CANDIDATE_GATE_CHECKLIST_2026-04-18.md',
+                'docs/SPRINT3_BOARD_2026-04-18.md',
+                'docs/SPRINT_1_2_COMPLETION_2026-04-18.md',
+            ]
+            include_paths = [item for item in defaults if Path(item).exists()]
+        if not include_paths:
+            raise CommandError('No evidence files provided. Use --include.')
 
-        includes = [Path(p).resolve() for p in options.get('include') or []]
-        if not includes:
-            raise CommandError('At least one --include path is required.')
-        for item in includes:
-            if not item.exists():
-                raise CommandError(f'Included evidence file not found: {item}')
-
-        stamp = timezone.now().strftime('%Y%m%dT%H%M%SZ')
-        bundle_path = output_dir / f'compliance-evidence-{stamp}.zip'
-        sha_path = output_dir / f'compliance-evidence-{stamp}.sha256'
-        sig_path = output_dir / f'compliance-evidence-{stamp}.sig'
-
-        with zipfile.ZipFile(bundle_path, mode='w', compression=zipfile.ZIP_DEFLATED) as archive:
-            for item in includes:
-                archive.write(item, arcname=item.name)
-
-        digest = hashlib.sha256(bundle_path.read_bytes()).hexdigest()
-        sha_path.write_text(f'{digest}  {bundle_path.name}\n', encoding='utf-8')
-        sig_path.write_text('unsigned-local-development\n', encoding='utf-8')
+        signing_key = str(options.get('signing_key') or '').strip() or str(settings.SECRET_KEY)
+        try:
+            result = export_evidence_bundle(
+                include_paths=include_paths,
+                output_dir=options['output_dir'],
+                signing_key=signing_key,
+            )
+        except ValueError as exc:
+            raise CommandError(str(exc))
 
         payload = {
-            'captured_at': timezone.now().isoformat(),
-            'bundle_path': str(bundle_path),
-            'sha256_path': str(sha_path),
-            'signature_path': str(sig_path),
-            'file_count': len(includes),
-            'status': 'GO',
+            'status': 'exported',
+            'bundle_path': str(result.bundle_path),
+            'manifest_path': str(result.manifest_path),
+            'sha256_path': str(result.sha256_path),
+            'signature_path': str(result.signature_path),
+            'files_included': result.file_count,
         }
         self.stdout.write(json.dumps(payload, indent=2, sort_keys=True))

@@ -1,0 +1,93 @@
+name: Observability Watch
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  evaluate-alerts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/dev.txt
+
+      - name: Evaluate alert policy
+        id: eval
+        run: |
+          set +e
+          python manage.py evaluate_observability_alerts --json > alert-evaluation.json
+          rc=$?
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload evaluation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: observability-alert-evaluation
+          path: alert-evaluation.json
+          if-no-files-found: error
+
+      - name: Open or update observability incident issue
+        if: steps.eval.outputs.exit_code != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const payload = fs.readFileSync('alert-evaluation.json', 'utf8');
+            const title = '[Observability] Active Alert Condition';
+            const body = [
+              'Automated observability watch detected active alerts.',
+              '',
+              '```json',
+              payload,
+              '```',
+              '',
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            ].join('\n');
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'observability,incident',
+              per_page: 50,
+            });
+            const existing = issues.find((issue) => issue.title === title);
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['observability', 'incident'],
+              });
+            }
+
+      - name: Fail workflow when alert active
+        if: steps.eval.outputs.exit_code != '0'
+        run: exit 1

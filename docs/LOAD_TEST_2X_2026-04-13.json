@@ -1,0 +1,26 @@
+{
+  "target": {
+    "peak_rps": 5,
+    "multiplier": 2.0,
+    "duration_seconds": 20,
+    "target_rps": 10.0,
+    "target_total_requests": 200
+  },
+  "execution": {
+    "workers": 4,
+    "executed_requests": 200,
+    "wall_time_seconds": 6.396,
+    "achieved_rps": 31.267
+  },
+  "latency_ms": {
+    "p50": 110.54,
+    "p95": 256.3,
+    "max": 340.19,
+    "mean": 124.98,
+    "median": 110.51
+  },
+  "status_codes": [
+    200
+  ],
+  "success_rate": 1.0
+}

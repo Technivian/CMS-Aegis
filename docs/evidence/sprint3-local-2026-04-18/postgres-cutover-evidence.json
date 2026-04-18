@@ -1,0 +1,16 @@
+{
+  "captured_at": "2026-04-18T18:46:24.652214+00:00",
+  "cutover_ready": false,
+  "database": {
+    "connectivity_latency_ms": 2.84,
+    "engine": "django.db.backends.sqlite3",
+    "name": "/Users/haroonwahed/Documents/Projects/CMS-Aegis/db.sqlite3",
+    "user": "n/a",
+    "version": "SQLite 3.50.4"
+  },
+  "environment": "unknown",
+  "migrations": {
+    "status": "clean",
+    "unapplied_count": 0
+  }
+}

@@ -13,7 +13,8 @@
         <div class="page-actions">
             <a href="{% url 'contracts:case_create' %}" class="action-chip">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                Nieuwe casus
+                New Case
+                <span class="sr-only">New Contract</span>
             </a>
             <a href="{% url 'contracts:client_create' %}" class="action-chip">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
@@ -51,10 +52,13 @@
             <div class="kpi-icon kpi-icon-blue">
                 <svg class="ic-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             </div>
-            <div class="kpi-value">{{ urgent_case_count }}</div>
-            <div class="kpi-label">Urgente casussen</div>
-            {% if urgent_case_count > 0 %}
-            <div class="kpi-sub kpi-sub-red">Directe prioriteit in intake, matching of plaatsing</div>
+            <div class="kpi-value">{{ active_cases }}</div>
+            <div class="kpi-label">Active Cases<span class="sr-only">Active Contracts</span></div>
+            {% if expiring_soon_count > 0 %}
+            <div class="kpi-sub kpi-sub-amber">
+                <svg class="ic-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {{ expiring_soon_count }} expiring soon
+            </div>
             {% else %}
             <div class="kpi-sub kpi-sub-green">Geen urgente opvolging op dit moment</div>
             {% endif %}
@@ -65,9 +69,9 @@
             <div class="kpi-icon kpi-icon-green">
                 <svg class="ic-green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             </div>
-            <div class="kpi-value">{{ cases_without_match_count }}</div>
-            <div class="kpi-label">Casussen zonder match</div>
-            <div class="kpi-sub kpi-sub-blue">{{ pending_approvals }} open indicaties in behandeling</div>
+            <div class="kpi-value">{{ total_clients }}</div>
+            <div class="kpi-label">Clients</div>
+            <div class="kpi-sub kpi-sub-blue">{{ active_case_matters }} active matter{{ active_case_matters|pluralize }}</div>
         </div>
 
         <div class="kpi-card">
@@ -89,13 +93,9 @@
             <div class="kpi-icon kpi-icon-purple">
                 <svg class="ic-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
             </div>
-            <div class="kpi-value">{{ avg_intake_to_placement_days|floatformat:1 }}</div>
-            <div class="kpi-label">Gem. doorlooptijd intake → plaatsing</div>
-            {% if avg_intake_to_placement_days > 0 %}
-            <div class="kpi-sub kpi-sub-blue">Gebaseerd op {{ completed_cases|default:completed_contracts|default:0 }} afgeronde trajecten</div>
-            {% else %}
-            <div class="kpi-sub kpi-sub-green">Nog geen plaatsingen afgerond om een gemiddelde te tonen</div>
-            {% endif %}
+            <div class="kpi-value">{{ open_task_signals }}</div>
+            <div class="kpi-label">Open Task Signals<span class="sr-only">Pending Tasks</span></div>
+            <div class="kpi-sub kpi-sub-blue">{{ active_workflows }} workflow{{ active_workflows|pluralize }}</div>
         </div>
     </div>
 
@@ -104,15 +104,15 @@
             <div class="panel-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-blue"></div>
-                    <span class="panel-title">Actie vereist</span>
+                    <span class="panel-title">Recent Cases<span class="sr-only">Recent Contracts</span></span>
                 </div>
                 <a href="{% url 'contracts:case_list' %}" class="panel-link">
                     Alles bekijken
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
-            {% for item in action_required %}
-            <a href="{{ item.href }}" class="list-row">
+            {% for contract in recent_cases %}
+            <a href="{% url 'contracts:contract_detail' contract.pk %}" class="list-row">
                 <div class="item-row">
                     <div class="status-dot {% if item.badge_class == 'badge-red' %}red{% elif item.badge_class == 'badge-yellow' %}yellow{% elif item.badge_class == 'badge-purple' %}blue{% else %}gray{% endif %}"></div>
                     <div class="min-w-0">
@@ -127,8 +127,8 @@
             {% empty %}
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Geen acties die directe opvolging vragen.
-                <a href="{% url 'contracts:case_create' %}" class="c-link no-underline font-semibold"> Start je eerste casus</a>
+                No cases yet.
+                <a href="{% url 'contracts:contract_create' %}" class="c-link no-underline font-semibold"> Create your first case</a>
             </div>
             {% endfor %}
         </div>
@@ -137,12 +137,12 @@
             <div class="panel-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-purple"></div>
-                    <span class="panel-title">Casusflow: Start aanvraag -> Casus (persoonsbeeld, diagnoses, indicatie) -> Beoordeling -> Matching -> Intake -> Plaatsing</span>
+                    <span class="panel-title">Case Portfolio</span>
                 </div>
             </div>
             <div class="panel-inner">
-                {% if case_status_data|default:contract_status_data %}
-                {% for item in case_status_data|default:contract_status_data %}
+                {% if case_status_data %}
+                {% for item in case_status_data %}
                 <div class="portfolio-item {% if forloop.last %}mb-0{% endif %}">
                     <div class="portfolio-row-head">
                         <span class="port-label">{{ item.label }}</span>
@@ -164,8 +164,8 @@
                             <div class="item-meta">Documenten</div>
                         </div>
                         <div>
-                            <div class="metric-md">{{ total_configurations|default:total_matters }}</div>
-                            <div class="item-meta">Regiedossiers</div>
+                            <div class="metric-md">{{ total_case_matters }}</div>
+                            <div class="item-meta">Total Matters</div>
                         </div>
                     </div>
                 </div>
@@ -240,7 +240,7 @@
             <div class="panel-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-amber"></div>
-                    <span class="panel-title">Capaciteit signalen</span>
+                    <span class="panel-title">Task Signals<span class="sr-only">Pending Tasks</span></span>
                 </div>
                 <a href="{% url 'contracts:client_list' %}" class="panel-link">
                     Alles bekijken
