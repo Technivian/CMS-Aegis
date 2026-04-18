@@ -1523,11 +1523,43 @@ class _CaseAssessmentStatus(models.TextChoices):
     APPROVED_FOR_MATCHING = 'APPROVED_FOR_MATCHING', 'Approved for matching'
 
 
+class _CareCasePhase(models.TextChoices):
+    INTAKE = 'INTAKE', 'Intake'
+    BEOORDELING = 'BEOORDELING', 'Beoordeling'
+    MATCHING = 'MATCHING', 'Matching'
+    PLAATSING = 'PLAATSING', 'Plaatsing'
+    ACTIEF = 'ACTIEF', 'Actief'
+    AFGEROND = 'AFGEROND', 'Afgerond'
+
+
+class _PlacementStatus(models.TextChoices):
+    IN_REVIEW = 'IN_REVIEW', 'In review'
+    APPROVED = 'APPROVED', 'Approved'
+    REJECTED = 'REJECTED', 'Rejected'
+    NEEDS_INFO = 'NEEDS_INFO', 'Needs info'
+
+
+class _CaseIntakeStatus(models.TextChoices):
+    INTAKE = 'INTAKE', 'Intake'
+    ASSESSMENT = 'ASSESSMENT', 'Assessment'
+    MATCHING = 'MATCHING', 'Matching'
+    DECISION = 'DECISION', 'Decision'
+    COMPLETED = 'COMPLETED', 'Completed'
+
+
 Matter.Scope = _CareScope
 Matter.Status = _CareStatus
+Contract.CasePhase = _CareCasePhase
 CareConfiguration = Matter
 MunicipalityConfiguration = Matter
 RegionalConfiguration = Matter
+
+CareCase = Contract
+CaseIntakeProcess = DueDiligenceProcess
+CaseIntakeProcess.ProcessStatus = _CaseIntakeStatus
+PlacementRequest = DueDiligenceProcess
+PlacementRequest.Status = _PlacementStatus
+ProviderResponseRequest = DueDiligenceTask
 
 DueDiligenceProcess.AssessmentStatus = _CaseAssessmentStatus
 CaseAssessment = DueDiligenceProcess
