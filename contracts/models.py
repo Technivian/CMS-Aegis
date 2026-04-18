@@ -1547,9 +1547,33 @@ class _CaseIntakeStatus(models.TextChoices):
     COMPLETED = 'COMPLETED', 'Completed'
 
 
+class _DeadlinePriorityCompat(models.TextChoices):
+    LOW = 'LOW', 'Low'
+    MEDIUM = 'MEDIUM', 'Medium'
+    HIGH = 'HIGH', 'High'
+    URGENT = 'CRITICAL', 'Urgent'
+
+
+class _DeadlineTaskTypeCompat(models.TextChoices):
+    INTAKE_COMPLETE = 'INTAKE_COMPLETE', 'Intake complete'
+    ASSESSMENT_PERFORM = 'ASSESSMENT_PERFORM', 'Assessment perform'
+    SELECT_MATCH = 'SELECT_MATCH', 'Select match'
+    CONFIRM_PLACEMENT = 'CONFIRM_PLACEMENT', 'Confirm placement'
+
+
+class _DeadlineGenerationSourceCompat(models.TextChoices):
+    INTAKE = 'INTAKE', 'Intake'
+    ASSESSMENT = 'ASSESSMENT', 'Assessment'
+    MATCHING = 'MATCHING', 'Matching'
+    PLACEMENT = 'PLACEMENT', 'Placement'
+
+
 Matter.Scope = _CareScope
 Matter.Status = _CareStatus
 Contract.CasePhase = _CareCasePhase
+Deadline.Priority = _DeadlinePriorityCompat
+Deadline.TaskType = _DeadlineTaskTypeCompat
+Deadline.GenerationSource = _DeadlineGenerationSourceCompat
 CareConfiguration = Matter
 MunicipalityConfiguration = Matter
 RegionalConfiguration = Matter
