@@ -132,6 +132,13 @@ bash scripts/bootstrap_python312.sh
 .venv/bin/python manage.py runserver 127.0.0.1:8000
 ```
 
+## Free Preview Deploy
+
+For a free-first preview deployment on Render, use:
+
+- [docs/RENDER_FREE_DEPLOY.md](/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/RENDER_FREE_DEPLOY.md)
+- [render.yaml](/Users/haroonwahed/Documents/Projects/CMS-Aegis/render.yaml)
+
 Environment defaults now come from `DJANGO_ENV`:
 
 - `development`: uses [`config/settings_development.py`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/config/settings_development.py)
