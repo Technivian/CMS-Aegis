@@ -66,8 +66,13 @@ jobs:
       - name: Apply migrations
         run: python manage.py migrate --noinput
 
+      - name: Seed baseline and synthetic evidence
+        run: |
+          python manage.py seed_data
+          python manage.py seed_sprint3_evidence --organization-slug "${{ inputs.organization_slug != '' && inputs.organization_slug || 'demo-firm' }}"
+
       - name: Run optional live syncs
-        if: ${{ inputs.run_live_syncs && inputs.organization_slug != '' }}
+        if: ${{ inputs.run_live_syncs && inputs.organization_slug != '' && secrets.SALESFORCE_CLIENT_ID != '' && secrets.SALESFORCE_CLIENT_SECRET != '' && secrets.NETSUITE_ACCOUNT_ID != '' && secrets.NETSUITE_CLIENT_ID != '' && secrets.NETSUITE_CLIENT_SECRET != '' && secrets.NETSUITE_TOKEN_URL != '' && secrets.NETSUITE_RECORDS_URL != '' && secrets.ESIGN_WEBHOOK_SECRET != '' }}
         run: |
           python manage.py sync_salesforce_contracts --organization-slug "${{ inputs.organization_slug }}" --limit 200 > evidence/salesforce-sync-live.json
           python manage.py sync_netsuite_contracts --organization-slug "${{ inputs.organization_slug }}" --limit 200 > evidence/netsuite-sync-live.json
