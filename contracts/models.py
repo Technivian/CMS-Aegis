@@ -699,6 +699,23 @@ class Contract(models.Model):
     contract_type = models.CharField(max_length=20, choices=ContractType.choices, default=ContractType.OTHER)
     content = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    case_phase = models.CharField(
+        max_length=20,
+        choices=[
+            ('intake', 'Intake'),
+            ('beoordeling', 'Beoordeling'),
+            ('matching', 'Matching'),
+            ('plaatsing', 'Plaatsing'),
+            ('actief', 'Actief'),
+            ('afgerond', 'Afgerond'),
+        ],
+        default='intake',
+    )
+    phase_entered_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='Timestamp when the case entered the current phase',
+    )
     counterparty = models.CharField(max_length=200, blank=True)
     value = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     currency = models.CharField(max_length=5, choices=Currency.choices, default=Currency.USD)

@@ -11,7 +11,7 @@
             <p class="page-subtitle">{{ today|date:"l, F j, Y" }}</p>
         </div>
         <div class="page-actions">
-            <a href="{% url 'contracts:case_create' %}" class="action-chip">
+            <a href="{% url 'contracts:contract_create' %}" class="action-chip">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                 New Case
                 <span class="sr-only">New Contract</span>
@@ -20,7 +20,7 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                 Nieuwe aanbieder
             </a>
-            <a href="{% url 'contracts:case_list' %}?flow=intake" class="action-chip">
+            <a href="{% url 'contracts:contract_list' %}?flow=intake" class="action-chip">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 Start intake vanuit casus
             </a>
@@ -106,7 +106,7 @@
                     <div class="dot dot-blue"></div>
                     <span class="panel-title">Recent Cases<span class="sr-only">Recent Contracts</span></span>
                 </div>
-                <a href="{% url 'contracts:case_list' %}" class="panel-link">
+                <a href="{% url 'contracts:contract_list' %}" class="panel-link">
                     Alles bekijken
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
@@ -183,7 +183,7 @@
                     <span class="badge-sm badge-blue ml-1">{{ match_recommendations|length }}</span>
                     {% endif %}
                 </div>
-                <a href="{% url 'contracts:case_list' %}?flow=matching" class="panel-link">
+                <a href="{% url 'contracts:contract_list' %}?flow=matching" class="panel-link">
                     Start vanuit casus
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
@@ -228,7 +228,7 @@
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 Geen open matchaanbevelingen.
-                <a href="{% url 'contracts:case_list' %}?flow=matching" class="c-link no-underline font-semibold"> Start matching vanuit casus</a>
+                <a href="{% url 'contracts:contract_list' %}?flow=matching" class="c-link no-underline font-semibold"> Start matching vanuit casus</a>
                 {% if not has_providers %}
                 <a href="{% url 'contracts:client_create' %}" class="c-link no-underline font-semibold"> Voeg een zorgaanbieder toe</a>
                 {% endif %}
@@ -278,13 +278,13 @@
                 <div class="dot dot-blue"></div>
                 <span class="panel-title">Opvolging / Taken</span>
             </div>
-                <a href="{% url 'contracts:task_list' %}" class="panel-link">
+                <a href="{% url 'contracts:legal_task_kanban' %}" class="panel-link">
                 Alles bekijken
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </a>
         </div>
         {% for task in followup_tasks %}
-        <a href="{% url 'contracts:task_update' task.pk %}" class="list-row">
+        <a href="{% url 'contracts:legal_task_update' task.pk %}" class="list-row">
             <div class="item-row">
                 <div class="status-dot {% if task.priority == 'URGENT' %}red{% elif task.priority == 'HIGH' %}yellow{% else %}blue{% endif %}"></div>
                 <div class="min-w-0">
@@ -299,7 +299,7 @@
         {% empty %}
         <div class="empty-state">
             Geen open opvolgtaken.
-            <a href="{% url 'contracts:task_create' %}" class="c-link no-underline font-semibold"> Voeg een taak toe</a>
+            <a href="{% url 'contracts:legal_task_create' %}" class="c-link no-underline font-semibold"> Voeg een taak toe</a>
         </div>
         {% endfor %}
     </div>
@@ -310,13 +310,13 @@
                 <div class="dot dot-red"></div>
                 <span class="panel-title">Recente signalen</span>
             </div>
-            <a href="{% url 'contracts:signal_list' %}" class="panel-link">
+            <a href="{% url 'contracts:risk_log_list' %}" class="panel-link">
                 Alles bekijken
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </a>
         </div>
         {% for signal in recent_signals %}
-        <a href="{% url 'contracts:signal_update' signal.pk %}" class="list-row">
+        <a href="{% url 'contracts:risk_log_update' signal.pk %}" class="list-row">
             <div class="item-row">
                 <div class="status-dot {% if signal.risk_level == 'CRITICAL' %}red{% elif signal.risk_level == 'HIGH' %}yellow{% else %}blue{% endif %}"></div>
                 <div class="min-w-0">
@@ -331,7 +331,7 @@
         {% empty %}
         <div class="empty-state">
             Geen recente signalen.
-            <a href="{% url 'contracts:signal_create' %}" class="c-link no-underline font-semibold"> Voeg een signaal toe</a>
+            <a href="{% url 'contracts:risk_log_create' %}" class="c-link no-underline font-semibold"> Voeg een signaal toe</a>
         </div>
         {% endfor %}
     </div>
@@ -412,14 +412,14 @@
                     </div>
                     <svg class="ic-muted ic-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
-                <a href="{% url 'contracts:matching_dashboard' %}" class="list-row nav-row">
+                <a href="{% url 'contracts:workflow_dashboard' %}" class="list-row nav-row">
                     <div class="nav-row-body">
                         <svg class="ic-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         <span class="nav-row-label">Matchingoverzicht</span>
                     </div>
                     <svg class="ic-muted ic-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
-                <a href="{% url 'contracts:case_create' %}" class="list-row nav-row">
+                <a href="{% url 'contracts:contract_create' %}" class="list-row nav-row">
                     <div class="nav-row-body">
                         <svg class="ic-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                         <span class="nav-row-label">Nieuwe casus starten</span>

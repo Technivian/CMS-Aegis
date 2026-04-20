@@ -741,7 +741,7 @@
                 <a href="{% url 'contracts:notification_list' %}" style="position: relative; padding: 6px; color: var(--text-secondary); border-radius: 8px; transition: all 0.2s; text-decoration: none;" title="Meldingen">
                     <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                 </a>
-                <a href="{% url 'contracts:case_create' %}" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; color: white; font-size: 13px; font-weight: 500; border-radius: 8px; transition: all 0.2s; text-decoration: none; background: var(--btn-gradient);">
+                <a href="{% url 'contracts:contract_create' %}" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; color: white; font-size: 13px; font-weight: 500; border-radius: 8px; transition: all 0.2s; text-decoration: none; background: var(--btn-gradient);">
                     <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                     Nieuwe casus
                 </a>
@@ -779,31 +779,31 @@
                 </a>
 
                 <div class="nav-section">WERK</div>
-                <a href="{% url 'contracts:case_create' %}" class="nav-link {% if request.resolver_match.url_name == 'case_create' %}active{% endif %}">
+                <a href="{% url 'contracts:contract_create' %}" class="nav-link {% if request.resolver_match.url_name == 'contract_create' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     Start aanvraag
                 </a>
-                <a href="{% url 'contracts:case_list' %}" class="nav-link {% if request.resolver_match.url_name == 'case_list' or request.resolver_match.url_name == 'case_detail' or request.resolver_match.url_name == 'case_update' %}active{% endif %}">
+                <a href="{% url 'contracts:contract_list' %}" class="nav-link {% if request.resolver_match.url_name == 'contract_list' or request.resolver_match.url_name == 'contract_detail' or request.resolver_match.url_name == 'contract_update' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     Casussen
                 </a>
-                <a href="{% url 'contracts:assessment_list' %}" class="nav-link {% if request.resolver_match.url_name == 'assessment_list' or request.resolver_match.url_name == 'assessment_detail' or request.resolver_match.url_name == 'assessment_create' or request.resolver_match.url_name == 'assessment_update' %}active{% endif %}">
+                <a href="{% url 'contracts:contract_list' %}" class="nav-link {% if request.resolver_match.url_name == 'contract_list' or request.resolver_match.url_name == 'contract_detail' or request.resolver_match.url_name == 'contract_create' or request.resolver_match.url_name == 'contract_update' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3"></path></svg>
                     Beoordelingen
                 </a>
-                <a href="{% url 'contracts:task_list' %}" class="nav-link {% if 'deadline' in request.resolver_match.url_name or request.resolver_match.url_name == 'task_list' or request.resolver_match.url_name == 'task_kanban' or request.resolver_match.url_name == 'task_create' or request.resolver_match.url_name == 'task_update' %}active{% endif %}">
+                <a href="{% url 'contracts:legal_task_kanban' %}" class="nav-link {% if 'deadline' in request.resolver_match.url_name or request.resolver_match.url_name == 'legal_task_kanban' or request.resolver_match.url_name == 'legal_task_create' or request.resolver_match.url_name == 'legal_task_update' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                     Taken
                 </a>
-                <a href="{% url 'contracts:matching_dashboard' %}" class="nav-link {% if 'workflow' in request.resolver_match.url_name or request.resolver_match.url_name == 'matching_dashboard' %}active{% endif %}">
+                <a href="{% url 'contracts:workflow_dashboard' %}" class="nav-link {% if 'workflow' in request.resolver_match.url_name or request.resolver_match.url_name == 'workflow_dashboard' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     Matching
                 </a>
-                <a href="{% url 'contracts:intake_list' %}" class="nav-link {% if request.resolver_match.url_name == 'intake_list' or request.resolver_match.url_name == 'intake_create' or request.resolver_match.url_name == 'intake_detail' or request.resolver_match.url_name == 'intake_update' or request.resolver_match.url_name == 'due_diligence_list' or request.resolver_match.url_name == 'due_diligence_create' or request.resolver_match.url_name == 'due_diligence_detail' or request.resolver_match.url_name == 'due_diligence_update' %}active{% endif %}">
+                <a href="{% url 'contracts:due_diligence_list' %}" class="nav-link {% if request.resolver_match.url_name == 'due_diligence_list' or request.resolver_match.url_name == 'due_diligence_create' or request.resolver_match.url_name == 'due_diligence_detail' or request.resolver_match.url_name == 'due_diligence_update' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h8m-8 5h8m-8 5h5M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"></path></svg>
                     Intake
                 </a>
-                <a href="{% url 'contracts:placement_list' %}" class="nav-link {% if request.resolver_match.url_name == 'placement_list' or request.resolver_match.url_name == 'placement_create' or request.resolver_match.url_name == 'placement_detail' or request.resolver_match.url_name == 'placement_update' %}active{% endif %}">
+                <a href="{% url 'contracts:due_diligence_list' %}" class="nav-link {% if request.resolver_match.url_name == 'due_diligence_list' or request.resolver_match.url_name == 'due_diligence_create' or request.resolver_match.url_name == 'due_diligence_detail' or request.resolver_match.url_name == 'due_diligence_update' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l4 4L19 7"></path></svg>
                     Plaatsing
                 </a>
@@ -813,11 +813,11 @@
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     Zorgaanbieders
                 </a>
-                <a href="{% url 'contracts:municipality_list' %}" class="nav-link {% if 'municipality' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'contracts:client_list' %}" class="nav-link {% if 'client' in request.resolver_match.url_name %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                     Gemeenten
                 </a>
-                <a href="{% url 'contracts:regional_list' %}" class="nav-link {% if 'regional' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'contracts:counterparty_list' %}" class="nav-link {% if 'counterparty' in request.resolver_match.url_name %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
                     Regio's
                 </a>
@@ -827,7 +827,7 @@
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     Capaciteit &amp; budget
                 </a>
-                <a href="{% url 'contracts:waittime_list' %}" class="nav-link {% if 'waittime' in request.resolver_match.url_name or 'trust' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'contracts:trust_account_list' %}" class="nav-link {% if 'trust' in request.resolver_match.url_name %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
                     Wachttijden
                 </a>
@@ -835,7 +835,7 @@
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                     Rapportages &amp; regie
                 </a>
-                <a href="{% url 'contracts:signal_list' %}" class="nav-link {% if 'risk' in request.resolver_match.url_name or request.resolver_match.url_name == 'signal_list' or request.resolver_match.url_name == 'signal_create' or request.resolver_match.url_name == 'signal_update' %}active{% endif %}">
+                <a href="{% url 'contracts:risk_log_list' %}" class="nav-link {% if 'risk' in request.resolver_match.url_name or request.resolver_match.url_name == 'risk_log_list' or request.resolver_match.url_name == 'risk_log_create' or request.resolver_match.url_name == 'risk_log_update' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     Signalen
                 </a>

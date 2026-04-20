@@ -45,6 +45,7 @@ from contracts.domain.contracts import ListParams
 from contracts.middleware import log_action
 from contracts.permissions import can_manage_organization
 from contracts.tenancy import get_user_organization
+from contracts.tenancy import scope_queryset_for_organization
 from contracts.models import (
     Contract,
     OrganizationAPIToken,
@@ -619,41 +620,9 @@ def contracts_api(request):
             page_size=int(request.GET.get('page_size', 25))
         )
 
-        organization = get_user_organization(request.user)
-        queryset = scope_queryset_for_organization(CareCase.objects.all(), organization)
-
-        if params.q:
-            queryset = queryset.filter(
-                Q(title__icontains=params.q)
-                | Q(preferred_provider__icontains=params.q)
-                | Q(content__icontains=params.q)
-            )
-
-        if params.status:
-            queryset = queryset.filter(status__in=params.status)
-
-        if params.sort == 'updated_asc':
-            queryset = queryset.order_by('updated_at')
-        elif params.sort == 'title':
-            queryset = queryset.order_by('title')
-        elif params.sort == 'status':
-            queryset = queryset.order_by('status')
-        else:
-            queryset = queryset.order_by('-updated_at')
-
-        paginator = Paginator(queryset, params.page_size)
-        page_obj = paginator.get_page(params.page)
-
-        result = ListResult(
-            contracts=[_build_case_data(case) for case in page_obj],
-            total_count=paginator.count,
-            page=params.page,
-            page_size=params.page_size,
-            total_pages=paginator.num_pages,
-        )
-        
+        service = get_repository_service(request.user, use_mock=False)
+        result = service.list(params)
         return JsonResponse(result.to_dict())
-        
     except Exception:
         logger.exception('contracts_api_failed')
         return _error_response(request, 'An unexpected error occurred.', 500)
@@ -753,6 +722,22 @@ def contract_detail_api_v1(request, contract_id):
     except Exception:
         logger.exception('contract_detail_api_v1_failed')
         return _error_response(request, 'An unexpected error occurred.', 500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def contract_detail_api(request, contract_id):
+    """Legacy authenticated contract detail endpoint."""
+    try:
+        service = get_repository_service(request.user, use_mock=False)
+        result = service.get_by_id(contract_id)
+        if not result:
+            return _error_response(request, 'Contract not found', 404)
+        return JsonResponse(result.to_dict())
+    except Exception:
+        logger.exception('contract_detail_api_failed')
+        return _error_response(request, 'An unexpected error occurred.', 500)
+
 
 @login_required
 @require_http_methods(["POST"])
