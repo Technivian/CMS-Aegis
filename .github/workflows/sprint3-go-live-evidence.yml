@@ -72,8 +72,16 @@ jobs:
           python manage.py seed_sprint3_evidence --organization-slug "${{ inputs.organization_slug != '' && inputs.organization_slug || 'demo-firm' }}"
 
       - name: Run optional live syncs
-        if: ${{ inputs.run_live_syncs && inputs.organization_slug != '' && secrets.SALESFORCE_CLIENT_ID != '' && secrets.SALESFORCE_CLIENT_SECRET != '' && secrets.NETSUITE_ACCOUNT_ID != '' && secrets.NETSUITE_CLIENT_ID != '' && secrets.NETSUITE_CLIENT_SECRET != '' && secrets.NETSUITE_TOKEN_URL != '' && secrets.NETSUITE_RECORDS_URL != '' && secrets.ESIGN_WEBHOOK_SECRET != '' }}
+        if: ${{ inputs.run_live_syncs }}
         run: |
+          if [[ -z "${{ inputs.organization_slug }}" ]]; then
+            echo "Skipping live syncs: no organization slug provided."
+            exit 0
+          fi
+          if [[ -z "${SALESFORCE_CLIENT_ID}" || -z "${SALESFORCE_CLIENT_SECRET}" || -z "${NETSUITE_ACCOUNT_ID}" || -z "${NETSUITE_CLIENT_ID}" || -z "${NETSUITE_CLIENT_SECRET}" || -z "${NETSUITE_TOKEN_URL}" || -z "${NETSUITE_RECORDS_URL}" || -z "${ESIGN_WEBHOOK_SECRET}" ]]; then
+            echo "Skipping live syncs: required integration secrets are not configured."
+            exit 0
+          fi
           python manage.py sync_salesforce_contracts --organization-slug "${{ inputs.organization_slug }}" --limit 200 > evidence/salesforce-sync-live.json
           python manage.py sync_netsuite_contracts --organization-slug "${{ inputs.organization_slug }}" --limit 200 > evidence/netsuite-sync-live.json
           python manage.py dispatch_webhook_deliveries --limit 200 > evidence/webhook-dispatch-live.json
