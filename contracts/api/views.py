@@ -763,11 +763,11 @@ def cases_bulk_update_api(request):
         case_ids = data.get('case_ids', data.get('contract_ids', []))
         updates = data.get('updates', {})
 
-        if not isinstance(contract_ids, list) or not contract_ids:
+        if not isinstance(case_ids, list) or not case_ids:
             return _error_response(request, 'contract_ids must be a non-empty list', 400)
 
         try:
-            normalized_contract_ids = [str(int(contract_id)) for contract_id in contract_ids]
+            normalized_contract_ids = [str(int(case_id)) for case_id in case_ids]
         except (TypeError, ValueError):
             return _error_response(request, 'contract_ids must contain numeric IDs only', 400)
 
@@ -794,6 +794,10 @@ def cases_bulk_update_api(request):
     except Exception:
         logger.exception('contracts_bulk_update_api_failed')
         return _error_response(request, 'An unexpected error occurred.', 500)
+
+
+# Backwards-compatible alias used by legacy URL patterns.
+contracts_bulk_update_api = cases_bulk_update_api
 
 
 @csrf_exempt
