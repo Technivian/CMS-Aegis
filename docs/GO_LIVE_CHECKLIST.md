@@ -74,9 +74,13 @@ Minimum coverage:
 
 ## 4. Production Cutover
 
+Follow [docs/PRODUCTION_CUTOVER_RUNBOOK.md](/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/PRODUCTION_CUTOVER_RUNBOOK.md) for the exact production sequence.
+
+At a minimum, the production operator must:
+
 1. Confirm the backup is fresh.
 2. Put the app in maintenance mode if your platform supports it.
-3. Deploy the current commit.
+3. Deploy the approved commit.
 4. Re-run:
 
 ```bash

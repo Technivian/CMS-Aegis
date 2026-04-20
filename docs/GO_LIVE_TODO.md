@@ -39,6 +39,7 @@ This is the execution board for the next release push. It tracks the ten highest
 - `python manage.py generate_esign_integration_report --organization-slug demo-firm`
 - Playwright smoke suite against a local Postgres rehearsal server
 - Backup/restore rehearsal on the disposable Postgres cluster
+- Production cutover runbook: [docs/PRODUCTION_CUTOVER_RUNBOOK.md](/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/PRODUCTION_CUTOVER_RUNBOOK.md)
 
 ## Stop Conditions
 
