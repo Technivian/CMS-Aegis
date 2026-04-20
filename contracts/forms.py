@@ -408,6 +408,13 @@ class DueDiligenceProcessForm(forms.ModelForm):
         }
 
 
+# Backward-compatible aliases for older care workflow views.
+CareConfigurationForm = MatterForm
+MunicipalityConfigurationForm = MatterForm
+RegionalConfigurationForm = MatterForm
+CaseAssessmentForm = DueDiligenceProcessForm
+
+
 class DueDiligenceTaskForm(forms.ModelForm):
     class Meta:
         model = DueDiligenceTask

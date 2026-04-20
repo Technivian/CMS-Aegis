@@ -14,6 +14,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import logging
+
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -24,6 +26,8 @@ from contracts import views as contract_views
 from contracts.api import views as contract_api_views
 
 from django.contrib.auth import views as auth_views
+
+logger = logging.getLogger(__name__)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

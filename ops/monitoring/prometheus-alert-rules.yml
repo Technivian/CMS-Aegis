@@ -1,0 +1,64 @@
+groups:
+  - name: cms-aegis-slo
+    rules:
+      - alert: CMSAegisHigh5xxRateP1
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m])) /
+          sum(rate(http_requests_total[5m])) > 0.02
+        for: 5m
+        labels:
+          severity: page
+          priority: P1
+        annotations:
+          summary: "CMS Aegis high 5xx rate"
+          description: "5xx ratio is above 2% for 5 minutes."
+
+      - alert: CMSAegisHigh5xxRateP2
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[15m])) /
+          sum(rate(http_requests_total[15m])) > 0.008
+        for: 15m
+        labels:
+          severity: ticket
+          priority: P2
+        annotations:
+          summary: "CMS Aegis elevated 5xx rate"
+          description: "5xx ratio is above 0.8% for 15 minutes."
+
+      - alert: CMSAegisCoreRouteP95HighP1
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le, route) (rate(http_request_duration_seconds_bucket{route=~"/dashboard/|/contracts/|/contracts/.+"}[10m]))
+          ) > 1.5
+        for: 10m
+        labels:
+          severity: page
+          priority: P1
+        annotations:
+          summary: "CMS Aegis p95 latency high"
+          description: "Core route p95 latency above 1.5s for 10 minutes."
+
+      - alert: CMSAegisCoreRouteP95HighP2
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le, route) (rate(http_request_duration_seconds_bucket{route=~"/dashboard/|/contracts/|/contracts/.+"}[15m]))
+          ) > 0.8
+        for: 15m
+        labels:
+          severity: ticket
+          priority: P2
+        annotations:
+          summary: "CMS Aegis p95 latency elevated"
+          description: "Core route p95 latency above 800ms for 15 minutes."
+
+      - alert: CMSAegisReminderSchedulerStalled
+        expr: time() - reminder_scheduler_last_success_epoch > 1800
+        for: 5m
+        labels:
+          severity: page
+          priority: P1
+        annotations:
+          summary: "Reminder scheduler stalled"
+          description: "No scheduler success heartbeat for more than 30 minutes."

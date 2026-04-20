@@ -2,10 +2,10 @@
 {% block title %}Cases - CMS Aegis{% endblock %}
 {% block content %}
 
-<div class="contracts-list-page">
+<div class="contracts-list-page page-wrap">
 
 {# ── Page header ───────────────────────────────────────────────────────────── #}
-<div class="flex items-center justify-between mb-6">
+<div class="page-header">
     <div>
         <h1 class="text-2xl font-bold c-primary">Cases<span class="sr-only">Contracts</span></h1>
         <p class="text-sm mt-1 c-muted">All case agreements across your organization</p>
@@ -21,34 +21,34 @@
 </div>
 
 {# ── Summary stat cards ────────────────────────────────────────────────────── #}
-<div class="grid grid-cols-3 gap-4 mb-6">
+<div class="dash-grid dash-grid-3 mb-6">
     <div class="rounded-xl p-5 border stat-card">
-        <p class="text-xs font-semibold uppercase tracking-widest mb-2 c-muted">Total</p>
+        <p class="text-xs font-semibold uppercase tracking-widest mb-2 c-muted">Totaal</p>
         <p class="text-3xl font-bold c-primary">{{ total_contracts }}</p>
-        <p class="text-xs mt-1 c-muted">contracts</p>
+        <p class="text-xs mt-1 c-muted">casussen</p>
     </div>
     <div class="rounded-xl p-5 border stat-card">
         <div class="flex items-center gap-2 mb-2">
             <span class="w-2 h-2 rounded-full flex-shrink-0 bg-accent-dot"></span>
-            <p class="text-xs font-semibold uppercase tracking-widest c-muted">Active</p>
+            <p class="text-xs font-semibold uppercase tracking-widest c-muted">Openstaand</p>
         </div>
         <p class="text-3xl font-bold c-accent">{{ active_contracts }}</p>
-        <p class="text-xs mt-1 c-muted">currently active</p>
+        <p class="text-xs mt-1 c-muted">in doorstroom</p>
     </div>
     {% if expiring_soon %}
     <div class="rounded-xl p-5 border stat-card-amber">
         <div class="flex items-center gap-2 mb-2">
             <span class="w-2 h-2 rounded-full flex-shrink-0 bg-yellow-400"></span>
-            <p class="text-xs font-semibold uppercase tracking-widest c-amber-soft">Expiring Soon</p>
+            <p class="text-xs font-semibold uppercase tracking-widest c-amber-soft">Herbeoordeling nodig</p>
         </div>
         <p class="text-3xl font-bold c-amber">{{ expiring_soon }}</p>
-        <p class="text-xs mt-1 c-muted">within 30 days</p>
+        <p class="text-xs mt-1 c-muted">binnen 30 dagen</p>
     </div>
     {% else %}
     <div class="rounded-xl p-5 border stat-card">
-        <p class="text-xs font-semibold uppercase tracking-widest mb-2 c-muted">Expiring Soon</p>
+        <p class="text-xs font-semibold uppercase tracking-widest mb-2 c-muted">Herbeoordeling nodig</p>
         <p class="text-3xl font-bold c-dim">0</p>
-        <p class="text-xs mt-1 c-muted">within 30 days</p>
+        <p class="text-xs mt-1 c-muted">binnen 30 dagen</p>
     </div>
     {% endif %}
 </div>
@@ -57,12 +57,12 @@
 <div class="flex items-center gap-3 mb-4 flex-wrap">
 
     {# Quick-filter tab strip #}
-    <span class="text-xs font-semibold uppercase tracking-wide c-muted">All Statuses</span>
-    {% with cur=request.GET.status %}
+    <span class="text-xs font-semibold uppercase tracking-wide c-muted">Alle fases</span>
+    {% with cur=current_phase %}
     <div class="flex items-center rounded-lg p-1 border flex-shrink-0 tabs-shell">
-        {% for tab_label, tab_status in status_tabs %}
-          <a href="?{% if tab_status %}status={{ tab_status }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if sort and sort != '-created_at' %}&sort={{ sort|urlencode }}{% endif %}"
-              class="px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap {% if cur == tab_status or not cur and not tab_status %}tab-pill-active{% else %}tab-pill-idle{% endif %}">
+        {% for tab_label, tab_phase in phase_tabs %}
+          <a href="?{% if tab_phase %}phase={{ tab_phase }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if sort and sort != '-created_at' %}&sort={{ sort|urlencode }}{% endif %}"
+              class="px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap {% if cur == tab_phase or not cur and not tab_phase %}tab-pill-active{% else %}tab-pill-idle{% endif %}">
             {{ tab_label }}
         </a>
         {% endfor %}
@@ -81,17 +81,17 @@
                    class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border focus:outline-none form-input">
         </div>
         <input type="hidden" name="sort" value="{{ sort }}">
-        {% if request.GET.status %}<input type="hidden" name="status" value="{{ request.GET.status }}">{% endif %}
+        {% if current_phase %}<input type="hidden" name="phase" value="{{ current_phase }}">{% endif %}
         <button type="submit" class="flex-shrink-0 px-3 py-2 text-sm font-medium rounded-lg border btn-ghost">
-            Search
+            Zoeken
         </button>
-        {% if search_query or request.GET.status %}
-        <a href="{% url 'contracts:contract_list' %}"
+        {% if search_query or current_phase %}
+        <a href="{% url 'contracts:case_list' %}"
            class="flex-shrink-0 px-3 py-2 text-sm rounded-lg border inline-flex items-center gap-1.5 btn-ghost">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
-            Clear
+            Wissen
         </a>
         {% endif %}
     </form>
@@ -99,15 +99,15 @@
 </div>
 
 {# ── Contracts table ───────────────────────────────────────────────────────── #}
-<div class="rounded-xl border overflow-hidden stat-card">
+<div class="panel overflow-hidden stat-card">
     <table class="w-full text-sm">
         <thead class="tbl-head">
             <tr>
-                {% with qs=search_query st=request.GET.status %}
+                {% with qs=search_query ph=request.GET.phase %}
                 <th class="text-left px-5 py-3">
-                    <a href="?sort={% if sort == 'title' %}-title{% else %}title{% endif %}{% if qs %}&q={{ qs|urlencode }}{% endif %}{% if st %}&status={{ st|urlencode }}{% endif %}"
+                    <a href="?sort={% if sort == 'title' %}-title{% else %}title{% endif %}{% if qs %}&q={{ qs|urlencode }}{% endif %}{% if ph %}&phase={{ ph|urlencode }}{% endif %}"
                        class="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide hover:opacity-80 transition-opacity tbl-th">
-                        Title
+                        Casus
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             {% if sort == 'title' %}<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/>
                             {% elif sort == '-title' %}<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -115,23 +115,23 @@
                         </svg>
                     </a>
                 </th>
-                <th class="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wide tbl-th">Type</th>
+                <th class="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wide tbl-th">Zorgvraag</th>
                 <th class="text-left px-5 py-3">
-                    <a href="?sort={% if sort == 'status' %}-status{% else %}status{% endif %}{% if qs %}&q={{ qs|urlencode }}{% endif %}{% if st %}&status={{ st|urlencode }}{% endif %}"
+                        <a href="?sort={% if sort == 'case_phase' %}-case_phase{% else %}case_phase{% endif %}{% if qs %}&q={{ qs|urlencode }}{% endif %}{% if ph %}&phase={{ ph|urlencode }}{% endif %}"
                        class="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide hover:opacity-80 transition-opacity tbl-th">
-                        Status
+                    Fase
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            {% if sort == 'status' %}<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/>
-                            {% elif sort == '-status' %}<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                                {% if sort == 'case_phase' %}<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/>
+                                {% elif sort == '-case_phase' %}<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                             {% else %}<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 9l4-4 4 4M8 15l4 4 4-4" opacity="0.4"/>{% endif %}
                         </svg>
                     </a>
                 </th>
-                <th class="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wide tbl-th">Counterparty</th>
+                <th class="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wide tbl-th">Aanbieder</th>
                 <th class="text-left px-5 py-3">
-                    <a href="?sort={% if sort == 'value' %}-value{% else %}value{% endif %}{% if qs %}&q={{ qs|urlencode }}{% endif %}{% if st %}&status={{ st|urlencode }}{% endif %}"
+                          <a href="?sort={% if sort == 'value' %}-value{% else %}value{% endif %}{% if qs %}&q={{ qs|urlencode }}{% endif %}{% if ph %}&phase={{ ph|urlencode }}{% endif %}"
                        class="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide hover:opacity-80 transition-opacity tbl-th">
-                        Value
+                        Complexiteit
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             {% if sort == 'value' %}<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/>
                             {% elif sort == '-value' %}<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -140,9 +140,9 @@
                     </a>
                 </th>
                 <th class="text-left px-5 py-3">
-                    <a href="?sort={% if sort == 'end_date' %}-end_date{% else %}end_date{% endif %}{% if qs %}&q={{ qs|urlencode }}{% endif %}{% if st %}&status={{ st|urlencode }}{% endif %}"
+                          <a href="?sort={% if sort == 'end_date' %}-end_date{% else %}end_date{% endif %}{% if qs %}&q={{ qs|urlencode }}{% endif %}{% if ph %}&phase={{ ph|urlencode }}{% endif %}"
                        class="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide hover:opacity-80 transition-opacity tbl-th">
-                        Expires
+                        Doelplaatsing
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             {% if sort == 'end_date' %}<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/>
                             {% elif sort == '-end_date' %}<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -150,7 +150,7 @@
                         </svg>
                     </a>
                 </th>
-                <th class="text-right px-5 py-3 text-xs font-semibold uppercase tracking-wide tbl-th">Actions</th>
+                <th class="text-right px-5 py-3 text-xs font-semibold uppercase tracking-wide tbl-th">Acties</th>
                 {% endwith %}
             </tr>
         </thead>
@@ -162,7 +162,7 @@
 
                 {# Title + client sub-line #}
                  <td class="px-5 py-3.5">
-                    <a href="{% url 'contracts:contract_detail' contract.pk %}"
+                    <a href="{% url 'contracts:case_detail' contract.pk %}"
                        class="font-medium hover:underline c-link">{{ contract.title|truncatechars:44 }}</a>
                     {% if contract.client %}
                     <p class="text-xs mt-0.5 c-muted">{{ contract.client.name }}</p>
@@ -172,30 +172,32 @@
                 {# Type #}
                 <td class="px-5 py-3.5 tbl-td">{{ contract.get_contract_type_display }}</td>
 
-                {# Status badge with leading dot #}
+                {# Phase badge with leading dot #}
                 <td class="px-5 py-3.5">
                     <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full
-                        {% if contract.status == 'ACTIVE' %}bg-green-100 text-green-800
-                        {% elif contract.status == 'DRAFT' %}bg-gray-100 text-gray-600
-                        {% elif contract.status == 'PENDING' %}bg-yellow-100 text-yellow-800
-                        {% elif contract.status == 'EXPIRED' %}bg-red-100 text-red-800
-                        {% else %}bg-blue-100 text-blue-800{% endif %}">
+                        {% if contract.case_phase == 'afgerond' %}bg-green-100 text-green-800
+                        {% elif contract.case_phase == 'actief' %}bg-emerald-100 text-emerald-800
+                        {% elif contract.case_phase == 'plaatsing' %}bg-blue-100 text-blue-800
+                        {% elif contract.case_phase == 'matching' %}bg-indigo-100 text-indigo-800
+                        {% elif contract.case_phase == 'beoordeling' %}bg-amber-100 text-amber-800
+                        {% else %}bg-gray-100 text-gray-700{% endif %}">
                         <span class="w-1.5 h-1.5 rounded-full flex-shrink-0
-                            {% if contract.status == 'ACTIVE' %}bg-green-500
-                            {% elif contract.status == 'DRAFT' %}bg-gray-400
-                            {% elif contract.status == 'PENDING' %}bg-yellow-500
-                            {% elif contract.status == 'EXPIRED' %}bg-red-500
-                            {% else %}bg-blue-500{% endif %}"></span>
-                        {{ contract.get_status_display }}
+                            {% if contract.case_phase == 'afgerond' %}bg-green-500
+                            {% elif contract.case_phase == 'actief' %}bg-emerald-500
+                            {% elif contract.case_phase == 'plaatsing' %}bg-blue-500
+                            {% elif contract.case_phase == 'matching' %}bg-indigo-500
+                            {% elif contract.case_phase == 'beoordeling' %}bg-amber-500
+                            {% else %}bg-gray-500{% endif %}"></span>
+                        {{ contract.get_case_phase_display }}
                     </span>
                 </td>
 
-                {# Counterparty #}
-                <td class="px-5 py-3.5 tbl-td">{{ contract.counterparty|default:"—" }}</td>
+                {# Provider #}
+                <td class="px-5 py-3.5 tbl-td">{{ contract.client.name|default:contract.counterparty|default:"—" }}</td>
 
                 {# Value #}
                 <td class="px-5 py-3.5 font-medium tabular-nums c-primary">
-                    {% if contract.value %}${{ contract.value|floatformat:0 }}{% else %}<span class="c-dim">—</span>{% endif %}
+                    {% if contract.value %}{{ contract.value|floatformat:0 }}{% else %}<span class="c-dim">—</span>{% endif %}
                 </td>
 
                 {# Expiry date — amber warning badge if expiring soon #}
@@ -206,10 +208,10 @@
                             <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                             </svg>
-                            {{ contract.end_date|date:"M d, Y" }}
+                            {{ contract.end_date|date:"d M Y" }}
                         </span>
                         {% else %}
-                        <span class="tbl-td">{{ contract.end_date|date:"M d, Y" }}</span>
+                        <span class="tbl-td">{{ contract.end_date|date:"d M Y" }}</span>
                         {% endif %}
                     {% else %}
                     <span class="c-dim">—</span>
@@ -219,10 +221,10 @@
                 {# Actions #}
                 <td class="px-5 py-3.5 text-right">
                     <div class="inline-flex items-center gap-2">
-                                <a href="{% url 'contracts:contract_detail' contract.pk %}"
-                                    class="text-xs font-medium px-2.5 py-1 rounded-md border transition-opacity hover:opacity-80 btn-soft-primary">View</a>
-                        <a href="{% url 'contracts:contract_update' contract.pk %}"
-                           class="text-xs font-medium px-2.5 py-1 rounded-md border transition-opacity hover:opacity-80 btn-ghost">Edit</a>
+                                <a href="{% url 'contracts:case_detail' contract.pk %}"
+                                    class="text-xs font-medium px-2.5 py-1 rounded-md border transition-opacity hover:opacity-80 btn-soft-primary">Bekijk</a>
+                        <a href="{% url 'contracts:case_update' contract.pk %}"
+                           class="text-xs font-medium px-2.5 py-1 rounded-md border transition-opacity hover:opacity-80 btn-ghost">Bewerken</a>
                     </div>
                 </td>
 
@@ -237,12 +239,12 @@
                             </svg>
                         </div>
                         <div>
-                            <p class="font-medium c-primary">No contracts found</p>
+                            <p class="font-medium c-primary">Geen casussen gevonden</p>
                             <p class="text-sm mt-1 c-muted">
-                                {% if search_query or request.GET.status %}
-                                Try adjusting your filters or <a href="{% url 'contracts:contract_list' %}" class="c-link">clear all filters</a>.
+                                {% if search_query or request.GET.phase %}
+                                Pas je filters aan of <a href="{% url 'contracts:case_list' %}" class="c-link">wis alle filters</a>.
                                 {% else %}
-                                Get started by <a href="{% url 'contracts:contract_create' %}" class="c-link">creating your first contract</a>.
+                                Start met <a href="{% url 'contracts:case_create' %}" class="c-link">je eerste casus</a>.
                                 {% endif %}
                             </p>
                         </div>
@@ -258,22 +260,22 @@
 {% if is_paginated %}
 <div class="mt-4 flex items-center justify-between">
     <p class="text-sm c-muted">
-        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-        &middot; {{ page_obj.paginator.count }} contract{{ page_obj.paginator.count|pluralize }}
+        Pagina {{ page_obj.number }} van {{ page_obj.paginator.num_pages }}
+        &middot; {{ page_obj.paginator.count }} casus{{ page_obj.paginator.count|pluralize:"sen" }}
     </p>
     <div class="flex items-center gap-1">
         {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status|urlencode }}{% endif %}{% if sort %}&sort={{ sort|urlencode }}{% endif %}"
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if request.GET.phase %}&phase={{ request.GET.phase|urlencode }}{% endif %}{% if sort %}&sort={{ sort|urlencode }}{% endif %}"
            class="px-3 py-1.5 text-sm rounded-lg border inline-flex items-center gap-1 transition-opacity hover:opacity-80 btn-ghost">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-            Prev
+            Vorige
         </a>
         {% endif %}
         <span class="px-3 py-1.5 text-sm rounded-lg font-semibold page-pill-active">{{ page_obj.number }}</span>
         {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status|urlencode }}{% endif %}{% if sort %}&sort={{ sort|urlencode }}{% endif %}"
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if request.GET.phase %}&phase={{ request.GET.phase|urlencode }}{% endif %}{% if sort %}&sort={{ sort|urlencode }}{% endif %}"
            class="px-3 py-1.5 text-sm rounded-lg border inline-flex items-center gap-1 transition-opacity hover:opacity-80 btn-ghost">
-            Next
+            Volgende
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </a>
         {% endif %}

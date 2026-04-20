@@ -1,10 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Sum, Count, Q, Avg, F
-from django.db.models.functions import Coalesce, TruncMonth
+from django.db.models import Sum, Count, Q, Avg, Min
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.utils.text import slugify
 from django.views.decorators.http import require_POST
@@ -16,31 +15,24 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, get_user_model
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
-from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import models
+from django.db import models, connection, DatabaseError
 from django.utils.dateparse import parse_date
 from django.utils.decorators import method_decorator
 from datetime import datetime, timedelta, date
 from decimal import Decimal
 import csv
-import json
 import logging
-import re
 
 from .forms import (
-    ChecklistItemForm, WorkflowForm, WorkflowTemplateForm,
-    BudgetForm, TrademarkRequestForm, LegalTaskForm, RiskLogForm, ComplianceChecklistForm,
-    DueDiligenceProcessForm, DueDiligenceTaskForm, DueDiligenceRiskForm, BudgetExpenseForm,
-    ClientForm, MatterForm, DocumentForm, TimeEntryForm, InvoiceForm,
-    TrustAccountForm, TrustTransactionForm, DeadlineForm, UserProfileForm,
-    ConflictCheckForm, ContractForm, RegistrationForm,
-    CounterpartyForm, ClauseCategoryForm, ClauseTemplateForm, EthicalWallForm,
-    SignatureRequestForm, DataInventoryForm, DSARRequestForm, SubprocessorForm,
-    TransferRecordForm, RetentionPolicyForm, LegalHoldForm, ApprovalRuleForm,
-    ApprovalRequestForm,
+    BudgetForm, LegalTaskForm, BudgetExpenseForm,
+    ClientForm, CareConfigurationForm, DocumentForm,
+    DeadlineForm, UserProfileForm,
+    RegistrationForm,
     OrganizationInvitationForm,
+    MunicipalityConfigurationForm, RegionalConfigurationForm,
+    CaseAssessmentForm, DueDiligenceProcessForm,
 )
 from .models import (
     Organization, OrganizationMembership, OrganizationInvitation,
@@ -56,10 +48,9 @@ from .models import (
 from .middleware import log_action
 from .observability import db_health_snapshot, request_metrics_snapshot, scheduler_health_snapshot
 from .permissions import (
-    ContractAction,
-    can_access_contract_action,
+    CaseAction,
+    can_access_case_action,
     can_manage_organization,
-    get_active_org_membership,
     is_organization_owner,
 )
 from .tenancy import get_user_organization, scope_queryset_for_organization, set_organization_on_instance
