@@ -28,13 +28,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: cms_aegis
+          POSTGRES_USER: cms_aegis
+          POSTGRES_PASSWORD: cms_aegis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cms_aegis -d cms_aegis"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
     env:
       DJANGO_ENV: production
       DJANGO_SECRET_KEY: this-is-only-for-ci-not-production-change-me-1234567890
+      DATABASE_URL: postgresql://cms_aegis:cms_aegis@localhost:5432/cms_aegis
       ALLOWED_HOSTS: localhost,127.0.0.1
       CSRF_TRUSTED_ORIGINS: http://localhost
       DEFAULT_FROM_EMAIL: noreply@example.com
-      ALLOW_SQLITE_IN_PRODUCTION: 'true'
+      ALLOW_SQLITE_IN_PRODUCTION: 'false'
       SALESFORCE_CLIENT_ID: ${{ secrets.SALESFORCE_CLIENT_ID }}
       SALESFORCE_CLIENT_SECRET: ${{ secrets.SALESFORCE_CLIENT_SECRET }}
       SALESFORCE_REDIRECT_URI: ${{ secrets.SALESFORCE_REDIRECT_URI }}
