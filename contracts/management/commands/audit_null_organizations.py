@@ -76,13 +76,13 @@ class Command(BaseCommand):
 
         total_rows = 0
         for model, label_field in MODEL_CONFIGS:
-            rows = list(model.objects.filter(organization__isnull=True))
-            if not rows:
+            row_count = model.objects.filter(organization__isnull=True).count()
+            if not row_count:
                 continue
 
-            total_rows += len(rows)
-            self.stdout.write(f'\n{model.__name__}: {len(rows)} row(s)')
-            for row in rows:
+            total_rows += row_count
+            self.stdout.write(f'\n{model.__name__}: {row_count} row(s)')
+            for row in model.objects.filter(organization__isnull=True).iterator():
                 label = getattr(row, label_field, '')
                 owner_user_id = getattr(row, 'created_by_id', None)
                 if owner_user_id is None:

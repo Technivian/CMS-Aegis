@@ -256,7 +256,7 @@ cd client && E2E_BASE_URL=https://<host> npx playwright test tests/e2e/
 ```
 
 For release and rollback verification, use the full two-org checklist in
-[`docs/MANUAL_SMOKE_CHECKLIST.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/MANUAL_SMOKE_CHECKLIST.md).
+[`docs/MANUAL_SMOKE_CHECKLIST.md`](MANUAL_SMOKE_CHECKLIST.md).
 
 ---
 
