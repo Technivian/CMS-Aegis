@@ -35,21 +35,22 @@ start_proc() {
 adopt_existing_dev_server() {
   local pid_file="logs/devserver.pid"
   local port_pid
+  local dev_port="8060"
 
   if [[ -f "$pid_file" ]] && kill -0 "$(cat "$pid_file")" 2>/dev/null; then
     echo "dev server already running (pid $(cat "$pid_file"))."
     return 0
   fi
 
-  port_pid="$(lsof -ti tcp:8000 -sTCP:LISTEN 2>/dev/null | head -n 1 || true)"
+  port_pid="$(lsof -ti tcp:${dev_port} -sTCP:LISTEN 2>/dev/null | head -n 1 || true)"
   if [[ -n "$port_pid" ]]; then
     echo "$port_pid" > "$pid_file"
-    echo "Adopted existing dev server on port 8000 (pid $port_pid)."
+    echo "Adopted existing dev server on port ${dev_port} (pid $port_pid)."
     return 0
   fi
 
   start_proc "dev server" "logs/devserver.pid" "logs/devserver.log" \
-    "$ROOT_DIR/.venv/bin/python" -u manage.py runserver 0.0.0.0:8000 --noreload
+    "$ROOT_DIR/.venv/bin/python" -u manage.py runserver 0.0.0.0:${dev_port} --noreload
 }
 
 adopt_existing_dev_server

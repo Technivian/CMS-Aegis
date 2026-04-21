@@ -1,6 +1,6 @@
 
 """
-API views for Careon repository functionality.
+API views for CMS Aegis repository functionality.
 """
 import json
 import logging
@@ -606,8 +606,8 @@ def _upsert_scim_group(organization, display_name, external_id='', role=None, ac
 @require_http_methods(["GET"])
 def contracts_api(request):
     """
-    API endpoint for listing cases with filtering and pagination.
-    Used by the Careon repository UI.
+    API endpoint for listing contracts with filtering and pagination.
+    Used by the CMS Aegis repository UI.
     """
     try:
         # Parse filters from request

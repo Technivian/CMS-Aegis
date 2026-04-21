@@ -1,61 +1,69 @@
-{% extends "base_redesign.html" %}
+{% extends "base.html" %}
+{% block title %}Due Diligence - CMS Aegis{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Due Diligence Processes</h1>
-        <p class="text-gray-600 mt-2">Manage and track due diligence activities</p>
+<div class="page-wrap space-y-6">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Due Diligence</h1>
+            <p class="page-subtitle">Track diligence workstreams, target companies, and surfaced risks.</p>
+        </div>
+        <a href="{% url 'contracts:due_diligence_create' %}"
+           class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg transition-opacity hover:opacity-90 btn-primary-grad">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"/>
+            </svg>
+            New Process
+        </a>
     </div>
 
-    <div class="bg-white shadow-sm rounded-lg border border-gray-200">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <div class="flex justify-between items-center">
-                <h2 class="text-lg font-medium text-gray-900">Active Processes</h2>
-                <a href="{% url 'contracts:due_diligence_create' %}"
-                   class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
-                    New Process
-                </a>
-            </div>
+    <div class="panel stat-card overflow-hidden">
+        <div class="panel-head">
+            <div class="panel-title">Active Processes</div>
+            <div class="text-xs c-muted">{{ processes|length }} total</div>
         </div>
 
         <div class="divide-y divide-gray-200">
             {% for process in processes %}
-                <div class="px-6 py-4 hover:bg-gray-50">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="text-sm font-medium text-gray-900">
-                                <a href="{% url 'contracts:due_diligence_detail' process.pk %}"
-                                   class="hover:text-blue-600">
-                                    {{ process.name }}
-                                </a>
-                            </h3>
-                            <p class="text-sm text-gray-500 mt-1">{{ process.description|default:"No description" }}</p>
-                        </div>
-                        <div class="flex items-center space-x-4">
-                            <span class="px-2 py-1 text-xs font-medium rounded-full
-                                {% if process.status == 'COMPLETED' %}bg-green-100 text-green-800
-                                {% elif process.status == 'IN_PROGRESS' %}bg-yellow-100 text-yellow-800
-                                {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                {{ process.get_status_display }}
-                            </span>
-                            <span class="text-sm text-gray-500">{{ process.created_at|date:"M d, Y" }}</span>
-                        </div>
+            <a href="{% url 'contracts:due_diligence_detail' process.pk %}" class="list-row group">
+                <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h2 class="text-sm font-semibold c-primary truncate group-hover:text-[color:var(--primary-light)] transition-colors">
+                            {{ process.title }}
+                        </h2>
+                        <span class="badge-sm badge-blue">{{ process.get_transaction_type_display }}</span>
                     </div>
+                    <p class="text-sm c-muted mt-1 truncate">
+                        {{ process.target_company|default:"Unspecified target company" }}
+                        {% if process.description %}
+                            <span class="c-dim">·</span> {{ process.description|truncatechars:90 }}
+                        {% endif %}
+                    </p>
                 </div>
+
+                <div class="flex items-center gap-3 shrink-0">
+                    <span class="badge-sm
+                        {% if process.status == 'COMPLETED' %}badge-green
+                        {% elif process.status == 'ON_HOLD' %}badge-yellow
+                        {% elif process.status == 'MATCHING' %}badge-purple
+                        {% elif process.status == 'ASSESSMENT' %}badge-blue
+                        {% else %}badge-gray{% endif %}">
+                        {{ process.get_status_display }}
+                    </span>
+                    <span class="text-xs c-muted">{{ process.created_at|date:"M d, Y" }}</span>
+                </div>
+            </a>
             {% empty %}
-                <div class="px-6 py-12 text-center">
-                    <div class="text-gray-400 mb-4">
-                        <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-sm font-medium text-gray-900 mb-2">No due diligence processes</h3>
-                    <p class="text-sm text-gray-500 mb-4">Get started by creating your first due diligence process.</p>
-                    <a href="{% url 'contracts:due_diligence_create' %}"
-                       class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
-                        Create Process
-                    </a>
-                </div>
+            <div class="empty-state">
+                <svg class="empty-state-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <div class="empty-state-title">No due diligence processes</div>
+                <p class="empty-state-description">Create the first diligence workstream for this organization.</p>
+                <a href="{% url 'contracts:due_diligence_create' %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg transition-opacity hover:opacity-90 btn-primary-grad">
+                    New Process
+                </a>
+            </div>
             {% endfor %}
         </div>
     </div>

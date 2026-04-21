@@ -1,7 +1,7 @@
 {% extends 'base_fullscreen.html' %}
 {% load static %}
 
-{% block title %}CMS Aegis - Legal Practice Management{% endblock %}
+{% block title %}CMS Aegis - Contract Lifecycle Management{% endblock %}
 
 {% block body %}
 <style>
@@ -94,18 +94,18 @@
         <div class="max-w-3xl mx-auto text-center">
             <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold tracking-widest uppercase mb-8" style="background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.15); color: #60A5FA;">
                 <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 6px rgba(34,197,94,0.6);"></span>
-                Enterprise-Grade Legal Platform
+                Enterprise-Grade CLM Platform
             </div>
             <h1 class="landing-title text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] mb-6">
                 The command center for
-                <span class="block" style="background: linear-gradient(135deg, #2563EB, #60A5FA); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">modern law firms</span>
+                <span class="block" style="background: linear-gradient(135deg, #2563EB, #60A5FA); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">modern contract teams</span>
             </h1>
             <p class="landing-muted text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed">
-                Manage clients, matters, contracts, billing, trust accounts, and compliance from one unified platform.
+                Manage contracts, counterparties, workflows, billing, trust accounts, and compliance from one unified platform.
             </p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a href="{% url 'register' %}" class="glow-btn w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 text-white rounded-xl font-semibold text-[15px] transition-all duration-200" style="background: #2563EB; box-shadow: 0 8px 32px rgba(37,99,235,0.4), 0 2px 4px rgba(0,0,0,0.2);">
-                    Start Free Trial
+                    Start free trial
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                 </a>
                 <a href="{% url 'login' %}" class="landing-outline-btn w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 rounded-xl font-semibold text-[15px]">
@@ -127,7 +127,7 @@
                         <svg class="w-5 h-5" style="color: #2563EB;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
                     <h3 class="landing-title text-[15px] font-bold mb-2">Client & Matter Management</h3>
-                    <p class="landing-muted-strong text-sm leading-relaxed">Track clients, manage matters across practice areas, and maintain complete relationship histories.</p>
+                    <p class="landing-muted-strong text-sm leading-relaxed">Track contracts, manage counterparties, and maintain complete relationship histories.</p>
                 </div>
                 <div class="card-premium landing-surface rounded-2xl p-7">
                     <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-5" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.15);">
@@ -151,8 +151,8 @@
         <div class="max-w-5xl mx-auto">
             <div class="text-center mb-12">
                 <p class="text-xs font-bold tracking-widest uppercase mb-3" style="color: #22C55E;">Complete Suite</p>
-                <h2 class="landing-title text-2xl sm:text-3xl font-extrabold tracking-tight mb-3">Everything your firm needs</h2>
-                <p class="landing-muted-strong text-sm max-w-md mx-auto">Eight integrated modules covering every aspect of legal practice management.</p>
+                <h2 class="landing-title text-2xl sm:text-3xl font-extrabold tracking-tight mb-3">Everything your team needs</h2>
+                <p class="landing-muted-strong text-sm max-w-md mx-auto">Eight integrated modules covering every part of contract lifecycle management.</p>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div class="module-card landing-panel rounded-xl p-5 text-center">
@@ -225,7 +225,7 @@
                         <svg class="w-7 h-7" style="color: #2563EB;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                     </div>
                     <h2 class="landing-title text-2xl sm:text-3xl font-extrabold mb-3">Built with security first</h2>
-                    <p class="landing-muted max-w-lg mx-auto mb-10 text-sm sm:text-base leading-relaxed">Role-based access controls, comprehensive audit logging, and conflict-of-interest screening protect your practice.</p>
+                    <p class="landing-muted max-w-lg mx-auto mb-10 text-sm sm:text-base leading-relaxed">Role-based access controls, comprehensive audit logging, and conflict screening protect your organization.</p>
                     <div class="grid grid-cols-3 gap-4 max-w-lg mx-auto">
                         <div class="stat-glow landing-panel rounded-xl p-5">
                             <p class="text-xl sm:text-2xl font-extrabold" style="color: #2563EB;">RBAC</p>
@@ -248,11 +248,11 @@
     <section class="py-20 px-5 sm:px-8 relative" style="background: linear-gradient(180deg, var(--landing-section-end) 0%, var(--bg) 100%);">
         <div style="position: absolute; top: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, #1F2937, transparent);"></div>
         <div class="max-w-2xl mx-auto text-center">
-            <h2 class="landing-title text-2xl sm:text-3xl font-extrabold tracking-tight mb-3">Ready to modernize your practice?</h2>
-            <p class="landing-muted-strong text-base mb-10">Join forward-thinking firms that trust CMS Aegis.</p>
+            <h2 class="landing-title text-2xl sm:text-3xl font-extrabold tracking-tight mb-3">Ready to modernize your contract operations?</h2>
+            <p class="landing-muted-strong text-base mb-10">Join teams that trust CMS Aegis for CLM.</p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a href="{% url 'register' %}" class="glow-btn w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 text-white rounded-xl font-semibold text-[15px] transition-all duration-200" style="background: #2563EB; box-shadow: 0 8px 32px rgba(37,99,235,0.4), 0 2px 4px rgba(0,0,0,0.2);">
-                    Get Started Free
+                    Get started free
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                 </a>
                 <a href="{% url 'login' %}" class="landing-link text-sm font-medium px-4 py-3">Already have an account? <span style="color: #2563EB;">Sign in</span></a>

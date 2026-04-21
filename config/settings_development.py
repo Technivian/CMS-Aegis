@@ -11,7 +11,7 @@ CSRF_TRUSTED_ORIGINS.extend([
     'https://*.replit.dev',
     'https://*.repl.co',
     'https://*.riker.replit.dev',
-    'https://*.riker.replit.dev:8000',
+    'https://*.riker.replit.dev:8060',
 ])
 
 INSTALLED_APPS.extend([

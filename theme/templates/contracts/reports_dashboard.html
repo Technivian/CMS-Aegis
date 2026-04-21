@@ -3,7 +3,7 @@
 {% block content %}
 <div class="mb-6">
     <h1 class="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
-    <p class="text-sm text-gray-500 mt-1">Case-flow performance, workload, and financial overview.</p>
+    <p class="text-sm text-gray-500 mt-1">Contract-flow performance, workload, and financial overview.</p>
 </div>
 
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -29,7 +29,7 @@
 
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-xl p-4 border border-gray-200">
-        <div class="text-sm text-gray-500">Active Cases<span class="sr-only">Active Contracts</span></div>
+        <div class="text-sm text-gray-500">Active Contracts<span class="sr-only">Active Contracts</span></div>
         <div class="text-2xl font-bold text-gray-900">{{ active_cases }}</div>
         <div class="text-xs text-gray-500">${{ total_case_value|floatformat:0 }} total value</div>
     </div>

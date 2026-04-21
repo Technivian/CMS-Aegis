@@ -1,8 +1,6 @@
+@import "tailwindcss";
 @import "./base.css";
 @import "./components.css";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 /**
   * A catch-all path to Django template files, JavaScript, and Python files
@@ -20,11 +18,15 @@
   --color-primary-500: #1e5bdc;
   --color-primary-600: #174cbc;
   --color-primary-700: #123e9e;
+  --color-primary-800: #0f347f;
+  --color-primary-100: #e8f0ff;
   --color-primary: #1e5bdc;
 
   --color-accent-500: #f2c100;
   --color-accent: #f2c100;
 
+  --color-ink: #0b0b0c;
+  --color-stroke: #e5e7eb;
   --color-bg: #f4f7fb;
   --color-card: #ffffff;
   --color-border: #e6eaf1;
@@ -42,10 +44,10 @@
 }
 
 @utility card { @apply bg-card rounded-xl shadow-sm; }
-@utility btn-primary { @apply inline-flex items-center justify-center rounded-full bg-primary-700 px-6 py-3 text-white shadow-btn hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-700/40 transition font-medium; }
-@utility btn-secondary { @apply inline-flex items-center justify-center rounded-full bg-secondary px-6 py-3 text-white shadow-btn hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-primary-700/40 transition font-medium; }
+@utility btn-primary { @apply inline-flex items-center justify-center rounded-full bg-primary-700 px-6 py-3 text-white shadow-[0_1px_2px_0_rgb(0_0_0_/_0.08)] hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-700/40 transition font-medium; }
+@utility btn-secondary { @apply inline-flex items-center justify-center rounded-full bg-secondary px-6 py-3 text-white shadow-[0_1px_2px_0_rgb(0_0_0_/_0.08)] hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-primary-700/40 transition font-medium; }
 @utility btn-ghost { @apply inline-flex items-center justify-center rounded-full px-4 py-2 text-primary-700 hover:bg-border focus:outline-none focus:ring-2 focus:ring-primary-700/40 transition font-medium; }
-@utility btn-accent { @apply inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-primary-700 shadow-btn hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-primary-700/40 transition font-medium; }
+@utility btn-accent { @apply inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-primary-700 shadow-[0_1px_2px_0_rgb(0_0_0_/_0.08)] hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-primary-700/40 transition font-medium; }
 
 /* Bolton CLM UI helpers */
 @utility input { @apply w-full rounded-xl border border-border bg-card px-4 py-2 shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/40 focus:outline-none; }

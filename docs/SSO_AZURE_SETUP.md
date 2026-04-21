@@ -8,7 +8,7 @@ This project supports OIDC SSO via `mozilla-django-oidc`.
 2. Name: `CMS Aegis`.
 3. Supported account types: choose what you need (single-tenant is typical).
 4. Redirect URI (Web):
-   - `http://127.0.0.1:8000/oidc/callback/` (local dev)
+   - `http://127.0.0.1:8060/oidc/callback/` (local dev)
    - Add your production callback URL later.
 
 ## 2. Create client secret
@@ -44,7 +44,7 @@ export OIDC_VERIFY_SSL=true
 
 ```bash
 .venv/bin/pip install mozilla-django-oidc
-.venv/bin/python manage.py runserver 127.0.0.1:8000
+.venv/bin/python manage.py runserver 127.0.0.1:8060
 ```
 
 ## 6. Test

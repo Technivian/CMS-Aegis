@@ -9,7 +9,7 @@ CMS Aegis is a Django-based contract and legal operations platform with multi-te
 - Database: SQLite in development
 - Auth routes: `/login/`, `/register/`, `/logout/`
 - App shell: dashboard + contract-centric SaaS UI with light/dark theme support
-- Dev server: `127.0.0.1:8000` or `0.0.0.0:8000`
+- Dev server: `127.0.0.1:8060` or `0.0.0.0:8060`
 
 ## Core Capabilities
 
@@ -129,7 +129,7 @@ bash scripts/bootstrap_python312.sh
 
 ```bash
 .venv/bin/python manage.py migrate
-.venv/bin/python manage.py runserver 127.0.0.1:8000
+.venv/bin/python manage.py runserver 127.0.0.1:8060
 ```
 
 ## Free Preview Deploy
