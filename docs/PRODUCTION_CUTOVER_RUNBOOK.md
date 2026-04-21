@@ -44,7 +44,7 @@ export SECURE_SSL_REDIRECT='true'
 export SECURE_HSTS_PRELOAD='true'
 ```
 
-If SSO is enabled, also set the OIDC / SAML variables required by [README_IRONCLAD.md](/Users/haroonwahed/Documents/Projects/CMS-Aegis/README_IRONCLAD.md).
+If SSO is enabled, also set the OIDC / SAML variables required by [README_CMS_AEGIS.md](/Users/haroonwahed/Documents/Projects/CMS-Aegis/README_CMS_AEGIS.md).
 
 ## Step 1: Confirm the Target
 
@@ -106,12 +106,12 @@ Stop if:
 
 ## Step 4: Deploy the Approved Commit
 
-Deploy the approved `codex/ironclad-activation` commit.
+Deploy the approved `codex/cms-aegis-activation` commit.
 
 Example:
 
 ```bash
-git fetch origin codex/ironclad-activation
+git fetch origin codex/cms-aegis-activation
 git checkout <release-commit-sha>
 ```
 

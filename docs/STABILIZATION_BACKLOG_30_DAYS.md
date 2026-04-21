@@ -56,7 +56,7 @@ This backlog turns the takeover plan into implementation-ready work. It is inten
 - Outcome: The app is validated as a real user, not only through automated tests.
 - Files:
   - [`docs/ROLLBACK_RUNBOOK.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/ROLLBACK_RUNBOOK.md)
-  - [`README_IRONCLAD.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/README_IRONCLAD.md)
+  - [`README_CMS_AEGIS.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/README_CMS_AEGIS.md)
 - Tasks:
   - Write a repeatable smoke checklist using two organizations and at least two roles.
   - Include dashboard, contract create/edit, workflow create/edit, approval flows, privacy records, clause templates, and legal holds.
@@ -121,7 +121,7 @@ This backlog turns the takeover plan into implementation-ready work. It is inten
 - Outcome: Deployments fail fast when required configuration is missing or unsafe.
 - Files:
   - [`.env.example`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/.env.example)
-  - [`README_IRONCLAD.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/README_IRONCLAD.md)
+  - [`README_CMS_AEGIS.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/README_CMS_AEGIS.md)
   - [`config/settings_production.py`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/config/settings_production.py)
 - Tasks:
   - Document required vs optional production variables.

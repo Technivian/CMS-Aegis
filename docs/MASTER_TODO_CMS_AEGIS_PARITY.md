@@ -1,4 +1,4 @@
-# CMS Aegis Master To-Do for Ironclad-Level CLM/CMS
+# CMS Aegis Master To-Do for CMS Aegis-Level CLM/CMS
 
 Last updated: 2026-04-14
 
@@ -29,10 +29,10 @@ Legend:
 - Completed the redlining / version-compare slice:
   - added document comparison service and compare UI.
   - document updates now create immutable versions and queue OCR review records.
-  - verification: `python manage.py test tests.test_document_versioning tests.test_ironclad_features -v 1`.
+  - verification: `python manage.py test tests.test_document_versioning tests.test_cms_aegis_features -v 1`.
 - Completed bulk record-operation hardening:
   - bulk contract updates now validate lifecycle transitions and emit audit events.
-  - verification: `python manage.py test tests.test_ironclad_features -v 1`.
+  - verification: `python manage.py test tests.test_cms_aegis_features -v 1`.
 - Completed deterministic workflow routing:
   - approval routing now matches value / jurisdiction / contract type rules and auto-creates approval requests.
   - verification: `python manage.py test tests.test_workflow_routing tests.test_workflow_transition_guardrails -v 1`.
@@ -48,14 +48,14 @@ Legend:
 2026-04-13:
 - Completed validation for bulk API hardening (`ICL-001`) in current tree.
 - Verified focused test suites pass:
-  - `tests.test_ironclad_features` (8 tests)
+  - `tests.test_cms_aegis_features` (8 tests)
   - `tests.test_security_guardrails` + `tests.test_cross_tenant_mutation_guardrails` (5 tests)
 - Verified export/download permissions currently covered for organization activity export:
   - `tests.test_organization_invitations` (27 tests), including owner/admin allow, member deny, anonymous redirect, and tenant scoping checks.
 - Implemented `ICL-002` configuration layer:
   - `DATABASE_URL` parsing in base settings with Postgres/SQLite support.
   - production guard now fails fast unless DB engine is PostgreSQL (or explicit emergency override).
-  - updated `.env.example`, `README_IRONCLAD.md`, and `docs/ROLLBACK_RUNBOOK.md` with Postgres contract and rehearsal template.
+  - updated `.env.example`, `README_CMS_AEGIS.md`, and `docs/ROLLBACK_RUNBOOK.md` with Postgres contract and rehearsal template.
 - Validation results:
   - `python manage.py check` (development profile) passes.
   - production profile without `DATABASE_URL` correctly fails with `ImproperlyConfigured`.
@@ -75,7 +75,7 @@ Legend:
   - `python manage.py check` passes on the new env.
   - `pip-audit --disable-pip --no-deps -r requirements/runtime.txt` reports no known vulnerabilities.
   - `bandit -q -r contracts config -lll` passes (no high-severity findings).
-  - focused regression tests pass: `tests.test_ironclad_features` + `tests.test_security_guardrails`.
+  - focused regression tests pass: `tests.test_cms_aegis_features` + `tests.test_security_guardrails`.
 - Completed `ICL-003` dependency vulnerability verification for Node stacks:
   - `npm --prefix client audit --audit-level=high --json` reports zero high/critical vulnerabilities.
   - `npm --prefix theme/static_src audit --audit-level=high --json` reports zero high/critical vulnerabilities.
@@ -89,12 +89,12 @@ Legend:
   - replaced in-memory mock-first `TemplateService`, `ClauseService`, and `ObligationService` with Django model-backed implementations.
   - removed singleton in-memory service usage from `contracts/services/__init__.py`.
   - added regression coverage in `tests/test_persisted_services.py`.
-  - verification: `python manage.py test tests.test_persisted_services tests.test_ironclad_features tests.test_security_guardrails`.
+  - verification: `python manage.py test tests.test_persisted_services tests.test_cms_aegis_features tests.test_security_guardrails`.
 - Implemented `ICL-007` workflow hardening:
   - added explicit status transition guards for `SignatureRequest` and `ApprovalRequest`.
   - enforced actor authorization for transition actions in update form flows.
   - added transition regression tests in `tests/test_workflow_transition_guardrails.py`.
-  - verification: `python manage.py test tests.test_workflow_transition_guardrails tests.test_ironclad_features tests.test_security_guardrails tests.test_persisted_services`.
+  - verification: `python manage.py test tests.test_workflow_transition_guardrails tests.test_cms_aegis_features tests.test_security_guardrails tests.test_persisted_services`.
 - Implemented `ICL-008` observability slice (scheduler heartbeat):
   - added heartbeat metric persistence for reminder scheduler success runs.
   - extended `/_health/` with JSON mode (`?format=json`) including scheduler stale/healthy/unknown status.
@@ -122,7 +122,7 @@ Legend:
   - completed top-10 authenticated route profiling evidence in `docs/AUTH_ROUTE_PROFILE_2026-04-13.json` and `docs/AUTH_ROUTE_PROFILE_2026-04-13.md`.
   - completed 2x peak load harness and evidence in `docs/LOAD_TEST_2X_2026-04-13.json` and `docs/LOAD_TEST_2X_2026-04-13.md`.
   - added bundle command `manage.py run_performance_evidence_bundle` and wired RC artifact workflow to include full performance evidence set.
-  - verification: `python manage.py test tests.test_performance_guardrails tests.test_ironclad_features -v 1`.
+  - verification: `python manage.py test tests.test_performance_guardrails tests.test_cms_aegis_features -v 1`.
 - Started `ICL-011` monolith split:
   - extracted privacy/approval/signature views into `contracts/views_domains/privacy_approvals.py`.
   - extracted organization invitation/membership/activity/reporting views into `contracts/views_domains/organization_admin.py`.
@@ -313,7 +313,7 @@ Legend:
 
 31. Repository dashboards and saved views
 - Status: `PARTIAL`
-- Evidence: dashboard metrics present plus saved views and filter-chip polish in `theme/static/js/ironclad-repository.js`.
+- Evidence: dashboard metrics present plus saved views and filter-chip polish in `theme/static/js/cms-aegis-repository.js`.
 - Next: build configurable shared-team dashboards and deeper filter persistence.
 
 32. Executive analytics (cycle time, bottlenecks, risk trends)
@@ -498,7 +498,7 @@ Phase D (Weeks 13-16): enterprise finish
 
 ## Definition of “Powerful and Complete” for This Repo
 
-This repo reaches Ironclad-level enterprise readiness when all of the following are true:
+This repo reaches CMS Aegis-level enterprise readiness when all of the following are true:
 1. No `P0` security/reliability gaps remain open.
 2. Contract lifecycle is enforced by state-machine rules, not only UI/form behavior.
 3. At least one production-grade e-sign integration and one business-system integration are live.

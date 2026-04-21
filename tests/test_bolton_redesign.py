@@ -30,10 +30,10 @@ class BoltonRedesignTestCase(TestCase):
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
 
-        self.assertContains(response, 'Active Contracts')
+        self.assertContains(response, 'Active Matters')
         self.assertContains(response, 'Clients')
-        self.assertContains(response, 'Outstanding')
-        self.assertContains(response, 'Pending Tasks')
+        self.assertContains(response, 'Contracts in intake')
+        self.assertContains(response, 'Open Task Signals')
         self.assertContains(response, 'kpi-card')
 
     def test_dashboard_container_constraint(self):
@@ -46,18 +46,18 @@ class BoltonRedesignTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertContains(response, 'title="Search"')
-        self.assertContains(response, 'title="Toggle theme"')
-        self.assertContains(response, 'title="Notifications"')
+        self.assertContains(response, 'title="Thema wisselen"')
+        self.assertContains(response, 'title="Meldingen"')
         self.assertContains(response, 'New Contract')
-        self.assertContains(response, 'Logout')
+        self.assertContains(response, 'Uitloggen')
 
     def test_dashboard_panels(self):
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Recent Contracts')
-        self.assertContains(response, 'Upcoming Deadlines')
-        self.assertContains(response, 'Activity Feed')
-        self.assertContains(response, 'Billing Snapshot')
+        self.assertContains(response, 'Workflow recommendations open')
+        self.assertContains(response, 'Task Signals')
+        self.assertContains(response, 'Portfolio snapshot')
 
     def test_contracts_table_structure(self):
         Contract.objects.create(
@@ -72,9 +72,9 @@ class BoltonRedesignTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertContains(response, 'Title')
-        self.assertContains(response, 'Type')
+        self.assertContains(response, 'Contract type')
         self.assertContains(response, 'Status')
-        self.assertContains(response, 'Value')
+        self.assertContains(response, 'Complexiteit')
         self.assertContains(response, 'Counterparty')
         self.assertContains(response, 'Test Contract')
 
@@ -82,7 +82,7 @@ class BoltonRedesignTestCase(TestCase):
         response = self.client.get(reverse('contracts:contract_list'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Search contracts...')
-        self.assertContains(response, 'All Statuses')
+        self.assertContains(response, 'All statuses')
         self.assertContains(response, 'Search')
         self.assertContains(response, 'New Contract')
 
@@ -91,7 +91,7 @@ class BoltonRedesignTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertContains(response, 'title="Search"')
-        self.assertContains(response, 'title="Toggle theme"')
+        self.assertContains(response, 'title="Thema wisselen"')
         self.assertContains(response, 'title="Search"')
         self.assertContains(response, 'type="submit"')
 

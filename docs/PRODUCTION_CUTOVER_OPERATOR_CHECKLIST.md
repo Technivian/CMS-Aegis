@@ -69,7 +69,7 @@ Stop if:
 - [ ] Deploy the approved release commit
 
 ```bash
-git fetch origin codex/ironclad-activation
+git fetch origin codex/cms-aegis-activation
 git checkout <release-commit-sha>
 ```
 

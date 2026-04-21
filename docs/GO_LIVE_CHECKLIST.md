@@ -36,7 +36,7 @@ export SECURE_SSL_REDIRECT=true
 export SECURE_HSTS_PRELOAD=true
 ```
 
-If SSO is enabled, add the OIDC variables documented in [README_IRONCLAD.md](/Users/haroonwahed/Documents/Projects/CMS-Aegis/README_IRONCLAD.md).
+If SSO is enabled, add the OIDC variables documented in [README_CMS_AEGIS.md](/Users/haroonwahed/Documents/Projects/CMS-Aegis/README_CMS_AEGIS.md).
 
 ## 2. Preflight Checks
 

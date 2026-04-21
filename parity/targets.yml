@@ -1,7 +1,7 @@
 
 # Feature Parity Targets - behaviors to match (no proprietary code)
 
-repository_ironclad_like:
+repository_cms_aegis_like:
   filter_chips:
     - status: "Multi-select status filter chips"
     - type: "Contract type filter chips" 
