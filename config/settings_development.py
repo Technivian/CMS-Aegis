@@ -11,7 +11,7 @@ CSRF_TRUSTED_ORIGINS.extend([
     'https://*.replit.dev',
     'https://*.repl.co',
     'https://*.riker.replit.dev',
-    'https://*.riker.replit.dev:8000',
+    'https://*.riker.replit.dev:8060',
 ])
 
 INSTALLED_APPS.extend([
@@ -20,3 +20,8 @@ INSTALLED_APPS.extend([
 ])
 MIDDLEWARE.insert(1, 'debug_toolbar.middleware.DebugToolbarMiddleware')
 MIDDLEWARE.append('django_browser_reload.middleware.BrowserReloadMiddleware')
+
+STORAGES = {
+    **STORAGES,
+    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+}

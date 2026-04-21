@@ -19,13 +19,13 @@ LEAF_CERT="$CERT_DIR/localhost-leaf-cert.pem"
 LEAF_CFG="$CERT_DIR/localhost-leaf.cnf"
 
 HOST="127.0.0.1"
-PORT="8000"
+PORT="8060"
 MODE="foreground"
 
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/dev_https.sh up [--background] [--host 127.0.0.1] [--port 8000]
+  scripts/dev_https.sh up [--background] [--host 127.0.0.1] [--port 8060]
   scripts/dev_https.sh down
 
 Examples:
@@ -88,8 +88,8 @@ x509_extensions = v3_ca
 C = NL
 ST = Noord-Holland
 L = Amsterdam
-O = Careon Local Dev
-CN = Careon Local Root CA
+O = CMS Aegis Local Dev
+CN = CMS Aegis Local Root CA
 
 [v3_ca]
 subjectKeyIdentifier = hash
@@ -117,7 +117,7 @@ req_extensions = req_ext
 C = NL
 ST = Noord-Holland
 L = Amsterdam
-O = Careon Local Dev
+O = CMS Aegis Local Dev
 CN = localhost
 
 [req_ext]
@@ -201,8 +201,8 @@ start_server() {
     echo "URL: https://$HOST:$PORT/"
     echo "Log: $LOG_FILE"
   else
-    echo "Starting HTTPS dev server on https://$HOST:$PORT/"
-    exec "${cmd[@]}"
+  echo "Starting HTTPS dev server on https://$HOST:$PORT/"
+  exec "${cmd[@]}"
   fi
 }
 

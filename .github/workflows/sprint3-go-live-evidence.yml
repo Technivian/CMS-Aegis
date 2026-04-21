@@ -28,13 +28,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: cms_aegis
+          POSTGRES_USER: cms_aegis
+          POSTGRES_PASSWORD: cms_aegis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cms_aegis -d cms_aegis"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
     env:
       DJANGO_ENV: production
       DJANGO_SECRET_KEY: this-is-only-for-ci-not-production-change-me-1234567890
+      DATABASE_URL: postgresql://cms_aegis:cms_aegis@localhost:5432/cms_aegis
       ALLOWED_HOSTS: localhost,127.0.0.1
       CSRF_TRUSTED_ORIGINS: http://localhost
       DEFAULT_FROM_EMAIL: noreply@example.com
-      ALLOW_SQLITE_IN_PRODUCTION: 'true'
+      ALLOW_SQLITE_IN_PRODUCTION: 'false'
       SALESFORCE_CLIENT_ID: ${{ secrets.SALESFORCE_CLIENT_ID }}
       SALESFORCE_CLIENT_SECRET: ${{ secrets.SALESFORCE_CLIENT_SECRET }}
       SALESFORCE_REDIRECT_URI: ${{ secrets.SALESFORCE_REDIRECT_URI }}
@@ -66,9 +82,22 @@ jobs:
       - name: Apply migrations
         run: python manage.py migrate --noinput
 
-      - name: Run optional live syncs
-        if: ${{ inputs.run_live_syncs && inputs.organization_slug != '' }}
+      - name: Seed baseline and synthetic evidence
         run: |
+          python manage.py seed_data
+          python manage.py seed_sprint3_evidence --organization-slug "${{ inputs.organization_slug != '' && inputs.organization_slug || 'demo-firm' }}"
+
+      - name: Run optional live syncs
+        if: ${{ inputs.run_live_syncs }}
+        run: |
+          if [[ -z "${{ inputs.organization_slug }}" ]]; then
+            echo "Skipping live syncs: no organization slug provided."
+            exit 0
+          fi
+          if [[ -z "${SALESFORCE_CLIENT_ID}" || -z "${SALESFORCE_CLIENT_SECRET}" || -z "${NETSUITE_ACCOUNT_ID}" || -z "${NETSUITE_CLIENT_ID}" || -z "${NETSUITE_CLIENT_SECRET}" || -z "${NETSUITE_TOKEN_URL}" || -z "${NETSUITE_RECORDS_URL}" || -z "${ESIGN_WEBHOOK_SECRET}" ]]; then
+            echo "Skipping live syncs: required integration secrets are not configured."
+            exit 0
+          fi
           python manage.py sync_salesforce_contracts --organization-slug "${{ inputs.organization_slug }}" --limit 200 > evidence/salesforce-sync-live.json
           python manage.py sync_netsuite_contracts --organization-slug "${{ inputs.organization_slug }}" --limit 200 > evidence/netsuite-sync-live.json
           python manage.py dispatch_webhook_deliveries --limit 200 > evidence/webhook-dispatch-live.json

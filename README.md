@@ -1,14 +1,14 @@
-# Careon
+# CMS Aegis
 
-Careon is a Django-based care management platform with multi-tenant organization support, role-based access control, reminders, audit logging, and a tested UI layer.
+CMS Aegis is a Django-based contract lifecycle management platform with multi-tenant organization support, role-based access control, reminders, audit logging, and a tested UI layer.
 
 ## Current State
 
 - Backend: Django 5.2.5
 - Database: SQLite in development
 - Auth routes: `/login/`, `/register/`, `/logout/`
-- App shell: dashboard + care-centric SaaS UI with light/dark theme support
-- Dev server: `127.0.0.1:8000` or `0.0.0.0:8000`
+- App shell: dashboard + CLM SaaS UI with light/dark theme support
+- Dev server: `127.0.0.1:8060` or `0.0.0.0:8060`
 
 ## Local HTTPS (Chrome/Safari)
 
@@ -21,7 +21,7 @@ scripts/dev_https.sh up
 Open:
 
 ```text
-https://127.0.0.1:8000/
+https://127.0.0.1:8060/
 ```
 
 Useful commands:
@@ -33,7 +33,7 @@ scripts/dev_https.sh down
 
 ## Core Capabilities
 
-- Care matter management with create, detail, update, notes, AI assistant, deadlines, documents, tasks, and reporting
+- Contract management with create, detail, update, notes, AI assistant, deadlines, documents, tasks, and reporting
 - Multi-tenant organization model using `Organization` and `OrganizationMembership`
 - Organization team management: invites, role changes, deactivation/reactivation, activity log, CSV export
 - Internal reminder system for matter deadlines and follow-ups
@@ -43,7 +43,7 @@ scripts/dev_https.sh down
 
 ## SSO (OIDC)
 
-Careon supports optional SSO using OIDC (for example: Azure AD / Entra ID, Okta, Auth0, Keycloak).
+CMS Aegis supports optional SSO using OIDC (for example: Azure AD / Entra ID, Okta, Auth0, Keycloak).
 
 Install dependency:
 

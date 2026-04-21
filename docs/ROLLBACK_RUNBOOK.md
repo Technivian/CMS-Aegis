@@ -190,7 +190,7 @@ pg_restore -Fc -d "$PGDATABASE" /backups/cms-aegis/<pre-cutover-backup>.dump
 sudo systemctl start gunicorn-cms-aegis
 ```
 
-Capture evidence in [`docs/DRILL_LOG.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/DRILL_LOG.md):
+Capture evidence in [`docs/DRILL_LOG.md`](DRILL_LOG.md):
 - start and finish timestamps
 - migration duration
 - restore duration
@@ -256,7 +256,7 @@ cd client && E2E_BASE_URL=https://<host> npx playwright test tests/e2e/
 ```
 
 For release and rollback verification, use the full two-org checklist in
-[`docs/MANUAL_SMOKE_CHECKLIST.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/MANUAL_SMOKE_CHECKLIST.md).
+[`docs/MANUAL_SMOKE_CHECKLIST.md`](MANUAL_SMOKE_CHECKLIST.md).
 
 ---
 

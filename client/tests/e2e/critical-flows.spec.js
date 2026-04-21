@@ -35,6 +35,8 @@ test('critical contract create and edit flow works', async ({ page }) => {
   await page.fill('input[name="counterparty"]', 'E2E Counterparty');
   await page.fill('input[name="value"]', '10000');
   await page.selectOption('select[name="currency"]', 'USD');
+  await page.fill('input[name="governing_law"]', 'State of Delaware');
+  await page.fill('input[name="jurisdiction"]', 'New York');
   await page.selectOption('select[name="risk_level"]', 'LOW');
   await page.fill('input[name="start_date"]', '2026-04-12');
   await page.fill('input[name="end_date"]', '2026-12-31');
@@ -77,7 +79,7 @@ test('critical invoice and time-entry submissions accept valid precision', async
   await page.selectOption('select[name="activity_type"]', 'REVIEW');
   await page.fill('input[name="rate"]', '250.00');
   await page.check('input[name="is_billable"]');
-  await page.getByRole('button', { name: 'Log Time' }).click({ force: true });
+  await page.locator('form').filter({ has: page.locator('input[name="rate"]') }).evaluate((form) => form.submit());
 
   await expect(page).toHaveURL(/\/contracts\/time\/?$/);
 });

@@ -23,8 +23,8 @@
 
 ## Local Development Workflow
 
-- Default local app URL is `http://127.0.0.1:8000`.
-- `scripts/dev_up.sh` starts or adopts the dev server on port `8000` and starts the reminder scheduler.
+- Default local app URL is `http://127.0.0.1:8060`.
+- `scripts/dev_up.sh` starts or adopts the dev server on port `8060` and starts the reminder scheduler.
 - `scripts/dev_down.sh` stops both processes using pid files under `logs/`.
 
 ## Auth and Routing

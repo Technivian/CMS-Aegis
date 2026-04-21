@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Careon{% endblock %}</title>
+    <title>{% block title %}CMS Aegis{% endblock %}</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%232563EB' width='100' height='100'/><path fill='white' d='M40 55l15 15 30-30' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
     {% load static %}
     <link href="{% static 'css/dist/styles.css' %}" rel="stylesheet">
@@ -13,7 +13,7 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
         (function() {
-            var t = localStorage.getItem('careon-theme') || 'dark';
+            var t = localStorage.getItem('cms-aegis-theme') || 'dark';
             document.documentElement.setAttribute('data-theme', t);
         })();
         function toggleTheme() {
@@ -21,7 +21,7 @@
             var current = html.getAttribute('data-theme');
             var next = current === 'dark' ? 'light' : 'dark';
             html.setAttribute('data-theme', next);
-            localStorage.setItem('careon-theme', next);
+            localStorage.setItem('cms-aegis-theme', next);
         }
     </script>
     <style>
@@ -706,8 +706,8 @@
                     <svg style="width: 18px; height: 18px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 </div>
                 <div>
-                    <span style="font-weight: 700; color: var(--text-primary); font-size: 15px; letter-spacing: -0.02em;">Careon</span>
-                    <span style="font-size: 10px; color: var(--text-muted); margin-left: 6px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;">Zorgregie</span>
+                    <span style="font-weight: 700; color: var(--text-primary); font-size: 15px; letter-spacing: -0.02em;">CMS Aegis</span>
+                    <span style="font-size: 10px; color: var(--text-muted); margin-left: 6px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;">CLM</span>
                 </div>
             </a>
         </div>
@@ -741,9 +741,9 @@
                 <a href="{% url 'contracts:notification_list' %}" style="position: relative; padding: 6px; color: var(--text-secondary); border-radius: 8px; transition: all 0.2s; text-decoration: none;" title="Meldingen">
                     <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                 </a>
-                <a href="{% url 'contracts:case_create' %}" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; color: white; font-size: 13px; font-weight: 500; border-radius: 8px; transition: all 0.2s; text-decoration: none; background: var(--btn-gradient);">
+                <a href="{% url 'contracts:contract_create' %}" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; color: white; font-size: 13px; font-weight: 500; border-radius: 8px; transition: all 0.2s; text-decoration: none; background: var(--btn-gradient);">
                     <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                    Nieuwe casus
+                    New Contract
                 </a>
                 <div style="width: 1px; height: 28px; background: var(--border); margin: 0 4px;"></div>
                 <div style="display: flex; align-items: center; gap: 6px;">
@@ -778,89 +778,89 @@
                     Dashboard
                 </a>
 
-                <div class="nav-section">WERK</div>
-                <a href="{% url 'contracts:case_create' %}" class="nav-link {% if request.resolver_match.url_name == 'case_create' %}active{% endif %}">
+                <div class="nav-section">PORTFOLIO</div>
+                <a href="{% url 'contracts:contract_create' %}" class="nav-link {% if request.resolver_match.url_name == 'contract_create' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Start aanvraag
+                    New Contract
                 </a>
-                <a href="{% url 'contracts:case_list' %}" class="nav-link {% if request.resolver_match.url_name == 'case_list' or request.resolver_match.url_name == 'case_detail' or request.resolver_match.url_name == 'case_update' %}active{% endif %}">
+                <a href="{% url 'contracts:contract_list' %}" class="nav-link {% if request.resolver_match.url_name == 'contract_list' or request.resolver_match.url_name == 'contract_detail' or request.resolver_match.url_name == 'contract_update' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    Casussen
+                    Contracts
                 </a>
-                <a href="{% url 'contracts:assessment_list' %}" class="nav-link {% if request.resolver_match.url_name == 'assessment_list' or request.resolver_match.url_name == 'assessment_detail' or request.resolver_match.url_name == 'assessment_create' or request.resolver_match.url_name == 'assessment_update' %}active{% endif %}">
+                <a href="{% url 'contracts:contract_list' %}" class="nav-link {% if request.resolver_match.url_name == 'contract_list' or request.resolver_match.url_name == 'contract_detail' or request.resolver_match.url_name == 'contract_create' or request.resolver_match.url_name == 'contract_update' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3"></path></svg>
-                    Beoordelingen
+                    Reviews
                 </a>
-                <a href="{% url 'contracts:task_list' %}" class="nav-link {% if 'deadline' in request.resolver_match.url_name or request.resolver_match.url_name == 'task_list' or request.resolver_match.url_name == 'task_kanban' or request.resolver_match.url_name == 'task_create' or request.resolver_match.url_name == 'task_update' %}active{% endif %}">
+                <a href="{% url 'contracts:legal_task_kanban' %}" class="nav-link {% if 'deadline' in request.resolver_match.url_name or request.resolver_match.url_name == 'legal_task_kanban' or request.resolver_match.url_name == 'legal_task_create' or request.resolver_match.url_name == 'legal_task_update' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                    Taken
+                    Tasks
                 </a>
-                <a href="{% url 'contracts:matching_dashboard' %}" class="nav-link {% if 'workflow' in request.resolver_match.url_name or request.resolver_match.url_name == 'matching_dashboard' %}active{% endif %}">
+                <a href="{% url 'contracts:workflow_dashboard' %}" class="nav-link {% if 'workflow' in request.resolver_match.url_name or request.resolver_match.url_name == 'workflow_dashboard' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    Matching
+                    Workflows
                 </a>
-                <a href="{% url 'contracts:intake_list' %}" class="nav-link {% if request.resolver_match.url_name == 'intake_list' or request.resolver_match.url_name == 'intake_create' or request.resolver_match.url_name == 'intake_detail' or request.resolver_match.url_name == 'intake_update' or request.resolver_match.url_name == 'due_diligence_list' or request.resolver_match.url_name == 'due_diligence_create' or request.resolver_match.url_name == 'due_diligence_detail' or request.resolver_match.url_name == 'due_diligence_update' %}active{% endif %}">
+                <a href="{% url 'contracts:due_diligence_list' %}" class="nav-link {% if request.resolver_match.url_name == 'due_diligence_list' or request.resolver_match.url_name == 'due_diligence_create' or request.resolver_match.url_name == 'due_diligence_detail' or request.resolver_match.url_name == 'due_diligence_update' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h8m-8 5h8m-8 5h5M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"></path></svg>
                     Intake
                 </a>
-                <a href="{% url 'contracts:placement_list' %}" class="nav-link {% if request.resolver_match.url_name == 'placement_list' or request.resolver_match.url_name == 'placement_create' or request.resolver_match.url_name == 'placement_detail' or request.resolver_match.url_name == 'placement_update' %}active{% endif %}">
+                <a href="{% url 'contracts:due_diligence_list' %}" class="nav-link {% if request.resolver_match.url_name == 'due_diligence_list' or request.resolver_match.url_name == 'due_diligence_create' or request.resolver_match.url_name == 'due_diligence_detail' or request.resolver_match.url_name == 'due_diligence_update' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l4 4L19 7"></path></svg>
-                    Plaatsing
+                    Approvals
                 </a>
 
-                <div class="nav-section">NETWERK</div>
+                <div class="nav-section">COUNTERPARTIES</div>
                 <a href="{% url 'contracts:client_list' %}" class="nav-link {% if 'client' in request.resolver_match.url_name %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    Zorgaanbieders
+                    Counterparties
                 </a>
-                <a href="{% url 'contracts:municipality_list' %}" class="nav-link {% if 'municipality' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'contracts:client_list' %}" class="nav-link {% if 'client' in request.resolver_match.url_name %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                    Gemeenten
+                    Clients
                 </a>
-                <a href="{% url 'contracts:regional_list' %}" class="nav-link {% if 'regional' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'contracts:counterparty_list' %}" class="nav-link {% if 'counterparty' in request.resolver_match.url_name %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-                    Regio's
+                    Jurisdictions
                 </a>
 
-                <div class="nav-section">STURING</div>
+                <div class="nav-section">GOVERNANCE</div>
                 <a href="{% url 'contracts:budget_list' %}" class="nav-link {% if 'budget' in request.resolver_match.url_name %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Capaciteit &amp; budget
+                    Budget &amp; capacity
                 </a>
-                <a href="{% url 'contracts:waittime_list' %}" class="nav-link {% if 'waittime' in request.resolver_match.url_name or 'trust' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'contracts:trust_account_list' %}" class="nav-link {% if 'trust' in request.resolver_match.url_name %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                    Wachttijden
+                    Escrow
                 </a>
                 <a href="{% url 'contracts:reports_dashboard' %}" class="nav-link {% if 'report' in request.resolver_match.url_name %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    Rapportages &amp; regie
+                    Reports &amp; analytics
                 </a>
-                <a href="{% url 'contracts:signal_list' %}" class="nav-link {% if 'risk' in request.resolver_match.url_name or request.resolver_match.url_name == 'signal_list' or request.resolver_match.url_name == 'signal_create' or request.resolver_match.url_name == 'signal_update' %}active{% endif %}">
+                <a href="{% url 'contracts:risk_log_list' %}" class="nav-link {% if 'risk' in request.resolver_match.url_name or request.resolver_match.url_name == 'risk_log_list' or request.resolver_match.url_name == 'risk_log_create' or request.resolver_match.url_name == 'risk_log_update' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    Signalen
+                    Risks
                 </a>
 
-                <div class="nav-section">ONDERSTEUNING</div>
+                <div class="nav-section">OPERATIONS</div>
                 <a href="{% url 'contracts:document_list' %}" class="nav-link {% if 'document' in request.resolver_match.url_name %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                    Documenten
+                    Documents
                 </a>
                 <a href="{% url 'contracts:repository' %}" class="nav-link {% if request.resolver_match.url_name == 'repository' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
-                    Dossierarchief
+                    Repository
                 </a>
                 <a href="{% url 'contracts:privacy_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'privacy_dashboard' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                    Privacy &amp; gegevensbeheer
+                    Privacy &amp; compliance
                 </a>
                 <a href="{% url 'contracts:audit_log_list' %}" class="nav-link {% if 'audit' in request.resolver_match.url_name %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                    Audittrail
+                    Audit log
                 </a>
 
                 <a href="{% url 'settings_hub' %}" class="nav-link {% if request.resolver_match.url_name == 'settings_hub' %}active{% endif %}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317a1 1 0 011.35-.936l.478.239a1 1 0 00.894 0l.478-.239a1 1 0 011.35.936l.067.53a1 1 0 00.611.822l.49.198a1 1 0 01.554 1.266l-.18.52a1 1 0 00.174.952l.325.44a1 1 0 010 1.19l-.325.44a1 1 0 00-.174.952l.18.52a1 1 0 01-.554 1.266l-.49.198a1 1 0 00-.611.822l-.067.53a1 1 0 01-1.35.936l-.478-.239a1 1 0 00-.894 0l-.478.239a1 1 0 01-1.35-.936l-.067-.53a1 1 0 00-.611-.822l-.49-.198a1 1 0 01-.554-1.266l.18-.52a1 1 0 00-.174-.952l-.325-.44a1 1 0 010-1.19l.325-.44a1 1 0 00.174-.952l-.18-.52a1 1 0 01.554-1.266l.49-.198a1 1 0 00.611-.822l.067-.53z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15a3 3 0 100-6 3 3 0 000 6z"></path></svg>
-                    Instellingen
+                    Settings
                 </a>
             </div>
         </nav>

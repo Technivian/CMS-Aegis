@@ -1,6 +1,6 @@
 
 """
-API views for Careon repository functionality.
+API views for CMS Aegis repository functionality.
 """
 import json
 import logging
@@ -45,6 +45,7 @@ from contracts.domain.contracts import ListParams
 from contracts.middleware import log_action
 from contracts.permissions import can_manage_organization
 from contracts.tenancy import get_user_organization
+from contracts.tenancy import scope_queryset_for_organization
 from contracts.models import (
     Contract,
     OrganizationAPIToken,
@@ -605,8 +606,8 @@ def _upsert_scim_group(organization, display_name, external_id='', role=None, ac
 @require_http_methods(["GET"])
 def contracts_api(request):
     """
-    API endpoint for listing cases with filtering and pagination.
-    Used by the Careon repository UI.
+    API endpoint for listing contracts with filtering and pagination.
+    Used by the CMS Aegis repository UI.
     """
     try:
         # Parse filters from request
@@ -619,41 +620,9 @@ def contracts_api(request):
             page_size=int(request.GET.get('page_size', 25))
         )
 
-        organization = get_user_organization(request.user)
-        queryset = scope_queryset_for_organization(CareCase.objects.all(), organization)
-
-        if params.q:
-            queryset = queryset.filter(
-                Q(title__icontains=params.q)
-                | Q(preferred_provider__icontains=params.q)
-                | Q(content__icontains=params.q)
-            )
-
-        if params.status:
-            queryset = queryset.filter(status__in=params.status)
-
-        if params.sort == 'updated_asc':
-            queryset = queryset.order_by('updated_at')
-        elif params.sort == 'title':
-            queryset = queryset.order_by('title')
-        elif params.sort == 'status':
-            queryset = queryset.order_by('status')
-        else:
-            queryset = queryset.order_by('-updated_at')
-
-        paginator = Paginator(queryset, params.page_size)
-        page_obj = paginator.get_page(params.page)
-
-        result = ListResult(
-            contracts=[_build_case_data(case) for case in page_obj],
-            total_count=paginator.count,
-            page=params.page,
-            page_size=params.page_size,
-            total_pages=paginator.num_pages,
-        )
-        
+        service = get_repository_service(request.user, use_mock=False)
+        result = service.list(params)
         return JsonResponse(result.to_dict())
-        
     except Exception:
         logger.exception('contracts_api_failed')
         return _error_response(request, 'An unexpected error occurred.', 500)
@@ -754,6 +723,22 @@ def contract_detail_api_v1(request, contract_id):
         logger.exception('contract_detail_api_v1_failed')
         return _error_response(request, 'An unexpected error occurred.', 500)
 
+
+@login_required
+@require_http_methods(["GET"])
+def contract_detail_api(request, contract_id):
+    """Legacy authenticated contract detail endpoint."""
+    try:
+        service = get_repository_service(request.user, use_mock=False)
+        result = service.get_by_id(contract_id)
+        if not result:
+            return _error_response(request, 'Contract not found', 404)
+        return JsonResponse(result.to_dict())
+    except Exception:
+        logger.exception('contract_detail_api_failed')
+        return _error_response(request, 'An unexpected error occurred.', 500)
+
+
 @login_required
 @require_http_methods(["POST"])
 def cases_bulk_update_api(request):
@@ -763,11 +748,11 @@ def cases_bulk_update_api(request):
         case_ids = data.get('case_ids', data.get('contract_ids', []))
         updates = data.get('updates', {})
 
-        if not isinstance(contract_ids, list) or not contract_ids:
+        if not isinstance(case_ids, list) or not case_ids:
             return _error_response(request, 'contract_ids must be a non-empty list', 400)
 
         try:
-            normalized_contract_ids = [str(int(contract_id)) for contract_id in contract_ids]
+            normalized_contract_ids = [str(int(case_id)) for case_id in case_ids]
         except (TypeError, ValueError):
             return _error_response(request, 'contract_ids must contain numeric IDs only', 400)
 
@@ -794,6 +779,10 @@ def cases_bulk_update_api(request):
     except Exception:
         logger.exception('contracts_bulk_update_api_failed')
         return _error_response(request, 'An unexpected error occurred.', 500)
+
+
+# Backwards-compatible alias used by legacy URL patterns.
+contracts_bulk_update_api = cases_bulk_update_api
 
 
 @csrf_exempt

@@ -1,0 +1,35 @@
+services:
+  - name: cms-aegis-preview
+    type: web
+    runtime: python
+    plan: free
+    branch: codex/ironclad-activation
+    autoDeploy: false
+    buildCommand: ./build.sh
+    startCommand: bash -lc "python3 manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: DJANGO_ENV
+        value: production
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cms-aegis-preview-db
+          property: connectionString
+      - key: ALLOWED_HOSTS
+        value: localhost,.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://*.onrender.com
+      - key: DEFAULT_FROM_EMAIL
+        value: ops@example.com
+      - key: DB_SSL_REQUIRE
+        value: true
+      - key: SECURE_SSL_REDIRECT
+        value: true
+      - key: SECURE_HSTS_PRELOAD
+        value: true
+
+databases:
+  - name: cms-aegis-preview-db
+    plan: free
+    databaseName: cms_aegis

@@ -8,7 +8,7 @@ This project supports Google SSO via OIDC using `mozilla-django-oidc`.
 2. Configure OAuth consent screen.
 3. Create OAuth 2.0 Client ID (Web application).
 4. Add Authorized redirect URI:
-   - `http://127.0.0.1:8000/oidc/callback/`
+   - `http://127.0.0.1:8060/oidc/callback/`
    - Add production callback URL when ready.
 
 ## 2. Configure environment
@@ -34,7 +34,7 @@ export SSO_ALLOWED_EMAIL_DOMAINS="yourcompany.com"
 
 ```bash
 .venv/bin/pip install mozilla-django-oidc
-.venv/bin/python manage.py runserver 127.0.0.1:8000
+.venv/bin/python manage.py runserver 127.0.0.1:8060
 ```
 
 ## 4. Test

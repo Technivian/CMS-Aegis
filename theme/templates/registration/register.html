@@ -14,8 +14,8 @@
             <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-8" style="background: var(--primary-bg); border: 1px solid rgba(37,99,235,0.15);">
                 <svg class="w-7 h-7" style="color: var(--primary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
             </div>
-            <h2 class="text-3xl font-bold mb-4 leading-tight login-title">Start managing your<br>legal practice today</h2>
-            <p class="text-[15px] leading-relaxed login-subtitle">Set up your firm's workspace in minutes. Get instant access to client management, billing, compliance tools, and more.</p>
+            <h2 class="text-3xl font-bold mb-4 leading-tight login-title">Start managing your<br>contract portfolio today</h2>
+            <p class="text-[15px] leading-relaxed login-subtitle">Set up your workspace in minutes. Get instant access to contract management, billing, compliance tools, and more.</p>
             <div class="mt-12 grid grid-cols-2 gap-4">
                 <div class="rounded-xl p-4" style="background: var(--primary-bg-light); border: 1px solid rgba(37,99,235,0.12);">
                     <p class="text-2xl font-bold" style="color: var(--primary);">15+</p>
@@ -77,7 +77,7 @@
                     <label for="{{ form.email.id_for_label }}" class="block text-sm font-semibold mb-2 login-title">Email address</label>
                     <input type="email" name="email" id="{{ form.email.id_for_label }}" value="{{ form.email.value|default:'' }}" required autocomplete="email"
                         class="login-input{% if form.email.errors %} has-error{% endif %}"
-                        placeholder="you@yourfirm.com">
+                        placeholder="you@company.com">
                     {% if form.email.errors %}<p class="mt-1.5 text-xs" style="color: var(--error);">{% for e in form.email.errors %}{{ e }}{% endfor %}</p>{% endif %}
                 </div>
                 <div>

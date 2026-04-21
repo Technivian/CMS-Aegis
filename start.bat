@@ -51,8 +51,8 @@ python manage.py migrate
 echo =============================
 echo 🚀 Starting Django server...
 echo =============================
-start http://127.0.0.1:8000/
-python manage.py runserver
+start http://127.0.0.1:8060/
+python manage.py runserver 127.0.0.1:8060
 
 ENDLOCAL
 pause

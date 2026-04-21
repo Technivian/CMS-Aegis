@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Dashboard - Zorgregie{% endblock %}
+{% block title %}Dashboard - CMS Aegis CLM{% endblock %}
 
 {% block content %}
 
@@ -11,18 +11,18 @@
             <p class="page-subtitle">{{ today|date:"l, F j, Y" }}</p>
         </div>
         <div class="page-actions">
-            <a href="{% url 'contracts:case_create' %}" class="action-chip">
+            <a href="{% url 'contracts:contract_create' %}" class="action-chip">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                New Case
+                New Contract
                 <span class="sr-only">New Contract</span>
             </a>
             <a href="{% url 'contracts:client_create' %}" class="action-chip">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                Nieuwe aanbieder
+                New Counterparty
             </a>
-            <a href="{% url 'contracts:case_list' %}?flow=intake" class="action-chip">
+            <a href="{% url 'contracts:contract_list' %}?flow=intake" class="action-chip">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Start intake vanuit casus
+                Start intake from contract
             </a>
         </div>
     </div>
@@ -32,14 +32,14 @@
         {% if urgent_case_count > 0 %}
         <a href="{% url 'contracts:deadline_list' %}" class="alert-banner alert-banner-red alert-link-fill">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
-            <span><strong>{{ urgent_case_count }}</strong> urgente casus{{ urgent_case_count|pluralize }} vragen nu directe opvolging</span>
+            <span><strong>{{ urgent_case_count }}</strong> urgent matter{{ urgent_case_count|pluralize }} require immediate follow-up</span>
             <svg class="ic-sm ml-auto opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </a>
         {% endif %}
         {% if provider_capacity_critical_count > 0 %}
         <a href="{% url 'contracts:client_list' %}" class="alert-banner alert-banner-yellow alert-link-fill">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            <span><strong>{{ provider_capacity_critical_count }}</strong> aanbieders vragen capaciteitssturing of opvolging</span>
+            <span><strong>{{ provider_capacity_critical_count }}</strong> counterparties need capacity review or follow-up</span>
             <svg class="ic-sm ml-auto opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </a>
         {% endif %}
@@ -53,7 +53,7 @@
                 <svg class="ic-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             </div>
             <div class="kpi-value">{{ active_cases }}</div>
-            <div class="kpi-label">Active Cases<span class="sr-only">Active Contracts</span></div>
+            <div class="kpi-label">Active Matters<span class="sr-only">Active Contracts</span></div>
             {% if expiring_soon_count > 0 %}
             <div class="kpi-sub kpi-sub-amber">
                 <svg class="ic-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -80,11 +80,11 @@
                 <svg class="ic-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <div class="kpi-value">{{ intake_phase_count }}</div>
-            <div class="kpi-label">Casussen in intakefase</div>
+            <div class="kpi-label">Contracts in intake</div>
             {% if intake_phase_count > 0 %}
             <div class="kpi-sub kpi-sub-amber">{{ risk_count }} signalen vragen extra opvolging</div>
             {% else %}
-            <div class="kpi-sub kpi-sub-green">Start je eerste regiedossier om de werkvoorraad op te bouwen</div>
+            <div class="kpi-sub kpi-sub-green">Start your first contract intake to build the portfolio</div>
             {% endif %}
         </div>
 
@@ -104,10 +104,10 @@
             <div class="panel-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-blue"></div>
-                    <span class="panel-title">Recent Cases<span class="sr-only">Recent Contracts</span></span>
+                    <span class="panel-title">Recent Contracts<span class="sr-only">Recent Contracts</span></span>
                 </div>
-                <a href="{% url 'contracts:case_list' %}" class="panel-link">
-                    Alles bekijken
+                <a href="{% url 'contracts:contract_list' %}" class="panel-link">
+                    View all
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
@@ -127,8 +127,8 @@
             {% empty %}
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                No cases yet.
-                <a href="{% url 'contracts:contract_create' %}" class="c-link no-underline font-semibold"> Create your first case</a>
+                No contracts yet.
+                <a href="{% url 'contracts:contract_create' %}" class="c-link no-underline font-semibold"> Create your first contract</a>
             </div>
             {% endfor %}
         </div>
@@ -154,7 +154,7 @@
                 </div>
                 {% endfor %}
                 {% else %}
-                <div class="no-data-msg">Nog geen casusdata beschikbaar</div>
+                <div class="no-data-msg">No contract data available yet</div>
                 {% endif %}
 
                 <div class="panel-divider">
@@ -178,13 +178,13 @@
             <div class="panel-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-purple"></div>
-                    <span class="panel-title">Match aanbevelingen open</span>
+                    <span class="panel-title">Workflow recommendations open</span>
                     {% if match_recommendations %}
                     <span class="badge-sm badge-blue ml-1">{{ match_recommendations|length }}</span>
                     {% endif %}
                 </div>
-                <a href="{% url 'contracts:case_list' %}?flow=matching" class="panel-link">
-                    Start vanuit casus
+                <a href="{% url 'contracts:contract_list' %}?flow=matching" class="panel-link">
+                    Start from contract
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
@@ -193,8 +193,8 @@
                 <div class="item-row items-start">
                     <div class="status-dot blue mt-1"></div>
                     <div class="min-w-0 flex-1">
-                        <div class="item-title">Casusfocus: {{ matching_focus_case.title|truncatechars:48 }}</div>
-                        <div class="item-meta">Aanbevelingen zijn berekend voor deze casus.</div>
+                        <div class="item-title">Contract focus: {{ matching_focus_case.title|truncatechars:48 }}</div>
+                        <div class="item-meta">Recommendations are calculated for this contract.</div>
                     </div>
                 </div>
             </div>
@@ -214,12 +214,12 @@
                                     <div class="item-meta">Matchscore {{ suggestion.match_score }} · Wachttijd {% if suggestion.wait_days is not None %}{{ suggestion.wait_days }} dagen{% else %}onbekend{% endif %} · Capaciteit {{ suggestion.capacity }}</div>
                                     <div class="item-meta">Reden: {{ suggestion.match_reason }}</div>
                                 </div>
-                                <a href="{{ item.action_href }}&provider={{ suggestion.id }}" class="c-link no-underline text-[12px] font-semibold">Kies vanuit casus</a>
+                                <a href="{{ item.action_href }}&provider={{ suggestion.id }}" class="c-link no-underline text-[12px] font-semibold">Choose from contract</a>
                             </div>
                             {% endfor %}
                         </div>
                         <div class="mt-2">
-                            <a href="{{ item.action_href }}" class="c-link no-underline text-[12px] font-semibold">Open casus voor matching</a>
+                            <a href="{{ item.action_href }}" class="c-link no-underline text-[12px] font-semibold">Open contract for workflow</a>
                         </div>
                     </div>
                 </div>
@@ -227,10 +227,10 @@
             {% empty %}
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                Geen open matchaanbevelingen.
-                <a href="{% url 'contracts:case_list' %}?flow=matching" class="c-link no-underline font-semibold"> Start matching vanuit casus</a>
+                No open workflow recommendations.
+                <a href="{% url 'contracts:contract_list' %}?flow=matching" class="c-link no-underline font-semibold"> Start workflow from contract</a>
                 {% if not has_providers %}
-                <a href="{% url 'contracts:client_create' %}" class="c-link no-underline font-semibold"> Voeg een zorgaanbieder toe</a>
+                <a href="{% url 'contracts:client_create' %}" class="c-link no-underline font-semibold"> Add a counterparty</a>
                 {% endif %}
             </div>
             {% endfor %}
@@ -243,7 +243,7 @@
                     <span class="panel-title">Task Signals<span class="sr-only">Pending Tasks</span></span>
                 </div>
                 <a href="{% url 'contracts:client_list' %}" class="panel-link">
-                    Alles bekijken
+                    View all
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
@@ -263,9 +263,9 @@
             {% empty %}
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                Geen capaciteitsdruk gedetecteerd.
+                No capacity pressure detected.
                 {% if not has_providers %}
-                <a href="{% url 'contracts:client_create' %}" class="c-link no-underline font-semibold"> Voeg een zorgaanbieder toe</a>
+                <a href="{% url 'contracts:client_create' %}" class="c-link no-underline font-semibold"> Add a counterparty</a>
                 {% endif %}
             </div>
             {% endfor %}
@@ -276,15 +276,15 @@
         <div class="panel-head">
             <div class="panel-head-inner">
                 <div class="dot dot-blue"></div>
-                <span class="panel-title">Opvolging / Taken</span>
+            <span class="panel-title">Follow-up / Tasks</span>
             </div>
-                <a href="{% url 'contracts:task_list' %}" class="panel-link">
-                Alles bekijken
+                <a href="{% url 'contracts:legal_task_kanban' %}" class="panel-link">
+                View all
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </a>
         </div>
         {% for task in followup_tasks %}
-        <a href="{% url 'contracts:task_update' task.pk %}" class="list-row">
+        <a href="{% url 'contracts:legal_task_update' task.pk %}" class="list-row">
             <div class="item-row">
                 <div class="status-dot {% if task.priority == 'URGENT' %}red{% elif task.priority == 'HIGH' %}yellow{% else %}blue{% endif %}"></div>
                 <div class="min-w-0">
@@ -298,8 +298,8 @@
         </a>
         {% empty %}
         <div class="empty-state">
-            Geen open opvolgtaken.
-            <a href="{% url 'contracts:task_create' %}" class="c-link no-underline font-semibold"> Voeg een taak toe</a>
+            No open follow-up tasks.
+            <a href="{% url 'contracts:legal_task_create' %}" class="c-link no-underline font-semibold"> Add a task</a>
         </div>
         {% endfor %}
     </div>
@@ -308,15 +308,15 @@
         <div class="panel-head">
             <div class="panel-head-inner">
                 <div class="dot dot-red"></div>
-                <span class="panel-title">Recente signalen</span>
+            <span class="panel-title">Recent risks</span>
             </div>
-            <a href="{% url 'contracts:signal_list' %}" class="panel-link">
-                Alles bekijken
+            <a href="{% url 'contracts:risk_log_list' %}" class="panel-link">
+                View all
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </a>
         </div>
         {% for signal in recent_signals %}
-        <a href="{% url 'contracts:signal_update' signal.pk %}" class="list-row">
+        <a href="{% url 'contracts:risk_log_update' signal.pk %}" class="list-row">
             <div class="item-row">
                 <div class="status-dot {% if signal.risk_level == 'CRITICAL' %}red{% elif signal.risk_level == 'HIGH' %}yellow{% else %}blue{% endif %}"></div>
                 <div class="min-w-0">
@@ -331,7 +331,7 @@
         {% empty %}
         <div class="empty-state">
             Geen recente signalen.
-            <a href="{% url 'contracts:signal_create' %}" class="c-link no-underline font-semibold"> Voeg een signaal toe</a>
+            <a href="{% url 'contracts:risk_log_create' %}" class="c-link no-underline font-semibold"> Add a risk</a>
         </div>
         {% endfor %}
     </div>
@@ -341,10 +341,10 @@
             <div class="panel-head">
                 <div class="panel-head-inner">
                     <div class="dot dot-green"></div>
-                    <span class="panel-title">Regie-activiteit</span>
+                <span class="panel-title">Governance activity</span>
                 </div>
                 <a href="{% url 'contracts:audit_log_list' %}" class="panel-link">
-                    Volledig logboek
+                    Full audit log
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
@@ -372,7 +372,7 @@
             {% empty %}
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                Geen recente regie-activiteit.
+                No recent governance activity.
             </div>
             {% endfor %}
         </div>
@@ -380,15 +380,15 @@
         <div class="stk-col">
             <div class="panel">
                 <div class="panel-head">
-                    <span class="panel-title">Regie snapshot</span>
+                    <span class="panel-title">Portfolio snapshot</span>
                 </div>
                 <div class="panel-inner">
                     <div class="mb-5">
-                        <div class="metric-label">Gem. intake → plaatsing</div>
-                        <div class="metric-xl">{{ avg_intake_to_placement_days|floatformat:1 }}<span class="metric-unit">dagen</span></div>
+                        <div class="metric-label">Avg. intake → signature</div>
+                        <div class="metric-xl">{{ avg_intake_to_placement_days|floatformat:1 }}<span class="metric-unit">days</span></div>
                     </div>
                     <div class="panel-divider">
-                        <div class="metric-label">Aanbieders met ruimte</div>
+                        <div class="metric-label">Counterparties with capacity</div>
                         <div class="metric-lg metric-trust">{{ providers_with_capacity }}</div>
                     </div>
                 </div>
@@ -396,33 +396,33 @@
 
             <div class="panel">
                 <div class="panel-head">
-                    <span class="panel-title">Snelle navigatie</span>
+                    <span class="panel-title">Quick links</span>
                 </div>
                 <a href="{% url 'contracts:reports_dashboard' %}" class="list-row nav-row">
                     <div class="nav-row-body">
                         <svg class="ic-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                        <span class="nav-row-label">Regierapportages</span>
+                        <span class="nav-row-label">Reports &amp; analytics</span>
                     </div>
                     <svg class="ic-muted ic-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
                 <a href="{% url 'contracts:privacy_dashboard' %}" class="list-row nav-row">
                     <div class="nav-row-body">
                         <svg class="ic-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                        <span class="nav-row-label">AVG en privacy</span>
+                        <span class="nav-row-label">Privacy &amp; compliance</span>
                     </div>
                     <svg class="ic-muted ic-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
-                <a href="{% url 'contracts:matching_dashboard' %}" class="list-row nav-row">
+                <a href="{% url 'contracts:workflow_dashboard' %}" class="list-row nav-row">
                     <div class="nav-row-body">
                         <svg class="ic-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        <span class="nav-row-label">Matchingoverzicht</span>
+                        <span class="nav-row-label">Workflow overview</span>
                     </div>
                     <svg class="ic-muted ic-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
-                <a href="{% url 'contracts:case_create' %}" class="list-row nav-row">
+                <a href="{% url 'contracts:contract_create' %}" class="list-row nav-row">
                     <div class="nav-row-body">
                         <svg class="ic-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                        <span class="nav-row-label">Nieuwe casus starten</span>
+                        <span class="nav-row-label">Create new contract</span>
                     </div>
                     <svg class="ic-muted ic-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>

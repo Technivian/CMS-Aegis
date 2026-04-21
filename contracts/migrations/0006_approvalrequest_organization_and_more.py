@@ -42,7 +42,11 @@ def backfill_organization_fields(apps, schema_editor):
     single_org_id = _single_org_id(Organization)
 
     for workflow in Workflow.objects.filter(organization__isnull=True).select_related('contract'):
-        workflow.organization_id = workflow.contract.organization_id or _membership_org_id(OrganizationMembership, workflow.created_by_id)
+        workflow.organization_id = (
+            getattr(workflow.contract, 'organization_id', None)
+            or _membership_org_id(OrganizationMembership, workflow.created_by_id)
+            or single_org_id
+        )
         workflow.save(update_fields=['organization'])
 
     for template in ClauseTemplate.objects.filter(organization__isnull=True).select_related('category'):
