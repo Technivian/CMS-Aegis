@@ -9,7 +9,7 @@ from django.urls import reverse
 from contracts.models import AuditLog, Contract, Organization, OrganizationMembership
 
 
-class IroncladFeaturesTests(TestCase):
+class CMSAegisFeaturesTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(
@@ -17,7 +17,7 @@ class IroncladFeaturesTests(TestCase):
             email='test@example.com',
             password='testpass123',
         )
-        self.organization = Organization.objects.create(name='Iron Firm', slug='iron-firm')
+        self.organization = Organization.objects.create(name='CMS Aegis Legal', slug='cms-aegis-legal')
         OrganizationMembership.objects.create(
             organization=self.organization,
             user=self.user,
@@ -39,7 +39,7 @@ class IroncladFeaturesTests(TestCase):
         response = self.client.get(reverse('contracts:contract_list'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Search contracts...')
-        self.assertContains(response, 'All Statuses')
+        self.assertContains(response, 'All statuses')
         self.assertContains(response, 'Title')
         self.assertContains(response, 'Status')
         self.assertContains(response, 'Test Contract')

@@ -29,13 +29,12 @@ class RedesignComponentsTestCase(TestCase):
     def test_dashboard_component_labels(self):
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Active Cases')
         self.assertContains(response, 'Active Contracts')
-        self.assertContains(response, 'Open Task Signals')
-        self.assertContains(response, 'Recent Cases')
         self.assertContains(response, 'Recent Contracts')
         self.assertContains(response, 'Case Portfolio')
-        self.assertContains(response, 'Activity Feed')
+        self.assertContains(response, 'Workflow recommendations open')
+        self.assertContains(response, 'Task Signals')
+        self.assertContains(response, 'Governance activity')
 
     def test_contracts_list_core_components(self):
         Contract.objects.create(
@@ -48,12 +47,9 @@ class RedesignComponentsTestCase(TestCase):
 
         response = self.client.get(reverse('contracts:contract_list'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Cases')
         self.assertContains(response, 'Test Contract')
-        self.assertContains(response, 'Search cases...')
         self.assertContains(response, 'Search contracts...')
-        self.assertContains(response, 'All Statuses')
-        self.assertContains(response, 'New Case')
+        self.assertContains(response, 'All statuses')
         self.assertContains(response, 'New Contract')
 
     def test_navigation_structure(self):
@@ -145,9 +141,9 @@ class RedesignComponentsTestCase(TestCase):
         response = self.client.get(reverse('contracts:global_search'), {'q': 'Case Search'})
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Search across cases, case matters, documents, and task signals')
-        self.assertContains(response, 'Search cases, clients, case matters, documents, clauses, task signals...')
-        self.assertContains(response, 'Cases (1)')
+        self.assertContains(response, 'Search across contracts, matters, documents, and task signals with relevance ranking.')
+        self.assertContains(response, 'Search contracts, clients, matters, documents, clauses, task signals...')
+        self.assertContains(response, 'Contracts (1)')
         self.assertContains(response, contract.title)
 
     def tearDown(self):

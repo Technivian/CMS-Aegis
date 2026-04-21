@@ -71,7 +71,7 @@ class DesignSystemTests(TestCase):
         response = self.client.get(reverse('dashboard'))
         self.assertContains(response, 'title="Search"')
         self.assertContains(response, '/contracts/search/')
-        self.assertContains(response, 'title="Notifications"')
+        self.assertContains(response, 'title="Meldingen"')
 
     def tearDown(self):
         if 'FEATURE_REDESIGN' in os.environ:

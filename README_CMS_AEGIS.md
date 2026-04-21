@@ -110,7 +110,7 @@ The centralized policy entry point is `can_access_contract_action(user, contract
 
 ## Feature Flags
 
-- `IRONCLAD_MODE = False` by default in `config/settings.py`
+- `CMS_AEGIS_MODE = False` by default in `config/settings.py`
 - `FEATURE_REDESIGN` is used by the redesign tests and UI paths
 
 The redesign and contract list/dashboard markers are covered by the test suite and should be treated as part of the supported UI surface.
@@ -276,7 +276,7 @@ As of the latest validation pass:
 
 ## Canonical Docs
 
-- `README_IRONCLAD.md`: current operational overview
+- `README_CMS_AEGIS.md`: current operational overview
 - `DECISIONS.md`: implemented architectural and product decisions
 - `docs/OBSERVABILITY_BOOTSTRAP.md`: SLO, dashboard, and alert bootstrap
 - `docs/STAGING_POSTGRES_REHEARSAL.md`: exact `ICL-002` staging runbook and evidence template

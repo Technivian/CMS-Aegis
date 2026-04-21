@@ -29,7 +29,7 @@
             <p class="text-xs font-semibold uppercase tracking-widest" style="color:var(--text-muted)">Saved views</p>
             <p class="text-sm mt-1" style="color:var(--text-muted)">Capture the current repository filter state for quick reuse.</p>
         </div>
-        <button type="button" onclick="window.ironclad.saveCurrentView()" class="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-lg border" style="background:var(--surface);border-color:var(--border);color:var(--text-primary)">Save current view</button>
+        <button type="button" onclick="window.cmsAegisRepository.saveCurrentView()" class="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-lg border" style="background:var(--surface);border-color:var(--border);color:var(--text-primary)">Save current view</button>
     </div>
     <div id="saved-views"></div>
 </div>
@@ -66,7 +66,7 @@
         <button id="repo-bulk-status" class="repo-mini-btn">Change Status</button>
         <button id="repo-bulk-assign" class="repo-mini-btn">Assign to Me</button>
         <button id="repo-bulk-export" class="repo-mini-btn">Export CSV</button>
-        <button onclick="window.ironclad.clearSelection()" class="repo-mini-btn">Clear</button>
+        <button onclick="window.cmsAegisRepository.clearSelection()" class="repo-mini-btn">Clear</button>
     </div>
 </div>
 
@@ -91,5 +91,5 @@
 <div id="pagination-container" class="mt-4"></div>
 <div id="details-drawer" class="repo-drawer"></div>
 
-<script src="{% static 'js/ironclad-repository.js' %}"></script>
+<script src="{% static 'js/cms-aegis-repository.js' %}"></script>
 {% endblock %}

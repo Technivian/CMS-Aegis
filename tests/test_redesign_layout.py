@@ -27,9 +27,9 @@ class RedesignLayoutTests(TestCase):
 
     def test_sidebar_navigation_sections_and_links(self):
         response = self.client.get(reverse('dashboard'))
-        self.assertContains(response, 'Client Management')
+        self.assertContains(response, 'COUNTERPARTIES')
         self.assertContains(response, 'Contracts')
-        self.assertContains(response, 'Risk')
+        self.assertContains(response, 'GOVERNANCE')
         self.assertContains(response, 'Dashboard')
         self.assertContains(response, 'Contracts')
         self.assertContains(response, 'Tasks')
@@ -37,25 +37,25 @@ class RedesignLayoutTests(TestCase):
 
     def test_topbar_actions(self):
         response = self.client.get(reverse('dashboard'))
-        self.assertContains(response, 'title="Notifications"')
+        self.assertContains(response, 'title="Meldingen"')
         self.assertContains(response, 'New Contract')
-        self.assertContains(response, 'Logout')
+        self.assertContains(response, 'Uitloggen')
         self.assertContains(response, '/profile/')
 
     def test_dashboard_kpis_and_panels(self):
         response = self.client.get(reverse('dashboard'))
-        self.assertContains(response, 'Active Contracts')
+        self.assertContains(response, 'Active Matters')
         self.assertContains(response, 'Clients')
-        self.assertContains(response, 'Outstanding')
-        self.assertContains(response, 'Pending Tasks')
+        self.assertContains(response, 'Contracts in intake')
+        self.assertContains(response, 'Open Task Signals')
         self.assertContains(response, 'Recent Contracts')
-        self.assertContains(response, 'Upcoming Deadlines')
+        self.assertContains(response, 'Workflow recommendations open')
 
     def test_dashboard_quick_actions(self):
         response = self.client.get(reverse('dashboard'))
         self.assertContains(response, 'New Contract')
-        self.assertContains(response, 'New Client')
-        self.assertContains(response, 'Log Time')
+        self.assertContains(response, 'New Counterparty')
+        self.assertContains(response, 'Start intake from contract')
 
     def tearDown(self):
         if 'FEATURE_REDESIGN' in os.environ:

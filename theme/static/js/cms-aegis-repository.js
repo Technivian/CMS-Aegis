@@ -1,12 +1,12 @@
 
 /**
- * Ironclad-mode repository functionality
+ * CMS Aegis-mode repository functionality
  * Provides advanced filtering, bulk selection, and details drawer
  */
-class IroncladRepository {
+class CMSAegisRepository {
     constructor() {
         this.selectedContracts = new Set();
-        this.viewStorageKey = 'ironclad-saved-views';
+        this.viewStorageKey = 'cms-aegis-saved-views';
         this.contractCache = new Map();
         this.filters = {
             q: '',
@@ -387,7 +387,7 @@ class IroncladRepository {
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl font-semibold">${contract.title}</h2>
-                    <button onclick="window.ironclad.closeDetailsDrawer()" class="btn-ghost">
+                    <button onclick="window.cmsAegisRepository.closeDetailsDrawer()" class="btn-ghost">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -423,7 +423,7 @@ class IroncladRepository {
                 
                 <div class="mt-6 pt-4 border-t flex space-x-2">
                     <a href="/contracts/${contract.id}/" class="btn-primary">Edit Contract</a>
-                    <button onclick="window.ironclad.duplicateContract('${contract.id}')" class="btn-outline">Duplicate</button>
+                    <button onclick="window.cmsAegisRepository.duplicateContract('${contract.id}')" class="btn-outline">Duplicate</button>
                 </div>
             </div>
         `;
@@ -742,9 +742,9 @@ class IroncladRepository {
     }
 }
 
-// Initialize when DOM is loaded and ironclad mode is enabled
+// Initialize when DOM is loaded and CMS Aegis mode is enabled
 document.addEventListener('DOMContentLoaded', () => {
     if (window.location.pathname.includes('/repository')) {
-        window.ironclad = new IroncladRepository();
+        window.cmsAegisRepository = new CMSAegisRepository();
     }
 });

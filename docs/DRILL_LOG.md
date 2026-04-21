@@ -42,7 +42,7 @@ Conclusion:
 - populated downgrade is not currently safe after tenant-owned starter content was duplicated per org
 - rollback from `0006` to `0005` needs a dedicated downgrade/data-collapse strategy before it should be attempted on real data
 
-## 2026-04-10: Migration Rollback Drill Re-Run (Ironclad Activation)
+## 2026-04-10: Migration Rollback Drill Re-Run (CMS Aegis Activation)
 
 - Environment: local scratch SQLite databases
 - Scope: repeatability verification for `contracts` migration rollback and re-apply around `0006_approvalrequest_organization_and_more`

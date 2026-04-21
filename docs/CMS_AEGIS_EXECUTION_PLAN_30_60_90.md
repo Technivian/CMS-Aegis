@@ -1,4 +1,4 @@
-# CMS Aegis Ironclad Execution Plan (30/60/90)
+# CMS Aegis CMS Aegis Execution Plan (30/60/90)
 
 ## Baseline Snapshot (captured 2026-04-12)
 
@@ -22,7 +22,7 @@ Evidence from current workspace:
 
 ## Progress Update (captured 2026-04-18)
 
-Recent delivery on branch `codex/ironclad-activation` closed the planned Salesforce integration and several reliability/security gaps:
+Recent delivery on branch `codex/cms-aegis-activation` closed the planned Salesforce integration and several reliability/security gaps:
 
 - `9a7d79e`: Sprint 1 Salesforce foundation + control evidence baseline.
 - `90d71e6`: token encryption-at-rest + Sprint 2 ingestion/reconciliation.
@@ -82,7 +82,7 @@ Sprint 3 execution board:
 - Files:
   - [`contracts/api/views.py`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/contracts/api/views.py)
   - [`contracts/services/repository.py`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/contracts/services/repository.py)
-  - [`tests/test_ironclad_features.py`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/tests/test_ironclad_features.py)
+  - [`tests/test_cms_aegis_features.py`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/tests/test_cms_aegis_features.py)
 - Exit criteria:
   - CSRF enforced for browser-authenticated POSTs.
   - unauthorized fields rejected with `400`.
@@ -304,7 +304,7 @@ Sprint 3 execution board:
 ### Weeks 11-13 (Jun 26-Jul 11)
 
 - ICL-011, ICL-012 closeout.
-- Day-90 ironclad certification review.
+- Day-90 cms-aegis certification review.
 
 ## Day-30 Gate (Must Pass)
 
@@ -321,9 +321,9 @@ Overall status: `PASS`
 - Evidence:
   - [`contracts/api/views.py`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/contracts/api/views.py)
   - [`contracts/services/repository.py`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/contracts/services/repository.py)
-  - [`tests/test_ironclad_features.py`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/tests/test_ironclad_features.py)
+  - [`tests/test_cms_aegis_features.py`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/tests/test_cms_aegis_features.py)
 - Verification:
-  - `python manage.py test tests.test_ironclad_features -v 2`
+  - `python manage.py test tests.test_cms_aegis_features -v 2`
 
 2. ICL-002 PostgreSQL production path and rehearsal evidence: `COMPLETE`
 - Evidence:
@@ -369,7 +369,7 @@ Overall status: `PASS`
 2. Observability dashboards and paging alerts live.
 3. Release process enforces smoke + rollback evidence.
 
-## Day-90 Gate (Ironclad Qualification)
+## Day-90 Gate (CMS Aegis Qualification)
 
 1. SLOs met and measured for at least 14 consecutive days.
 2. Security vulnerability SLAs operating and current.
