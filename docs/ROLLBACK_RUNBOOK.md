@@ -190,7 +190,7 @@ pg_restore -Fc -d "$PGDATABASE" /backups/cms-aegis/<pre-cutover-backup>.dump
 sudo systemctl start gunicorn-cms-aegis
 ```
 
-Capture evidence in [`docs/DRILL_LOG.md`](/Users/haroonwahed/Documents/Projects/CMS-Aegis/docs/DRILL_LOG.md):
+Capture evidence in [`docs/DRILL_LOG.md`](DRILL_LOG.md):
 - start and finish timestamps
 - migration duration
 - restore duration
