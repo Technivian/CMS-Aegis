@@ -3,8 +3,8 @@ services:
     type: web
     runtime: python
     plan: free
-    branch: codex/ironclad-activation
-    autoDeploy: false
+    branch: main
+    autoDeployTrigger: commit
     buildCommand: ./build.sh
     startCommand: bash -lc "python3 manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
     envVars:
