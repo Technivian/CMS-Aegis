@@ -1,4 +1,5 @@
 import os
+import subprocess
 from pathlib import Path
 from urllib.parse import parse_qsl, unquote, urlparse
 
@@ -31,6 +32,19 @@ def _csv_env(name: str, default: list[str] | None = None) -> list[str]:
     if raw is None:
         return list(default or [])
     return [item.strip() for item in raw.split(',') if item.strip()]
+
+
+def _git_short_sha(base_dir: Path) -> str:
+    try:
+        completed = subprocess.run(
+            ['git', '-C', str(base_dir), 'rev-parse', '--short', 'HEAD'],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except Exception:
+        return ''
+    return completed.stdout.strip()
 
 
 _load_dotenv(BASE_DIR / '.env')
@@ -195,6 +209,8 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CMS_AEGIS_MODE = False
+BUILD_SHA = os.getenv('BUILD_SHA', '').strip() or _git_short_sha(BASE_DIR) or 'unknown'
+BUILD_LABEL = f'commit {BUILD_SHA}' if BUILD_SHA != 'unknown' else 'commit unknown'
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'

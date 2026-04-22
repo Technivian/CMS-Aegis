@@ -48,6 +48,17 @@ class DesignSystemTests(TestCase):
         self.assertIn('card-header', rendered)
         self.assertIn('card-content', rendered)
 
+    def test_public_pages_expose_build_metadata(self):
+        landing = self.client.get(reverse('index'))
+        login_page = self.client.get(reverse('login'))
+
+        self.assertEqual(landing.status_code, 200)
+        self.assertEqual(login_page.status_code, 200)
+        self.assertContains(landing, 'name="build-sha"')
+        self.assertContains(landing, 'name="build-label"')
+        self.assertContains(login_page, 'name="build-sha"')
+        self.assertContains(login_page, 'name="build-label"')
+
     def test_stat_component_snippet(self):
         template = Template(
             '<div class="stat"><div class="stat-label">Total Contracts</div>'
