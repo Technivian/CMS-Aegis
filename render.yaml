@@ -1,7 +1,3 @@
-databases:
-  - name: cms-aegis-preview-db
-    plan: free
-
 services:
   - name: cms-aegis-preview
     type: web
@@ -10,8 +6,7 @@ services:
     branch: main
     autoDeployTrigger: commit
     buildCommand: ./build.sh
-    preDeployCommand: python3 manage.py migrate --noinput
-    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+    startCommand: bash -lc 'gunicorn config.wsgi:application --bind 0.0.0.0:$PORT & GUNICORN_PID=$!; python3 manage.py migrate --noinput; wait $GUNICORN_PID'
     envVars:
       - key: DJANGO_ENV
         value: production
@@ -23,10 +18,6 @@ services:
         value: https://*.onrender.com
       - key: DEFAULT_FROM_EMAIL
         value: ops@example.com
-      - key: DATABASE_URL
-        fromDatabase:
-          name: cms-aegis-preview-db
-          property: connectionString
       - key: ALLOW_SQLITE_IN_PRODUCTION
         value: true
       - key: DB_SSL_REQUIRE
