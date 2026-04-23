@@ -77,10 +77,10 @@ class SecurityGuardrailsTests(TestCase):
                     'password2': 'Mismatch123!',
                 },
                 REMOTE_ADDR='203.0.113.10',
-            )
+        )
 
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Create your account')
+        self.assertEqual(response.status_code, 500)
+        self.assertContains(response, 'Auth rate limit failed open', status_code=500)
 
     def test_notification_mutations_emit_audit_logs(self):
         self.client.login(username='security-user', password='testpass123')

@@ -51,21 +51,21 @@ class AuthRateLimitMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if not getattr(settings, 'RATELIMIT_ENABLED', True):
-            return self.get_response(request)
-
-        path = request.path
-        if path not in getattr(settings, 'RATELIMIT_PATHS', ('/login/', '/register/')):
-            return self.get_response(request)
-
-        if request.method not in {'POST'}:
-            return self.get_response(request)
-
-        client_ip = self._client_ip(request)
-        if client_ip in getattr(settings, 'RATELIMIT_TRUSTED_IPS', ()):
-            return self.get_response(request)
-
         try:
+            if not getattr(settings, 'RATELIMIT_ENABLED', True):
+                return self.get_response(request)
+
+            path = request.path
+            if path not in getattr(settings, 'RATELIMIT_PATHS', ('/login/', '/register/')):
+                return self.get_response(request)
+
+            if request.method not in {'POST'}:
+                return self.get_response(request)
+
+            client_ip = self._client_ip(request)
+            if client_ip in getattr(settings, 'RATELIMIT_TRUSTED_IPS', ()):
+                return self.get_response(request)
+
             limit, window = self._policy_for_path(path)
             key = f'auth-rl:{path}:{client_ip}'
             now = int(time.time())
@@ -82,9 +82,14 @@ class AuthRateLimitMiddleware:
 
             bucket['count'] += 1
             cache.set(key, bucket, timeout=window)
-        except Exception:
-            logger.exception('auth_rate_limit_cache_failure', extra={'path': path, 'client_ip': client_ip})
-        return self.get_response(request)
+            return self.get_response(request)
+        except Exception as exc:
+            logger.exception('auth_rate_limit_cache_failure', extra={'path': request.path, 'client_ip': self._client_ip(request)})
+            return HttpResponse(
+                f'Auth rate limit failed open: {exc.__class__.__name__}: {exc}',
+                status=500,
+                content_type='text/plain',
+            )
 
     @staticmethod
     def _client_ip(request):
