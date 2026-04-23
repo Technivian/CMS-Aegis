@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from unittest import mock
 
 from contracts.models import AuditLog, Notification, Organization, OrganizationMembership
 
@@ -60,6 +61,26 @@ class SecurityGuardrailsTests(TestCase):
         )
         self.assertEqual(blocked.status_code, 429)
         self.assertIn('Retry-After', blocked)
+
+    @override_settings(
+        RATELIMIT_ENABLED=True,
+        RATELIMIT_TRUSTED_IPS=(),
+    )
+    def test_auth_rate_limit_fails_open_when_cache_errors(self):
+        with mock.patch('contracts.middleware.cache.get', side_effect=RuntimeError('cache down')):
+            response = self.client.post(
+                reverse('register'),
+                {
+                    'username': 'cache-error-user',
+                    'email': 'cache-error@example.com',
+                    'password1': 'SafePass123!',
+                    'password2': 'Mismatch123!',
+                },
+                REMOTE_ADDR='203.0.113.10',
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Create your account')
 
     def test_notification_mutations_emit_audit_logs(self):
         self.client.login(username='security-user', password='testpass123')

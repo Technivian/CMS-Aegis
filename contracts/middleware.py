@@ -65,22 +65,25 @@ class AuthRateLimitMiddleware:
         if client_ip in getattr(settings, 'RATELIMIT_TRUSTED_IPS', ()):
             return self.get_response(request)
 
-        limit, window = self._policy_for_path(path)
-        key = f'auth-rl:{path}:{client_ip}'
-        now = int(time.time())
-        bucket = cache.get(key)
+        try:
+            limit, window = self._policy_for_path(path)
+            key = f'auth-rl:{path}:{client_ip}'
+            now = int(time.time())
+            bucket = cache.get(key)
 
-        if not bucket or not isinstance(bucket, dict) or now >= bucket.get('reset_at', 0):
-            bucket = {'count': 0, 'reset_at': now + window}
+            if not bucket or not isinstance(bucket, dict) or now >= bucket.get('reset_at', 0):
+                bucket = {'count': 0, 'reset_at': now + window}
 
-        if bucket['count'] >= limit:
-            retry_after = max(bucket['reset_at'] - now, 1)
-            response = HttpResponse('Too many requests. Please try again later.', status=429)
-            response['Retry-After'] = str(retry_after)
-            return response
+            if bucket['count'] >= limit:
+                retry_after = max(bucket['reset_at'] - now, 1)
+                response = HttpResponse('Too many requests. Please try again later.', status=429)
+                response['Retry-After'] = str(retry_after)
+                return response
 
-        bucket['count'] += 1
-        cache.set(key, bucket, timeout=window)
+            bucket['count'] += 1
+            cache.set(key, bucket, timeout=window)
+        except Exception:
+            logger.exception('auth_rate_limit_cache_failure', extra={'path': path, 'client_ip': client_ip})
         return self.get_response(request)
 
     @staticmethod
