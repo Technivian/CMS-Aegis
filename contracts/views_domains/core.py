@@ -153,6 +153,13 @@ class SignUpView(FormView):
     success_url = reverse_lazy('dashboard')
     template_name = 'registration/register.html'
 
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            return super().dispatch(request, *args, **kwargs)
+        except Exception as exc:
+            logger.exception('signup_view_failed')
+            return HttpResponse(f'Signup failed: {exc.__class__.__name__}: {exc}', status=500, content_type='text/plain')
+
     def form_valid(self, form):
         self.object = form.save()
         UserProfile.objects.get_or_create(user=self.object)
@@ -170,6 +177,13 @@ class LoginView(FormView):
     form_class = LoginForm
     success_url = reverse_lazy('dashboard')
     template_name = 'registration/login.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            return super().dispatch(request, *args, **kwargs)
+        except Exception as exc:
+            logger.exception('login_view_failed')
+            return HttpResponse(f'Login failed: {exc.__class__.__name__}: {exc}', status=500, content_type='text/plain')
 
     def form_valid(self, form):
         user = form.cleaned_data['user']
