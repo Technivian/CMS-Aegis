@@ -19,6 +19,8 @@ services:
         value: https://*.onrender.com
       - key: DEFAULT_FROM_EMAIL
         value: ops@example.com
+      - key: SQLITE_PATH
+        value: /var/data/cms-aegis.sqlite3
       - key: ALLOW_SQLITE_IN_PRODUCTION
         value: true
       - key: DB_SSL_REQUIRE
@@ -27,3 +29,7 @@ services:
         value: true
       - key: SECURE_HSTS_PRELOAD
         value: true
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1
