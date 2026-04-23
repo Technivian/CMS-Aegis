@@ -10,16 +10,14 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from django.urls import reverse_lazy
-from django.utils.text import slugify
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.generic import CreateView, View
 
 from contracts.forms import UserProfileForm, RegistrationForm
-from contracts.models import AuditLog, BackgroundJob, Case, CaseMatter, Client, Deadline, Invoice, Notification, Organization, OrganizationMembership, RiskLog, TimeEntry, TrustAccount, UserProfile, Workflow, CaseSignal, ApprovalRequest, SignatureRequest, DSARRequest, Document
+from contracts.models import AuditLog, BackgroundJob, Case, CaseMatter, Client, Deadline, Invoice, Notification, RiskLog, TimeEntry, TrustAccount, UserProfile, Workflow, CaseSignal, ApprovalRequest, SignatureRequest, DSARRequest, Document
 from contracts.middleware import log_action
 from contracts.observability import db_health_snapshot, request_metrics_snapshot, scheduler_health_snapshot, evaluate_alert_policy
-from contracts.services.starter_content import ensure_org_starter_content
 from contracts.tenancy import get_user_organization, scope_queryset_for_organization
 
 
@@ -149,29 +147,12 @@ class ProfileView(LoginRequiredMixin, View):
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class SignUpView(CreateView):
     form_class = RegistrationForm
-    success_url = reverse_lazy('login')
+    success_url = reverse_lazy('dashboard')
     template_name = 'registration/register.html'
 
     def form_valid(self, form):
         response = super().form_valid(form)
         UserProfile.objects.get_or_create(user=self.object)
-
-        base_slug = slugify(self.object.username) or f'user-{self.object.id}'
-        org_slug = base_slug
-        n = 2
-        while Organization.objects.filter(slug=org_slug).exists():
-            org_slug = f'{base_slug}-{n}'
-            n += 1
-
-        org_name = f"{self.object.get_full_name().strip() or self.object.username}'s Firm"
-        organization = Organization.objects.create(name=org_name, slug=org_slug)
-        OrganizationMembership.objects.create(
-            organization=organization,
-            user=self.object,
-            role=OrganizationMembership.Role.OWNER,
-            is_active=True,
-        )
-        ensure_org_starter_content(organization)
 
         login(
             self.request,

@@ -34,9 +34,12 @@ class RegistrationFlowTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], reverse('login'))
+        self.assertEqual(response['Location'], reverse('dashboard'))
 
         user = User.objects.get(username='newuser')
         self.assertTrue(UserProfile.objects.filter(user=user).exists())
-        self.assertTrue(OrganizationMembership.objects.filter(user=user, is_active=True).exists())
         self.assertEqual(int(self.client.session.get('_auth_user_id')), user.id)
+
+        dashboard_response = self.client.get(reverse('dashboard'))
+        self.assertEqual(dashboard_response.status_code, 200)
+        self.assertTrue(OrganizationMembership.objects.filter(user=user, is_active=True).exists())
