@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 
 from django.contrib import messages
@@ -22,6 +23,7 @@ from contracts.observability import db_health_snapshot, request_metrics_snapshot
 from contracts.tenancy import get_user_organization, scope_queryset_for_organization
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 def get_or_create_profile(user):

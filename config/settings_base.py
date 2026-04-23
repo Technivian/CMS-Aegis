@@ -102,6 +102,7 @@ if SAML_ENABLED and not SAML_PACKAGE_AVAILABLE:
     )
 
 MIDDLEWARE = [
+    'contracts.middleware.PreviewExceptionMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

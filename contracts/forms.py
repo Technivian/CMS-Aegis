@@ -370,6 +370,10 @@ class LoginForm(forms.Form):
         cleaned_data = super().clean()
         username = (cleaned_data.get('username') or '').strip()
         password = cleaned_data.get('password') or ''
+        if not username:
+            self.add_error('username', 'Username is required.')
+        if not password:
+            self.add_error('password', 'Password is required.')
         if not username or not password:
             return cleaned_data
 

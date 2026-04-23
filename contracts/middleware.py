@@ -1,5 +1,6 @@
 import logging
 import time
+import traceback
 from uuid import uuid4
 
 from django.conf import settings
@@ -20,6 +21,26 @@ from .observability import record_request_metric
 from .tenancy import get_user_organization
 
 logger = logging.getLogger(__name__)
+
+
+class PreviewExceptionMiddleware:
+    """Surface unexpected preview errors instead of Django's generic 500 page."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        try:
+            return self.get_response(request)
+        except Exception as exc:
+            logger.exception('preview_request_failed', extra={'path': request.path, 'method': request.method})
+            return HttpResponse(
+                'Preview request failed:\n\n'
+                f'{exc.__class__.__name__}: {exc}\n\n'
+                f'{traceback.format_exc()}',
+                status=500,
+                content_type='text/plain',
+            )
 
 
 class SecurityHeadersMiddleware:
