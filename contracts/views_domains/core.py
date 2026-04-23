@@ -12,13 +12,16 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
-from django.views.generic import CreateView, View
+from django.views.generic import FormView, View
+from django.contrib.auth import get_user_model
 
-from contracts.forms import UserProfileForm, RegistrationForm
+from contracts.forms import UserProfileForm, RegistrationForm, LoginForm
 from contracts.models import AuditLog, BackgroundJob, Case, CaseMatter, Client, Deadline, Invoice, Notification, RiskLog, TimeEntry, TrustAccount, UserProfile, Workflow, CaseSignal, ApprovalRequest, SignatureRequest, DSARRequest, Document
 from contracts.middleware import log_action
 from contracts.observability import db_health_snapshot, request_metrics_snapshot, scheduler_health_snapshot, evaluate_alert_policy
 from contracts.tenancy import get_user_organization, scope_queryset_for_organization
+
+User = get_user_model()
 
 
 def get_or_create_profile(user):
@@ -145,13 +148,13 @@ class ProfileView(LoginRequiredMixin, View):
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
-class SignUpView(CreateView):
+class SignUpView(FormView):
     form_class = RegistrationForm
     success_url = reverse_lazy('dashboard')
     template_name = 'registration/register.html'
 
     def form_valid(self, form):
-        response = super().form_valid(form)
+        self.object = form.save()
         UserProfile.objects.get_or_create(user=self.object)
 
         login(
@@ -159,7 +162,28 @@ class SignUpView(CreateView):
             self.object,
             backend='django.contrib.auth.backends.ModelBackend',
         )
-        return response
+        return super().form_valid(form)
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class LoginView(FormView):
+    form_class = LoginForm
+    success_url = reverse_lazy('dashboard')
+    template_name = 'registration/login.html'
+
+    def form_valid(self, form):
+        user = form.cleaned_data['user']
+        login(
+            self.request,
+            user,
+            backend='django.contrib.auth.backends.ModelBackend',
+        )
+        if not form.cleaned_data.get('remember'):
+            self.request.session.set_expiry(0)
+        next_url = self.request.POST.get('next') or self.request.GET.get('next')
+        if next_url:
+            return redirect(next_url)
+        return super().form_valid(form)
 
 
 if settings.DEBUG:

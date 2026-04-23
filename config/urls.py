@@ -24,7 +24,6 @@ from django.shortcuts import render
 from django.views.generic import TemplateView # Import TemplateView
 from contracts import views as contract_views
 from contracts.api import views as contract_api_views
-
 from django.contrib.auth import views as auth_views
 
 logger = logging.getLogger(__name__)
@@ -53,7 +52,7 @@ urlpatterns = [
     path('settings/identity/', contract_views.organization_identity_settings, name='organization_identity_settings'),
     path('operations/', contract_views.operations_dashboard, name='operations_dashboard'),
     path('register/', contract_views.SignUpView.as_view(), name='register'),
-    path('login/', auth_views.LoginView.as_view(), name='login'),
+    path('login/', contract_views.LoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('toggle-redesign/', contract_views.toggle_redesign, name='toggle_redesign'),
 ]

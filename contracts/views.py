@@ -187,6 +187,7 @@ from .views_domains.actions import (
 from .views_domains.core import (
     health_check,
     index,
+    LoginView,
     operations_dashboard,
     SignUpView,
     switch_organization,

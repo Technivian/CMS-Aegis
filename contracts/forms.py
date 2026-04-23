@@ -1,6 +1,7 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
+from django.contrib.auth import password_validation
+from django.core.exceptions import ValidationError
 from .permissions import can_manage_organization
 from .services.clause_policy import validate_clause_policy
 from .services.contract_policies import get_required_fields_for_contract_type
@@ -360,10 +361,64 @@ class NegotiationThreadForm(forms.ModelForm):
         }
 
 
-class RegistrationForm(UserCreationForm):
-    class Meta(UserCreationForm.Meta):
-        model = User
-        fields = ('username', 'email', 'first_name', 'last_name')
+class LoginForm(forms.Form):
+    username = forms.CharField(widget=forms.TextInput(attrs={'class': TAILWIND_INPUT}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': TAILWIND_INPUT}))
+    remember = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': TAILWIND_CHECKBOX}))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        username = (cleaned_data.get('username') or '').strip()
+        password = cleaned_data.get('password') or ''
+        if not username or not password:
+            return cleaned_data
+
+        user = User.objects.filter(username__iexact=username).first()
+        if user is None or not user.check_password(password):
+            raise ValidationError('Invalid username or password.')
+        if not user.is_active:
+            raise ValidationError('This account is inactive.')
+
+        cleaned_data['user'] = user
+        return cleaned_data
+
+
+class RegistrationForm(forms.Form):
+    username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class': TAILWIND_INPUT}))
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': TAILWIND_INPUT}))
+    first_name = forms.CharField(max_length=30, required=False, widget=forms.TextInput(attrs={'class': TAILWIND_INPUT}))
+    last_name = forms.CharField(max_length=30, required=False, widget=forms.TextInput(attrs={'class': TAILWIND_INPUT}))
+    password1 = forms.CharField(widget=forms.PasswordInput(attrs={'class': TAILWIND_INPUT}))
+    password2 = forms.CharField(widget=forms.PasswordInput(attrs={'class': TAILWIND_INPUT}))
+
+    def clean_username(self):
+        username = self.cleaned_data['username'].strip()
+        if User.objects.filter(username__iexact=username).exists():
+            raise ValidationError('A user with that username already exists.')
+        return username
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('password1') or ''
+        password2 = cleaned_data.get('password2') or ''
+        if password1 and password2 and password1 != password2:
+            raise ValidationError('The two password fields must match.')
+        if password1:
+            try:
+                password_validation.validate_password(password1)
+            except ValidationError as exc:
+                self.add_error('password1', exc)
+        return cleaned_data
+
+    def save(self):
+        user = User.objects.create_user(
+            username=self.cleaned_data['username'],
+            email=self.cleaned_data['email'],
+            first_name=self.cleaned_data.get('first_name', ''),
+            last_name=self.cleaned_data.get('last_name', ''),
+            password=self.cleaned_data['password1'],
+        )
+        return user
 
 
 class OrganizationInvitationForm(forms.ModelForm):
