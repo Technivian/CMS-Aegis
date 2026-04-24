@@ -61,6 +61,12 @@ class OrganizationSecuritySettingsTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_anonymous_dashboard_redirects_to_login(self):
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], f"{reverse('login')}?next={reverse('dashboard')}")
+
     def test_owner_can_revoke_all_sessions(self):
         owner_client = Client()
         member_client = Client()

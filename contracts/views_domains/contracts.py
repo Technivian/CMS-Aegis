@@ -371,6 +371,9 @@ def contract_ai_assistant(request, pk):
 
 @login_required
 def dashboard(request):
+    if not request.user.is_authenticated:
+        return redirect(f"{settings.LOGIN_URL}?next={request.get_full_path()}")
+
     today = date.today()
     seven_days = today + timedelta(days=7)
     thirty_days = today + timedelta(days=30)
