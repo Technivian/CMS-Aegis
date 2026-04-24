@@ -41,6 +41,7 @@ def forwards(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+    atomic = False
 
     dependencies = [
         ('contracts', '0032_restore_deadline_task_type'),
