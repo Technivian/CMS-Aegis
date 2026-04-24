@@ -3,6 +3,68 @@
 from django.db import migrations, models
 
 
+class MatterRepair(models.Model):
+    organization = models.ForeignKey('contracts.Organization', on_delete=models.CASCADE, null=True, blank=True, related_name='matters')
+    scope = models.CharField(
+        max_length=20,
+        choices=[
+            ('GEMEENTE', 'Gemeente'),
+            ('REGIO', 'Regio'),
+        ],
+        default='GEMEENTE',
+        help_text='Municipality or Regional scope',
+    )
+    is_active = models.BooleanField(default=True)
+    matter_number = models.CharField(max_length=50, unique=True)
+    title = models.CharField(max_length=300)
+    description = models.TextField(blank=True)
+    client = models.ForeignKey('contracts.Client', on_delete=models.CASCADE, related_name='matters')
+    status = models.CharField(max_length=20)
+    practice_area = models.CharField(max_length=20)
+    responsible_attorney = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='responsible_matters')
+    originating_attorney = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='originated_matters')
+    open_date = models.DateField()
+    close_date = models.DateField(null=True, blank=True)
+    statute_of_limitations = models.DateField(null=True, blank=True)
+    court_name = models.CharField(max_length=200, blank=True)
+    case_number = models.CharField(max_length=100, blank=True)
+    opposing_party = models.CharField(max_length=200, blank=True)
+    opposing_counsel = models.CharField(max_length=200, blank=True)
+    max_wait_days = models.PositiveIntegerField(null=True, blank=True)
+    priority_rules = models.TextField(blank=True)
+    responsible_team = models.CharField(max_length=200, blank=True)
+    billing_type = models.CharField(max_length=20)
+    budget_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    notes = models.TextField(blank=True)
+    is_confidential = models.BooleanField(default=False)
+    created_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='created_matters')
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField()
+
+    class Meta:
+        app_label = 'contracts'
+        db_table = 'contracts_matter'
+
+
+def _ensure_matter_table(apps, schema_editor):
+    """
+    Repair older/shared databases where Matter table artifacts are partially
+    present or missing. This recreates the main contracts_matter table only
+    when it is absent, and leaves the existing M2M through table untouched.
+    """
+    Matter = apps.get_model('contracts', 'Matter')
+    existing_tables = set(schema_editor.connection.introspection.table_names())
+
+    if Matter._meta.db_table in existing_tables:
+        return
+
+    schema_editor.create_model(MatterRepair)
+
+    through_model = Matter.team_members.through
+    if through_model._meta.db_table not in existing_tables:
+        schema_editor.create_model(through_model)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -10,8 +72,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # The `task_type` column was introduced earlier in 0012 and already exists
-        # in the schema. This migration is kept as a dependency placeholder so the
-        # later trust account migration keeps its original ordering without trying
-        # to add the column again.
+        migrations.RunPython(
+            code=_ensure_matter_table,
+            reverse_code=migrations.RunPython.noop,
+        ),
     ]
