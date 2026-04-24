@@ -10,9 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='deadline',
-            name='task_type',
-            field=models.CharField(choices=[('INTAKE_COMPLETE', 'Intake afronden'), ('ASSESSMENT_PERFORM', 'Beoordeling uitvoeren'), ('SELECT_MATCH', 'Match selecteren'), ('CONTACT_PROVIDER', 'Aanbieder contacteren'), ('CONFIRM_PLACEMENT', 'Plaatsing bevestigen'), ('EVALUATE', 'Evaluatie uitvoeren')], default='INTAKE_COMPLETE', max_length=30, verbose_name='Type taak'),
-        ),
+        # The `task_type` column was introduced earlier in 0012 and already exists
+        # in the schema. This migration is kept as a dependency placeholder so the
+        # later trust account migration keeps its original ordering without trying
+        # to add the column again.
     ]
