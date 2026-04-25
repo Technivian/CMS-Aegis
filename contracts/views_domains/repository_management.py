@@ -40,8 +40,10 @@ from contracts.view_support import (
     organization_user_queryset as _organization_user_queryset,
 )
 from contracts.services.clause_policy import get_clause_fallback_summary, validate_clause_policy
+from contracts.services.clause_versions import compare_clause_versions, clone_clause_template_version, list_clause_template_versions
 from contracts.services.clause_variants import resolve_clause_variant
 from contracts.services.semantic_search import rank_clause_templates_semantic
+from contracts.middleware import log_action
 
 
 def _ranked_queryset(queryset, q, title_field='title', extra_fields=()):
@@ -183,7 +185,7 @@ class ClauseTemplateListView(TenantScopedQuerysetMixin, LoginRequiredMixin, List
             qs = qs.filter(jurisdiction_scope=scope)
         if q:
             qs = qs.filter(Q(title__icontains=q) | Q(content__icontains=q) | Q(tags__icontains=q))
-        return qs
+        return qs.filter(derived_versions__isnull=True).distinct()
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -219,16 +221,73 @@ class ClauseTemplateUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin,
     success_url = reverse_lazy('contracts:clause_template_list')
     scoped_form_fields = {'category': ClauseCategory}
 
+    def form_valid(self, form):
+        original_template = self.get_object()
+        staged_template = form.save(commit=False)
+        self.object = clone_clause_template_version(
+            original_template,
+            title=staged_template.title,
+            category=staged_template.category,
+            content=staged_template.content,
+            fallback_content=staged_template.fallback_content,
+            jurisdiction_scope=staged_template.jurisdiction_scope,
+            is_mandatory=staged_template.is_mandatory,
+            applicable_contract_types=staged_template.applicable_contract_types,
+            playbook_notes=staged_template.playbook_notes,
+            tags=staged_template.tags,
+            created_by=self.request.user,
+            is_approved=False,
+            approved_by=None,
+            copy_variants=True,
+        )
+        log_action(
+            self.request.user,
+            'CREATE',
+            'ClauseTemplate',
+            self.object.id,
+            str(self.object),
+            changes={
+                'event': 'clause_template_version_created',
+                'parent_template_id': original_template.id,
+                'version': self.object.version,
+            },
+            request=self.request,
+        )
+        messages.success(self.request, f'Created clause template version {self.object.version}.')
+        return redirect('contracts:clause_template_detail', pk=self.object.pk)
+
+
+class ClauseTemplateCompareView(TenantScopedQuerysetMixin, LoginRequiredMixin, DetailView):
+    model = ClauseTemplate
+    template_name = 'contracts/clause_template_compare.html'
+    context_object_name = 'clause_template'
+
+    def get_queryset(self):
+        org = self.get_organization()
+        return scope_queryset_for_organization(ClauseTemplate.objects.select_related('category', 'parent_template'), org)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        other_template = get_object_or_404(
+            scope_queryset_for_organization(ClauseTemplate.objects.select_related('category', 'parent_template'), self.get_organization()),
+            pk=self.kwargs['other_pk'],
+        )
+        context['other_template'] = other_template
+        context['comparison'] = compare_clause_versions(self.object, other_template)
+        return context
+
 
 def _clause_template_detail_context(template, organization, variant_form=None, playbook_form=None):
     form = variant_form or ClauseVariantForm()
     form.fields['playbook'].queryset = scope_queryset_for_organization(ClausePlaybook.objects.all(), organization)
     playbook_editor = playbook_form or ClausePlaybookForm()
+    version_chain = list_clause_template_versions(template)
     return {
         'object': template,
         'fallback_summary': get_clause_fallback_summary(template),
         'policy_issues': validate_clause_policy(template),
         'resolved_variant': resolve_clause_variant(template),
+        'template_versions': version_chain,
         'playbooks': ClausePlaybook.objects.filter(organization=organization, is_active=True).order_by('name'),
         'variants': ClauseVariant.objects.filter(template=template, is_active=True).select_related('playbook').order_by('priority', '-created_at'),
         'variant_form': form,

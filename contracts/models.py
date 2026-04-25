@@ -1973,6 +1973,13 @@ class ClauseTemplate(models.Model):
     is_mandatory = models.BooleanField(default=False, help_text='Required in all contracts of this type')
     applicable_contract_types = models.CharField(max_length=200, blank=True, help_text='Comma-separated contract types')
     version = models.PositiveIntegerField(default=1)
+    parent_template = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='derived_versions',
+    )
     is_approved = models.BooleanField(default=False)
     approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_clauses')
     approved_at = models.DateTimeField(null=True, blank=True)

@@ -242,6 +242,7 @@ from .views_domains.repository_management import (
     ClauseCategoryUpdateView,
     ClauseTemplateCreateView,
     ClauseTemplateDetailView,
+    ClauseTemplateCompareView,
     ClauseTemplateListView,
     ClauseTemplateUpdateView,
     clause_playbook_create,

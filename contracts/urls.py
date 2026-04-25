@@ -188,6 +188,7 @@ urlpatterns = [
     path('clause-library/', views.ClauseTemplateListView.as_view(), name='clause_template_list'),
     path('clause-library/new/', views.ClauseTemplateCreateView.as_view(), name='clause_template_create'),
     path('clause-library/<int:pk>/', views.ClauseTemplateDetailView.as_view(), name='clause_template_detail'),
+    path('clause-library/<int:pk>/compare/<int:other_pk>/', views.ClauseTemplateCompareView.as_view(), name='clause_template_compare'),
     path('clause-library/<int:pk>/variants/add/', views.clause_variant_create, name='clause_variant_create'),
     path('clause-library/<int:pk>/playbooks/add/', views.clause_playbook_create, name='clause_playbook_create'),
     path('clause-library/<int:pk>/edit/', views.ClauseTemplateUpdateView.as_view(), name='clause_template_update'),

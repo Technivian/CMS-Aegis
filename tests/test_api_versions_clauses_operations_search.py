@@ -19,6 +19,7 @@ from contracts.models import (
     OrganizationAPIToken,
     OrganizationMembership,
 )
+from contracts.services.clause_versions import clone_clause_template_version
 
 
 User = get_user_model()
@@ -203,6 +204,104 @@ class ApiVersionsClausesOperationsSearchTests(TestCase):
         playbook = ClausePlaybook.objects.get(name='Confidentiality Playbook')
         self.assertEqual(playbook.description, 'Guidance for confidentiality clauses')
         self.assertTrue(playbook.is_active)
+
+    def test_clause_template_update_creates_immutable_version_and_copies_variants(self):
+        category = ClauseCategory.objects.create(organization=self.organization, name='General', description='')
+        template = ClauseTemplate.objects.create(
+            organization=self.organization,
+            title='Data Protection',
+            category=category,
+            content='Original clause text',
+            fallback_content='Original fallback',
+            jurisdiction_scope=ClauseTemplate.JurisdictionScope.GLOBAL,
+            applicable_contract_types='MSA',
+            playbook_notes='Original notes',
+            tags='privacy',
+        )
+        playbook = ClausePlaybook.objects.create(
+            organization=self.organization,
+            name='Privacy Playbook',
+            fallback_position='Fallback',
+            jurisdiction_scope=ClausePlaybook.JurisdictionScope.GLOBAL,
+            risk_level='MEDIUM',
+        )
+        ClauseVariant.objects.create(
+            organization=self.organization,
+            template=template,
+            playbook=playbook,
+            jurisdiction_scope=ClauseTemplate.JurisdictionScope.GLOBAL,
+            contract_type='MSA',
+            risk_level='MEDIUM',
+            fallback_content='Variant fallback',
+            playbook_notes='Variant notes',
+            priority=10,
+        )
+
+        response = self.client.post(
+            reverse('contracts:clause_template_update', kwargs={'pk': template.pk}),
+            data={
+                'title': 'Data Protection Revised',
+                'category': category.pk,
+                'content': 'Revised clause text',
+                'fallback_content': 'Revised fallback',
+                'jurisdiction_scope': ClauseTemplate.JurisdictionScope.EU,
+                'is_mandatory': 'on',
+                'applicable_contract_types': 'MSA, SOW',
+                'playbook_notes': 'Revised notes',
+                'tags': 'privacy, revised',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        new_version = ClauseTemplate.objects.get(parent_template=template)
+        self.assertEqual(new_version.version, 2)
+        self.assertEqual(new_version.title, 'Data Protection Revised')
+        self.assertEqual(new_version.content, 'Revised clause text')
+        self.assertEqual(new_version.fallback_content, 'Revised fallback')
+        self.assertTrue(new_version.is_mandatory)
+        self.assertEqual(new_version.applicable_contract_types, 'MSA, SOW')
+        self.assertEqual(new_version.playbook_notes, 'Revised notes')
+        self.assertEqual(new_version.tags, 'privacy, revised')
+        self.assertEqual(new_version.variants.count(), 1)
+        self.assertEqual(new_version.variants.first().playbook_id, playbook.id)
+        self.assertEqual(template.version, 1)
+        self.assertEqual(template.title, 'Data Protection')
+        self.assertEqual(template.content, 'Original clause text')
+
+    def test_clause_template_compare_shows_version_differences(self):
+        category = ClauseCategory.objects.create(organization=self.organization, name='General', description='')
+        template = ClauseTemplate.objects.create(
+            organization=self.organization,
+            title='Security Clause',
+            category=category,
+            content='Base content',
+            fallback_content='Base fallback',
+            jurisdiction_scope=ClauseTemplate.JurisdictionScope.GLOBAL,
+            applicable_contract_types='MSA',
+            playbook_notes='Base notes',
+            tags='security',
+        )
+        compare_version = clone_clause_template_version(
+            template,
+            title='Security Clause Revised',
+            content='Revised content',
+            fallback_content='Revised fallback',
+            jurisdiction_scope=ClauseTemplate.JurisdictionScope.EU,
+            playbook_notes='Revised notes',
+            tags='security, revised',
+        )
+
+        response = self.client.get(
+            reverse('contracts:clause_template_compare', kwargs={'pk': compare_version.pk, 'other_pk': template.pk}),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Field differences', html=False)
+        self.assertContains(response, 'content', html=False)
+        self.assertContains(response, 'Base content', html=False)
+        self.assertContains(response, 'Revised content', html=False)
+        self.assertContains(response, 'Variant differences', html=False)
+        self.assertContains(response, 'Security Clause Revised', html=False)
 
     def test_approval_request_delegation_updates_assignee(self):
         delegate = User.objects.create_user(username='delegate', email='delegate@example.com', password='testpass123')

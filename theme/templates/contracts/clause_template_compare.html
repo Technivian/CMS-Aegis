@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Compare Clause Versions - CMS Aegis{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <a href="{% url 'contracts:clause_template_detail' clause_template.pk %}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to clause</a>
+            <h1 class="text-2xl font-bold text-gray-900 mt-2">Compare clause versions</h1>
+            <p class="text-sm text-gray-500 mt-1">{{ comparison.left_template.title }} v{{ comparison.left_template.version }} vs v{{ comparison.right_template.version }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 class="font-semibold text-gray-900 mb-2">Left version</h2>
+            <p class="text-sm text-gray-500 mb-4">v{{ comparison.left_template.version }} · {{ comparison.left_template.get_jurisdiction_scope_display }}</p>
+            <pre class="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded-lg">{{ comparison.left_template.content }}</pre>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 class="font-semibold text-gray-900 mb-2">Right version</h2>
+            <p class="text-sm text-gray-500 mb-4">v{{ comparison.right_template.version }} · {{ comparison.right_template.get_jurisdiction_scope_display }}</p>
+            <pre class="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded-lg">{{ comparison.right_template.content }}</pre>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 p-6 mt-6">
+        <h2 class="font-semibold text-gray-900 mb-4">Field differences</h2>
+        {% if comparison.field_diffs %}
+        <div class="space-y-3">
+            {% for field_name, left_value, right_value in comparison.field_diffs %}
+            <div class="rounded-lg border border-gray-100 p-4">
+                <p class="text-sm font-medium text-gray-900">{{ field_name }}</p>
+                <p class="text-xs text-gray-500 mt-2">Left</p>
+                <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ left_value|default:"-" }}</p>
+                <p class="text-xs text-gray-500 mt-3">Right</p>
+                <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ right_value|default:"-" }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-sm text-gray-500">No field differences detected.</p>
+        {% endif %}
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 p-6 mt-6">
+        <h2 class="font-semibold text-gray-900 mb-4">Variant differences</h2>
+        {% if comparison.variant_diffs %}
+        <ul class="list-disc pl-5 space-y-2 text-sm text-gray-700">
+            {% for diff in comparison.variant_diffs %}
+            <li>{{ diff }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-sm text-gray-500">No variant differences detected.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
