@@ -90,17 +90,53 @@
                         <p class="mt-1 text-xs text-red-600">{{ step_form.description.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    <div class="md:col-span-1 flex items-end gap-3">
-                        <div class="flex-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ step_form.order.id_for_label }}">Order</label>
-                            {{ step_form.order }}
-                            {% if step_form.order.errors %}
-                            <p class="mt-1 text-xs text-red-600">{{ step_form.order.errors.0 }}</p>
-                            {% endif %}
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ step_form.step_kind.id_for_label }}">Kind</label>
+                            {{ step_form.step_kind }}
+                            {% if step_form.step_kind.errors %}<p class="mt-1 text-xs text-red-600">{{ step_form.step_kind.errors.0 }}</p>{% endif %}
                         </div>
-                        <button type="submit" class="btn-primary h-10 px-4">
-                            Add
-                        </button>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ step_form.condition_expression.id_for_label }}">Condition</label>
+                            {{ step_form.condition_expression }}
+                            {% if step_form.condition_expression.errors %}<p class="mt-1 text-xs text-red-600">{{ step_form.condition_expression.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ step_form.assignee_role.id_for_label }}">Role</label>
+                            {{ step_form.assignee_role }}
+                            {% if step_form.assignee_role.errors %}<p class="mt-1 text-xs text-red-600">{{ step_form.assignee_role.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ step_form.specific_assignee.id_for_label }}">Specific assignee</label>
+                            {{ step_form.specific_assignee }}
+                            {% if step_form.specific_assignee.errors %}<p class="mt-1 text-xs text-red-600">{{ step_form.specific_assignee.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ step_form.sla_hours.id_for_label }}">SLA hours</label>
+                            {{ step_form.sla_hours }}
+                            {% if step_form.sla_hours.errors %}<p class="mt-1 text-xs text-red-600">{{ step_form.sla_hours.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ step_form.escalation_after_hours.id_for_label }}">Escalate after</label>
+                            {{ step_form.escalation_after_hours }}
+                            {% if step_form.escalation_after_hours.errors %}<p class="mt-1 text-xs text-red-600">{{ step_form.escalation_after_hours.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div class="flex items-end gap-3">
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ step_form.order.id_for_label }}">Order</label>
+                                {{ step_form.order }}
+                                {% if step_form.order.errors %}
+                                <p class="mt-1 text-xs text-red-600">{{ step_form.order.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            <button type="submit" class="btn-primary h-10 px-4">
+                                Add
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -113,8 +149,28 @@
                             <span class="text-sm font-medium text-blue-600">{{ step.order }}</span>
                         </div>
                         <div class="flex-1">
-                            <h3 class="text-sm font-medium text-gray-900">{{ step.name }}</h3>
-                            <p class="text-sm text-gray-600">{{ step.description }}</p>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-sm font-medium text-gray-900">{{ step.name }}</h3>
+                                <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">{{ step.get_step_kind_display }}</span>
+                            </div>
+                            {% if step.condition_expression %}
+                            <p class="text-xs text-gray-500 mt-1">Condition: {{ step.condition_expression }}</p>
+                            {% endif %}
+                            {% if step.assignee_role or step.specific_assignee %}
+                            <p class="text-xs text-gray-500 mt-1">
+                                {% if step.specific_assignee %}
+                                    Assigned to {{ step.specific_assignee.get_full_name|default:step.specific_assignee.username }}
+                                {% elif step.assignee_role %}
+                                    Assigned role {{ step.get_assignee_role_display }}
+                                {% endif %}
+                            </p>
+                            {% endif %}
+                            {% if step.sla_hours %}
+                            <p class="text-xs text-gray-500 mt-1">SLA: {{ step.sla_hours }}h{% if step.escalation_after_hours %} • Escalate after {{ step.escalation_after_hours }}h{% endif %}</p>
+                            {% endif %}
+                            {% if step.description %}
+                                <p class="text-sm text-gray-600 mt-1">{{ step.description }}</p>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

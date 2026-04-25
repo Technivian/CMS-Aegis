@@ -1554,17 +1554,61 @@ class WorkflowTemplate(models.Model):
 
 
 class WorkflowTemplateStep(models.Model):
+    class StepKind(models.TextChoices):
+        TASK = 'TASK', 'Task'
+        APPROVAL = 'APPROVAL', 'Approval'
+        AUTOMATIC = 'AUTOMATIC', 'Automatic'
+        BRANCH = 'BRANCH', 'Branch'
+
     template = models.ForeignKey(WorkflowTemplate, on_delete=models.CASCADE, related_name='steps')
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     order = models.PositiveIntegerField(default=0)
     estimated_duration = models.DurationField(null=True, blank=True)
+    step_kind = models.CharField(max_length=20, choices=StepKind.choices, default=StepKind.TASK)
+    condition_expression = models.CharField(max_length=255, blank=True, help_text='Example: value>=250000 or data_transfer=true')
+    assignee_role = models.CharField(max_length=20, choices=UserProfile.Role.choices, blank=True)
+    specific_assignee = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='workflow_template_step_assignments',
+    )
+    sla_hours = models.PositiveIntegerField(null=True, blank=True)
+    escalation_after_hours = models.PositiveIntegerField(null=True, blank=True)
 
     class Meta:
         ordering = ['order']
 
     def __str__(self):
         return f"{self.template.name} - {self.name}"
+
+    def applies_to_contract(self, contract):
+        if not self.condition_expression.strip():
+            return True
+        try:
+            from contracts.services.workflow_execution import evaluate_condition_expression
+            return evaluate_condition_expression(contract, self.condition_expression)
+        except Exception:
+            return False
+
+    def resolve_assignee(self, contract=None):
+        if self.specific_assignee_id:
+            return self.specific_assignee
+        role = (self.assignee_role or '').strip()
+        organization = getattr(contract, 'organization', None)
+        if not role or organization is None:
+            return None
+        membership_qs = OrganizationMembership.objects.filter(
+            organization=organization,
+            is_active=True,
+        ).select_related('user').prefetch_related('user__profile')
+        for membership in membership_qs:
+            profile_role = getattr(getattr(membership.user, 'profile', None), 'role', None)
+            if profile_role == role:
+                return membership.user
+        return None
 
 
 class Workflow(models.Model):
@@ -1592,14 +1636,24 @@ class WorkflowStep(models.Model):
         IN_PROGRESS = 'IN_PROGRESS', 'In Progress'
         COMPLETED = 'COMPLETED', 'Completed'
         SKIPPED = 'SKIPPED', 'Skipped'
+        ESCALATED = 'ESCALATED', 'Escalated'
 
     workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE, related_name='steps')
+    template_step = models.ForeignKey(
+        WorkflowTemplateStep,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='workflow_steps',
+    )
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     due_date = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    escalated_at = models.DateTimeField(null=True, blank=True)
+    blocked_reason = models.TextField(blank=True)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -1607,6 +1661,28 @@ class WorkflowStep(models.Model):
 
     def __str__(self):
         return f"{self.workflow.title} - {self.name}"
+
+    def can_transition_to(self, new_status):
+        if not new_status:
+            return False
+        if new_status == self.status:
+            return True
+        allowed_transitions = {
+            self.Status.PENDING: {self.Status.IN_PROGRESS, self.Status.COMPLETED, self.Status.SKIPPED, self.Status.ESCALATED},
+            self.Status.IN_PROGRESS: {self.Status.COMPLETED, self.Status.SKIPPED, self.Status.ESCALATED},
+            self.Status.ESCALATED: {self.Status.IN_PROGRESS, self.Status.COMPLETED, self.Status.SKIPPED},
+            self.Status.COMPLETED: set(),
+            self.Status.SKIPPED: set(),
+        }
+        return new_status in allowed_transitions.get(self.status, set())
+
+    @property
+    def is_overdue(self):
+        return bool(
+            self.due_date
+            and self.status in {self.Status.PENDING, self.Status.IN_PROGRESS}
+            and self.due_date < timezone.now()
+        )
 
 
 class DueDiligenceProcess(models.Model):

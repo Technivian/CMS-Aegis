@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from contracts.models import ApprovalRequest, Contract, Notification, OrganizationMembership, SignatureRequest
 from contracts.observability import record_scheduler_heartbeat
+from contracts.services.workflow_execution import escalate_overdue_workflow_steps
 
 
 class Command(BaseCommand):
@@ -103,6 +104,8 @@ class Command(BaseCommand):
 
         created_count += self._process_overdue_approval_requests(today)
         created_count += self._process_stale_signature_requests(today)
+        workflow_escalations = escalate_overdue_workflow_steps()
+        created_count += workflow_escalations['notification_count']
 
         record_scheduler_heartbeat(
             created_count=created_count,

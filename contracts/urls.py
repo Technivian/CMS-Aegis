@@ -165,6 +165,7 @@ urlpatterns = [
     path('workflows/templates/<int:pk>/compare/<int:other_pk>/', views.workflow_template_compare, name='workflow_template_compare'),
     path('workflows/<int:pk>/', views.workflow_detail, name='workflow_detail'),
     path('workflows/<int:pk>/steps/add/', views.AddWorkflowStepView.as_view(), name='workflow_step_add'),
+    path('workflows/step/<int:pk>/complete/', views.WorkflowStepCompleteView.as_view(), name='workflow_step_complete'),
     path('workflows/step/<int:pk>/update/', views.update_workflow_step, name='update_workflow_step'),
     path('workflows/step/<int:pk>/edit/', views.WorkflowStepUpdateView.as_view(), name='workflow_step_update'),
 

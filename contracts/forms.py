@@ -712,10 +712,26 @@ class WorkflowTemplateStepForm(forms.ModelForm):
 
     class Meta:
         model = WorkflowTemplateStep
-        fields = ['name', 'description', 'order']
+        fields = [
+            'name',
+            'description',
+            'order',
+            'step_kind',
+            'condition_expression',
+            'assignee_role',
+            'specific_assignee',
+            'sla_hours',
+            'escalation_after_hours',
+        ]
         widgets = {
             'name': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
             'description': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 3}),
+            'step_kind': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'condition_expression': forms.TextInput(attrs={'class': TAILWIND_INPUT, 'placeholder': 'value>=250000'}),
+            'assignee_role': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'specific_assignee': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'sla_hours': forms.NumberInput(attrs={'class': TAILWIND_INPUT, 'min': '1'}),
+            'escalation_after_hours': forms.NumberInput(attrs={'class': TAILWIND_INPUT, 'min': '1'}),
         }
 
 

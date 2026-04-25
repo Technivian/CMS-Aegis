@@ -14,6 +14,7 @@ from contracts.models import Contract, Workflow, WorkflowStep, WorkflowTemplate,
 from contracts.permissions import ContractAction, can_access_contract_action
 from contracts.tenancy import get_user_organization, scope_queryset_for_organization, set_organization_on_instance
 from contracts.services.workflow_routing import build_approval_request_plan_for_contract, suggest_workflow_template_for_contract
+from contracts.services.workflow_execution import advance_workflow_after_completion, materialize_workflow_from_template
 from contracts.services.workflow_templates import COMPARISON_PRESETS, compare_template_versions, clone_template_version, list_template_versions
 from contracts.view_support import (
     TenantAssignCreateMixin,
@@ -47,6 +48,11 @@ class WorkflowTemplateDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, 
         context = super().get_context_data(**kwargs)
         context['steps'] = WorkflowTemplateStep.objects.filter(template=self.object).order_by('order')
         context['template_versions'] = list_template_versions(self.object)
+        context['step_form'] = apply_form_queryset_scopes(
+            WorkflowTemplateStepForm(),
+            self.get_organization(),
+            {'specific_assignee': organization_user_queryset},
+        )
         return context
 
 
@@ -168,13 +174,35 @@ class WorkflowStepUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin, L
     def get_success_url(self):
         return reverse_lazy('contracts:workflow_detail', kwargs={'pk': self.object.workflow.pk})
 
+    def form_valid(self, form):
+        current_step = self.get_object()
+        new_status = form.cleaned_data.get('status', current_step.status)
+        if not current_step.can_transition_to(new_status):
+            form.add_error('status', 'Invalid workflow step transition.')
+            return self.form_invalid(form)
+
+        response = super().form_valid(form)
+        if new_status == WorkflowStep.Status.COMPLETED:
+            self.object.completed_at = timezone.now()
+            self.object.save(update_fields=['completed_at'])
+            advance_workflow_after_completion(self.object)
+        elif new_status == WorkflowStep.Status.ESCALATED:
+            self.object.escalated_at = timezone.now()
+            self.object.save(update_fields=['escalated_at'])
+        return response
+
 
 class WorkflowStepCompleteView(LoginRequiredMixin, View):
     def post(self, request, pk):
         organization = get_user_organization(request.user)
         step = get_object_or_404(_scope_workflow_steps_for_organization(organization), pk=pk)
+        linked_contract = step.workflow.contract
+        if linked_contract and not can_access_contract_action(request.user, linked_contract, ContractAction.EDIT):
+            return HttpResponseForbidden('You do not have permission to complete this contract workflow step.')
         step.status = 'COMPLETED'
+        step.completed_at = timezone.now()
         step.save()
+        advance_workflow_after_completion(step)
         return redirect('contracts:workflow_detail', pk=step.workflow.pk)
 
 
@@ -200,7 +228,8 @@ class AddWorkflowStepView(LoginRequiredMixin, View):
 class AddWorkflowTemplateStepView(LoginRequiredMixin, View):
     def post(self, request, pk):
         template = get_object_or_404(WorkflowTemplate, pk=pk)
-        form = WorkflowTemplateStepForm(request.POST)
+        organization = get_user_organization(request.user)
+        form = apply_form_queryset_scopes(WorkflowTemplateStepForm(request.POST), organization, {'specific_assignee': organization_user_queryset})
         if form.is_valid():
             step = form.save(commit=False)
             step.template = template
@@ -214,7 +243,7 @@ class AddWorkflowTemplateStepView(LoginRequiredMixin, View):
         return render(
             request,
             'contracts/workflow_template_detail.html',
-            _workflow_template_detail_context(template, step_form=form),
+            _workflow_template_detail_context(template, organization, step_form=form),
         )
 
 
@@ -240,6 +269,7 @@ def workflow_create(request):
             if workflow.contract and not workflow.template_id:
                 workflow.template = suggest_workflow_template_for_contract(workflow.contract)
                 workflow.save(update_fields=['template'])
+            materialize_workflow_from_template(workflow)
             if workflow.contract:
                 from contracts.models import ApprovalRequest
 
@@ -288,13 +318,24 @@ def update_workflow_step(request, pk):
         return HttpResponseForbidden('You do not have permission to update this contract workflow step.')
     if request.method == 'POST':
         new_status = request.POST.get('status', step.status)
+        if not step.can_transition_to(new_status):
+            messages.error(request, 'Invalid workflow step transition.')
+            return redirect('contracts:workflow_detail', pk=step.workflow.pk)
+
         step.status = new_status
         description = request.POST.get('description', '').strip()
         if description:
             step.description = description
+        update_fields = ['status', 'description']
         if new_status == 'COMPLETED':
             step.completed_at = timezone.now()
-        step.save()
+            update_fields.append('completed_at')
+        elif new_status == 'ESCALATED':
+            step.escalated_at = timezone.now()
+            update_fields.append('escalated_at')
+        step.save(update_fields=update_fields)
+        if new_status == 'COMPLETED':
+            advance_workflow_after_completion(step)
         return redirect('contracts:workflow_detail', pk=step.workflow.pk)
     return redirect('contracts:workflow_detail', pk=step.workflow.pk)
 
@@ -314,7 +355,11 @@ def workflow_template_create(request):
 @login_required
 def workflow_template_detail(request, pk):
     template = get_object_or_404(WorkflowTemplate, pk=pk)
-    return render(request, 'contracts/workflow_template_detail.html', _workflow_template_detail_context(template))
+    return render(
+        request,
+        'contracts/workflow_template_detail.html',
+        _workflow_template_detail_context(template, get_user_organization(request.user)),
+    )
 
 
 @login_required
@@ -362,14 +407,16 @@ def _workflow_detail_context(workflow, add_step_form=None):
     }
 
 
-def _workflow_template_detail_context(template, step_form=None):
+def _workflow_template_detail_context(template, organization, step_form=None):
     steps = WorkflowTemplateStep.objects.filter(template=template).order_by('order')
     template_versions = list_template_versions(template)
+    form = step_form or WorkflowTemplateStepForm()
+    form = apply_form_queryset_scopes(form, organization, {'specific_assignee': organization_user_queryset})
     return {
         'workflow_template': template,
         'steps': steps,
         'template_versions': template_versions,
-        'step_form': step_form or WorkflowTemplateStepForm(),
+        'step_form': form,
     }
 
 
