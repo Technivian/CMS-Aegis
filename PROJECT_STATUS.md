@@ -2,7 +2,7 @@
 
 Last updated: 2026-04-25
 
-Current checkout: `main` at `e8ae81d` (`Add immutable clause versioning`)
+Current checkout: `main` at `0262a2a` (`Automate release evidence bundle`)
 
 ## Executive Snapshot
 
