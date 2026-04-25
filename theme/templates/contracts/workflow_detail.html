@@ -1,50 +1,109 @@
-
 {% extends 'base.html' %}
 
-{% block title %}{{ workflow.name }}{% endblock %}
+{% block title %}{{ workflow.title }}{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">{{ workflow.name }}</h1>
-            <p class="text-gray-600">{{ workflow.contract.counterparty }} • {{ workflow.contract.get_contract_type_display }}</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ workflow.title }}</h1>
+            {% if workflow.contract %}
+            <p class="text-gray-600">
+                <a href="{% url 'contracts:contract_detail' workflow.contract.pk %}" class="text-blue-600 hover:text-blue-800">{{ workflow.contract.title }}</a>
+                {% if workflow.contract.counterparty %}• {{ workflow.contract.counterparty }}{% endif %}
+            </p>
+            {% endif %}
+            {% if workflow.description %}
+            <p class="text-sm text-gray-500 mt-1">{{ workflow.description }}</p>
+            {% endif %}
         </div>
-        <div class="flex space-x-3">
+        <div class="flex flex-wrap gap-3">
+            {% if workflow.contract %}
             <a href="{% url 'contracts:contract_detail' workflow.contract.pk %}" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50">
                 View Contract
             </a>
+            {% endif %}
             <a href="{% url 'contracts:workflow_dashboard' %}" class="btn-primary">
                 Back to Dashboard
             </a>
         </div>
     </div>
 
-    <!-- Workflow Progress -->
     <div class="bg-white p-6 rounded-lg border border-gray-200">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold">Progress Overview</h3>
+            <h3 class="text-lg font-semibold">Workflow Summary</h3>
             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
                 {% if workflow.status == 'ACTIVE' %}bg-green-100 text-green-800
                 {% elif workflow.status == 'COMPLETED' %}bg-blue-100 text-blue-800
-                {% elif workflow.status == 'ON_HOLD' %}bg-yellow-100 text-yellow-800
+                {% elif workflow.status == 'CANCELLED' %}bg-red-100 text-red-800
                 {% else %}bg-gray-100 text-gray-800{% endif %}">
                 {{ workflow.get_status_display }}
             </span>
         </div>
-        <div class="flex items-center mb-2">
-            <div class="w-full bg-gray-200 rounded-full h-4 mr-4">
-                <div class="bg-blue-600 h-4 rounded-full" style="width: {{ workflow.progress_percentage }}%"></div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-700">
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="font-medium text-gray-900">Template</div>
+                <div class="mt-1">
+                    {% if workflow.template %}
+                        {{ workflow.template.name }} v{{ workflow.template.version }}
+                    {% else %}
+                        Not selected
+                    {% endif %}
+                </div>
             </div>
-            <span class="text-lg font-semibold text-gray-900">{{ workflow.progress_percentage }}%</span>
-        </div>
-        <div class="text-sm text-gray-600">
-            Current Stage: <strong>{{ workflow.current_stage }}</strong>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="font-medium text-gray-900">Steps</div>
+                <div class="mt-1">{{ workflow_steps|length }} defined</div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="font-medium text-gray-900">Status</div>
+                <div class="mt-1">{{ workflow.get_status_display }}</div>
+            </div>
         </div>
     </div>
 
-    <!-- Workflow Steps -->
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Add Workflow Step</h3>
+        </div>
+        <form method="post" action="{% url 'contracts:workflow_step_add' workflow.pk %}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ add_step_form.name.id_for_label }}">Name</label>
+                {{ add_step_form.name }}
+                {% if add_step_form.name.errors %}<p class="mt-1 text-xs text-red-600">{{ add_step_form.name.errors.0 }}</p>{% endif %}
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ add_step_form.description.id_for_label }}">Description</label>
+                {{ add_step_form.description }}
+                {% if add_step_form.description.errors %}<p class="mt-1 text-xs text-red-600">{{ add_step_form.description.errors.0 }}</p>{% endif %}
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ add_step_form.status.id_for_label }}">Status</label>
+                    {{ add_step_form.status }}
+                    {% if add_step_form.status.errors %}<p class="mt-1 text-xs text-red-600">{{ add_step_form.status.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ add_step_form.order.id_for_label }}">Order</label>
+                    {{ add_step_form.order }}
+                    {% if add_step_form.order.errors %}<p class="mt-1 text-xs text-red-600">{{ add_step_form.order.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ add_step_form.assigned_to.id_for_label }}">Assigned to</label>
+                    {{ add_step_form.assigned_to }}
+                    {% if add_step_form.assigned_to.errors %}<p class="mt-1 text-xs text-red-600">{{ add_step_form.assigned_to.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ add_step_form.due_date.id_for_label }}">Due date</label>
+                    {{ add_step_form.due_date }}
+                    {% if add_step_form.due_date.errors %}<p class="mt-1 text-xs text-red-600">{{ add_step_form.due_date.errors.0 }}</p>{% endif %}
+                </div>
+                <button type="submit" class="btn-primary w-full">Add Step</button>
+            </div>
+        </form>
+    </div>
+
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold">Workflow Steps</h3>
@@ -52,25 +111,15 @@
         <div class="divide-y divide-gray-200">
             {% for step in workflow_steps %}
             <div class="p-6 {% if step == workflow.current_step %}bg-blue-50{% endif %}">
-                <div class="flex items-start justify-between">
+                <div class="flex items-start justify-between gap-4">
                     <div class="flex items-start">
                         <div class="flex-shrink-0 mr-4">
                             {% if step.status == 'COMPLETED' %}
-                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                    </svg>
-                                </div>
+                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">✓</div>
                             {% elif step.status == 'IN_PROGRESS' %}
-                                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                    <div class="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                                </div>
+                                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">•</div>
                             {% elif step.status == 'SKIPPED' %}
-                                <div class="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 12l5-5-1.41-1.41L10 9.17 6.41 5.59 5 7l5 5z"/>
-                                    </svg>
-                                </div>
+                                <div class="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white font-semibold">-</div>
                             {% else %}
                                 <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
                                     <span class="text-gray-600 text-sm font-medium">{{ step.order }}</span>
@@ -78,36 +127,52 @@
                             {% endif %}
                         </div>
                         <div class="flex-1">
-                            <h4 class="text-lg font-medium text-gray-900">{{ step.get_step_type_display }}</h4>
+                            <div class="flex items-center gap-3">
+                                <h4 class="text-lg font-medium text-gray-900">{{ step.name }}</h4>
+                                <span class="text-xs font-medium rounded-full px-2 py-1
+                                    {% if step.status == 'COMPLETED' %}bg-green-100 text-green-700
+                                    {% elif step.status == 'IN_PROGRESS' %}bg-blue-100 text-blue-700
+                                    {% elif step.status == 'SKIPPED' %}bg-gray-100 text-gray-700
+                                    {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                    {{ step.get_status_display }}
+                                </span>
+                            </div>
+                            {% if step.description %}
+                                <p class="text-sm text-gray-600 mt-1">{{ step.description }}</p>
+                            {% endif %}
                             {% if step.assigned_to %}
                                 <p class="text-sm text-gray-600 mt-1">Assigned to: {{ step.assigned_to.get_full_name|default:step.assigned_to.username }}</p>
                             {% endif %}
                             {% if step.due_date %}
-                                <p class="text-sm text-gray-600">Due: {{ step.due_date|date:"M d, Y" }}</p>
-                            {% endif %}
-                            {% if step.notes %}
-                                <div class="mt-3 p-3 bg-gray-50 rounded-md">
-                                    <p class="text-sm text-gray-700">{{ step.notes }}</p>
-                                </div>
+                                <p class="text-sm text-gray-600">Due: {{ step.due_date|date:"M d, Y H:i" }}</p>
                             {% endif %}
                         </div>
                     </div>
                     <div class="flex-shrink-0 ml-4">
                         {% if step.status == 'PENDING' or step.status == 'IN_PROGRESS' %}
-                            <button onclick="openStepModal({{ step.pk }}, '{{ step.get_step_type_display }}', '{{ step.status }}', '{{ step.notes|default:'' }}')" 
+                            <div class="flex items-center gap-3">
+                                <button
+                                    onclick="openStepModal({{ step.pk }}, '{{ step.name|escapejs }}', '{{ step.status }}', '{{ step.description|default_if_none:''|escapejs }}')"
                                     class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                Update
-                            </button>
+                                    Update
+                                </button>
+                                <a href="{% url 'contracts:workflow_step_update' step.pk %}" class="text-sm font-medium text-gray-600 hover:text-gray-900">
+                                    Full editor
+                                </a>
+                            </div>
                         {% endif %}
                     </div>
                 </div>
+            </div>
+            {% empty %}
+            <div class="p-6 text-center text-gray-500">
+                No workflow steps yet.
             </div>
             {% endfor %}
         </div>
     </div>
 </div>
 
-<!-- Update Step Modal -->
 <div id="step-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-white rounded-lg max-w-md w-full p-6">
@@ -116,7 +181,7 @@
                 {% csrf_token %}
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="step-status">Status</label>
                         <select name="status" id="step-status" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                             <option value="PENDING">Pending</option>
                             <option value="IN_PROGRESS">In Progress</option>
@@ -125,8 +190,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                        <textarea name="notes" id="step-notes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="step-description">Description</label>
+                        <textarea name="description" id="step-description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
                     </div>
                 </div>
                 <div class="flex justify-end space-x-3 mt-6">
@@ -143,10 +208,10 @@
 </div>
 
 <script>
-function openStepModal(stepId, stepName, currentStatus, currentNotes) {
+function openStepModal(stepId, stepName, currentStatus, currentDescription) {
     document.getElementById('modal-title').textContent = `Update ${stepName}`;
     document.getElementById('step-status').value = currentStatus;
-    document.getElementById('step-notes').value = currentNotes;
+    document.getElementById('step-description').value = currentDescription;
     document.getElementById('step-form').action = `{% url 'contracts:update_workflow_step' 0 %}`.replace('0', stepId);
     document.getElementById('step-modal').classList.remove('hidden');
 }

@@ -4,8 +4,10 @@ from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
 from .permissions import can_manage_organization
 from .services.clause_policy import validate_clause_policy
+from .services.clause_variants import resolve_clause_variant
 from .services.contract_policies import get_required_fields_for_contract_type
 from .services.contract_lifecycle import can_transition_lifecycle_stage
+from .tenancy import scope_queryset_for_organization
 from .models import (
     Contract, NegotiationThread, TrademarkRequest, LegalTask, RiskLog, ComplianceChecklist, ChecklistItem,
     Workflow, WorkflowTemplate, WorkflowTemplateStep, WorkflowStep,
@@ -297,6 +299,13 @@ class ConflictCheckForm(forms.ModelForm):
 
 
 class ContractForm(forms.ModelForm):
+    clause_templates = forms.ModelMultipleChoiceField(
+        queryset=ClauseTemplate.objects.none(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': TAILWIND_SELECT, 'size': '8'}),
+        help_text='Select clause templates to auto-generate draft content when the content field is left blank.',
+    )
+
     class Meta:
         model = Contract
         fields = ['title', 'contract_type', 'content', 'status', 'counterparty', 'value', 'currency',
@@ -330,6 +339,127 @@ class ContractForm(forms.ModelForm):
             'matter': forms.Select(attrs={'class': TAILWIND_SELECT}),
         }
 
+    def __init__(self, *args, organization=None, **kwargs):
+        self.organization = organization
+        super().__init__(*args, **kwargs)
+        clause_queryset = scope_queryset_for_organization(ClauseTemplate.objects.select_related('category'), organization).order_by('title')
+        self.fields['clause_templates'].queryset = clause_queryset
+        self.fields['clause_templates'].label_from_instance = self._clause_template_label
+
+    @staticmethod
+    def _clause_template_label(clause_template):
+        category_name = clause_template.category.name if clause_template.category else 'Uncategorized'
+        return f'{clause_template.title} (v{clause_template.version}, {category_name})'
+
+    def _build_clause_draft_contract(self, cleaned_data):
+        return Contract(
+            contract_type=cleaned_data.get('contract_type') or Contract.ContractType.OTHER,
+            governing_law=cleaned_data.get('governing_law') or '',
+            jurisdiction=cleaned_data.get('jurisdiction') or '',
+            risk_level=cleaned_data.get('risk_level') or Contract.RiskLevel.LOW,
+        )
+
+    def _render_clause_section(self, clause_template, draft_contract):
+        resolved = resolve_clause_variant(clause_template, draft_contract)
+        lines = [clause_template.title]
+        if resolved.playbook_name:
+            lines.append(f'Resolved playbook: {resolved.playbook_name}')
+        base_text = (clause_template.content or '').strip()
+        if base_text:
+            lines.append('')
+            lines.append(base_text)
+        negotiation_notes = (resolved.playbook_notes or clause_template.playbook_notes or '').strip()
+        if negotiation_notes:
+            lines.append('')
+            lines.append('Negotiation notes:')
+            lines.append(negotiation_notes)
+        fallback_position = (resolved.fallback_content or clause_template.fallback_content or '').strip()
+        if fallback_position:
+            lines.append('')
+            lines.append('Fallback position:')
+            lines.append(fallback_position)
+        return '\n'.join(lines).strip()
+
+    def build_clause_preview_section(self, clause_template):
+        draft_contract = self._build_clause_draft_contract(self.cleaned_data)
+        resolved = resolve_clause_variant(clause_template, draft_contract)
+        badges = []
+        if resolved.playbook_name:
+            badges.append({'label': resolved.playbook_name, 'tone': 'indigo'})
+        scope_label = clause_template.get_jurisdiction_scope_display()
+        if scope_label:
+            badges.append({'label': scope_label, 'tone': 'blue'})
+        if clause_template.is_mandatory:
+            badges.append({'label': 'Mandatory', 'tone': 'red'})
+        risk_level = (resolved.variant.risk_level if resolved.variant and resolved.variant.risk_level else '').strip()
+        if risk_level:
+            badges.append({'label': f'{risk_level.title()} risk', 'tone': 'amber'})
+        if resolved.playbook_notes or clause_template.playbook_notes:
+            badges.append({'label': 'Playbook notes', 'tone': 'emerald'})
+        if resolved.fallback_content or clause_template.fallback_content:
+            badges.append({'label': 'Fallback available', 'tone': 'slate'})
+        return {
+            'title': clause_template.title,
+            'content': self._render_clause_section(clause_template, draft_contract),
+            'source_label': str(clause_template),
+            'badges': badges,
+            'resolved_playbook': resolved.playbook_name,
+            'resolved_scope': scope_label,
+            'resolved_risk_level': risk_level,
+            'has_fallback': bool(resolved.fallback_content or clause_template.fallback_content),
+            'has_playbook_notes': bool(resolved.playbook_notes or clause_template.playbook_notes),
+        }
+
+    def _get_draft_sections_from_submission(self):
+        if not self.data:
+            return []
+
+        raw_count = self.data.get('draft_section_count')
+        try:
+            section_count = int(raw_count or 0)
+        except (TypeError, ValueError):
+            section_count = 0
+
+        sections = []
+        for index in range(section_count):
+            prefix = f'draft_section_{index}_'
+            include_value = self.data.get(f'{prefix}include')
+            if include_value not in {'on', '1', 'true', 'True', True}:
+                continue
+
+            title = (self.data.get(f'{prefix}title') or '').strip()
+            content = (self.data.get(f'{prefix}content') or '').strip()
+            if not title and not content:
+                continue
+
+            try:
+                order = int(self.data.get(f'{prefix}order') or index + 1)
+            except (TypeError, ValueError):
+                order = index + 1
+
+            sections.append({
+                'order': order,
+                'title': title,
+                'content': content,
+            })
+
+        sections.sort(key=lambda item: (item['order'], item['title'].lower()))
+        return sections
+
+    @staticmethod
+    def _render_draft_sections_content(sections):
+        rendered_sections = []
+        for section in sections:
+            block_lines = []
+            if section.get('title'):
+                block_lines.append(section['title'].strip())
+            if section.get('content'):
+                block_lines.append(section['content'].strip())
+            block = '\n\n'.join(line for line in block_lines if line).strip()
+            if block:
+                rendered_sections.append(block)
+        return '\n\n'.join(rendered_sections).strip()
+
     def clean(self):
         cleaned_data = super().clean()
         contract_type = cleaned_data.get('contract_type')
@@ -347,6 +477,24 @@ class ContractForm(forms.ModelForm):
                     'lifecycle_stage',
                     f'Invalid lifecycle stage transition from {self.instance.lifecycle_stage} to {lifecycle_stage}.',
                 )
+
+        draft_sections = self._get_draft_sections_from_submission()
+        if draft_sections:
+            cleaned_data['content'] = self._render_draft_sections_content(draft_sections)
+            cleaned_data['draft_sections'] = draft_sections
+            return cleaned_data
+
+        clause_templates = cleaned_data.get('clause_templates') or []
+        content = (cleaned_data.get('content') or '').strip()
+        if not content and clause_templates:
+            draft_contract = self._build_clause_draft_contract(cleaned_data)
+            generated_sections = [
+                self._render_clause_section(clause_template, draft_contract)
+                for clause_template in clause_templates
+            ]
+            generated_sections = [section for section in generated_sections if section]
+            if generated_sections:
+                cleaned_data['content'] = '\n\n'.join(generated_sections)
 
         return cleaned_data
 
@@ -555,6 +703,41 @@ class WorkflowTemplateForm(forms.ModelForm):
         }
 
 
+class WorkflowTemplateStepForm(forms.ModelForm):
+    order = forms.IntegerField(
+        required=False,
+        min_value=1,
+        widget=forms.NumberInput(attrs={'class': TAILWIND_INPUT, 'min': '1'}),
+    )
+
+    class Meta:
+        model = WorkflowTemplateStep
+        fields = ['name', 'description', 'order']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
+            'description': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 3}),
+        }
+
+
+class WorkflowStepForm(forms.ModelForm):
+    order = forms.IntegerField(
+        required=False,
+        min_value=1,
+        widget=forms.NumberInput(attrs={'class': TAILWIND_INPUT, 'min': '1'}),
+    )
+
+    class Meta:
+        model = WorkflowStep
+        fields = ['name', 'description', 'status', 'assigned_to', 'due_date', 'order']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
+            'description': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 3}),
+            'status': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'assigned_to': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'due_date': forms.DateTimeInput(attrs={'class': TAILWIND_INPUT, 'type': 'datetime-local'}),
+        }
+
+
 class TrademarkRequestForm(forms.ModelForm):
     class Meta:
         model = TrademarkRequest
@@ -673,6 +856,36 @@ class ClauseTemplateForm(forms.ModelForm):
         for issue in validate_clause_policy(clause):
             self.add_error(None, issue)
         return cleaned_data
+
+
+class ClauseVariantForm(forms.ModelForm):
+    class Meta:
+        model = ClauseVariant
+        fields = ['playbook', 'jurisdiction_scope', 'contract_type', 'risk_level', 'fallback_content', 'playbook_notes', 'priority', 'is_active']
+        widgets = {
+            'playbook': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'jurisdiction_scope': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'contract_type': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
+            'risk_level': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
+            'fallback_content': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 4}),
+            'playbook_notes': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 4}),
+            'priority': forms.NumberInput(attrs={'class': TAILWIND_INPUT, 'min': '0'}),
+            'is_active': forms.CheckboxInput(attrs={'class': TAILWIND_CHECKBOX}),
+        }
+
+
+class ClausePlaybookForm(forms.ModelForm):
+    class Meta:
+        model = ClausePlaybook
+        fields = ['name', 'description', 'fallback_position', 'jurisdiction_scope', 'risk_level', 'is_active']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
+            'description': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 3}),
+            'fallback_position': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 4}),
+            'jurisdiction_scope': forms.Select(attrs={'class': TAILWIND_SELECT}),
+            'risk_level': forms.TextInput(attrs={'class': TAILWIND_INPUT}),
+            'is_active': forms.CheckboxInput(attrs={'class': TAILWIND_CHECKBOX}),
+        }
 
 
 class EthicalWallForm(forms.ModelForm):

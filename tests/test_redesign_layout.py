@@ -48,6 +48,7 @@ class RedesignLayoutTests(TestCase):
         self.assertContains(response, 'Clients')
         self.assertContains(response, 'Contracts in intake')
         self.assertContains(response, 'Open Task Signals')
+        self.assertContains(response, 'My Work Queue')
         self.assertContains(response, 'Recent Contracts')
         self.assertContains(response, 'Workflow recommendations open')
 

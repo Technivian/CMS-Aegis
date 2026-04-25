@@ -1,12 +1,17 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
+from django.contrib import messages
 from django.shortcuts import render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
+from django.shortcuts import get_object_or_404, redirect
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from contracts.forms import (
     ClauseCategoryForm,
+    ClausePlaybookForm,
+    ClauseVariantForm,
     ClauseTemplateForm,
     CounterpartyForm,
     EthicalWallForm,
@@ -19,6 +24,7 @@ from contracts.models import (
     ClauseTemplate,
     ClausePlaybook,
     ClauseVariant,
+    SearchPreset,
     Client,
     Counterparty,
     Document,
@@ -76,6 +82,35 @@ def _merge_ranked_results(primary, secondary, limit=10):
         if len(merged) >= limit:
             break
     return merged
+
+
+SEARCH_PRESET_PARAM_KEYS = ('q', 'type', 'status', 'jurisdiction', 'search_mode')
+
+
+def _search_request_params(request, organization):
+    params = {key: (request.GET.get(key) or '').strip() for key in SEARCH_PRESET_PARAM_KEYS}
+    active_preset = None
+    preset_id = (request.GET.get('preset_id') or '').strip()
+    if preset_id and organization is not None:
+        active_preset = get_object_or_404(
+            SearchPreset,
+            pk=preset_id,
+            organization=organization,
+            created_by=request.user,
+        )
+        preset_params = active_preset.params or {}
+        for key in SEARCH_PRESET_PARAM_KEYS:
+            value = preset_params.get(key)
+            if value is not None:
+                params[key] = str(value)
+    params['search_mode'] = (params.get('search_mode') or 'hybrid').strip().lower()
+    if params['search_mode'] not in {'keyword', 'semantic', 'hybrid'}:
+        params['search_mode'] = 'hybrid'
+    params['type'] = (params.get('type') or '').strip().lower()
+    params['status'] = (params.get('status') or '').strip().upper()
+    params['jurisdiction'] = (params.get('jurisdiction') or '').strip()
+    params['q'] = (params.get('q') or '').strip()
+    return params, active_preset
 
 
 class CounterpartyListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
@@ -174,16 +209,7 @@ class ClauseTemplateDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, De
     template_name = 'contracts/clause_template_detail.html'
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['fallback_summary'] = get_clause_fallback_summary(self.object)
-        context['policy_issues'] = validate_clause_policy(self.object)
-        context['resolved_variant'] = resolve_clause_variant(self.object)
-        context['playbooks'] = ClausePlaybook.objects.filter(
-            organization=self.get_organization(),
-            is_active=True,
-        ).order_by('name')
-        context['variants'] = ClauseVariant.objects.filter(template=self.object, is_active=True).select_related('playbook').order_by('priority', '-created_at')
-        return context
+        return _clause_template_detail_context(self.object, self.get_organization())
 
 
 class ClauseTemplateUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
@@ -192,6 +218,68 @@ class ClauseTemplateUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin,
     template_name = 'contracts/clause_template_form.html'
     success_url = reverse_lazy('contracts:clause_template_list')
     scoped_form_fields = {'category': ClauseCategory}
+
+
+def _clause_template_detail_context(template, organization, variant_form=None, playbook_form=None):
+    form = variant_form or ClauseVariantForm()
+    form.fields['playbook'].queryset = scope_queryset_for_organization(ClausePlaybook.objects.all(), organization)
+    playbook_editor = playbook_form or ClausePlaybookForm()
+    return {
+        'object': template,
+        'fallback_summary': get_clause_fallback_summary(template),
+        'policy_issues': validate_clause_policy(template),
+        'resolved_variant': resolve_clause_variant(template),
+        'playbooks': ClausePlaybook.objects.filter(organization=organization, is_active=True).order_by('name'),
+        'variants': ClauseVariant.objects.filter(template=template, is_active=True).select_related('playbook').order_by('priority', '-created_at'),
+        'variant_form': form,
+        'playbook_form': playbook_editor,
+    }
+
+
+@login_required
+def clause_variant_create(request, pk):
+    organization = get_user_organization(request.user)
+    template = get_object_or_404(scope_queryset_for_organization(ClauseTemplate.objects.all(), organization), pk=pk)
+    if request.method != 'POST':
+        return redirect('contracts:clause_template_detail', pk=template.pk)
+
+    form = ClauseVariantForm(request.POST)
+    form.fields['playbook'].queryset = scope_queryset_for_organization(ClausePlaybook.objects.all(), organization)
+    if form.is_valid():
+        variant = form.save(commit=False)
+        variant.template = template
+        variant.organization = organization
+        variant.save()
+        messages.success(request, f"Added variant for {template.title}.")
+        return redirect('contracts:clause_template_detail', pk=template.pk)
+
+    return render(
+        request,
+        'contracts/clause_template_detail.html',
+        _clause_template_detail_context(template, organization, variant_form=form),
+    )
+
+
+@login_required
+def clause_playbook_create(request, pk):
+    organization = get_user_organization(request.user)
+    template = get_object_or_404(scope_queryset_for_organization(ClauseTemplate.objects.all(), organization), pk=pk)
+    if request.method != 'POST':
+        return redirect('contracts:clause_template_detail', pk=template.pk)
+
+    form = ClausePlaybookForm(request.POST)
+    if form.is_valid():
+        playbook = form.save(commit=False)
+        playbook.organization = organization
+        playbook.save()
+        messages.success(request, f"Added playbook '{playbook.name}'.")
+        return redirect('contracts:clause_template_detail', pk=template.pk)
+
+    return render(
+        request,
+        'contracts/clause_template_detail.html',
+        _clause_template_detail_context(template, organization, playbook_form=form),
+    )
 
 
 class EthicalWallListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
@@ -230,14 +318,13 @@ class EthicalWallUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin, Lo
 
 @login_required
 def global_search(request):
-    q = request.GET.get('q', '').strip()
     org = get_user_organization(request.user)
-    result_type = (request.GET.get('type') or '').strip().lower()
-    contract_status = (request.GET.get('status') or '').strip().upper()
-    jurisdiction = (request.GET.get('jurisdiction') or '').strip()
-    search_mode = (request.GET.get('search_mode') or 'hybrid').strip().lower()
-    if search_mode not in {'keyword', 'semantic', 'hybrid'}:
-        search_mode = 'hybrid'
+    params, active_preset = _search_request_params(request, org)
+    q = params['q']
+    result_type = params['type']
+    contract_status = params['status']
+    jurisdiction = params['jurisdiction']
+    search_mode = params['search_mode']
     results = {}
     if q:
         case_queryset = get_scoped_queryset_for_request(request, Case).filter(
@@ -316,4 +403,64 @@ def global_search(request):
         else:
             results['task_signals'] = _ranked_queryset(task_signal_queryset, q, title_field='title')[:10]
         results['tasks'] = results['task_signals']
-    return render(request, 'contracts/search_results.html', {'q': q, 'results': results, 'search_mode': search_mode})
+    saved_searches = []
+    if org:
+        saved_searches = SearchPreset.objects.filter(organization=org, created_by=request.user).order_by('name')
+    return render(
+        request,
+        'contracts/search_results.html',
+        {
+            'q': q,
+            'results': results,
+            'search_mode': search_mode,
+            'saved_searches': saved_searches,
+            'active_preset': active_preset,
+            'current_search_params': params,
+        },
+    )
+
+
+@login_required
+@require_POST
+def save_search_preset(request):
+    organization = get_user_organization(request.user)
+    if organization is None:
+        messages.error(request, 'No active organization found.')
+        return redirect('contracts:global_search')
+
+    name = (request.POST.get('name') or '').strip()
+    if not name:
+        messages.error(request, 'Enter a name for this saved search.')
+        return redirect(request.META.get('HTTP_REFERER', reverse('contracts:global_search')))
+
+    params = {key: (request.POST.get(key) or '').strip() for key in SEARCH_PRESET_PARAM_KEYS}
+    if params['search_mode'] not in {'keyword', 'semantic', 'hybrid'}:
+        params['search_mode'] = 'hybrid'
+
+    preset, created = SearchPreset.objects.update_or_create(
+        organization=organization,
+        created_by=request.user,
+        name=name,
+        defaults={'params': params},
+    )
+    messages.success(request, f"{'Saved' if created else 'Updated'} search preset '{preset.name}'.")
+    return redirect(f"{reverse('contracts:global_search')}?preset_id={preset.pk}")
+
+
+@login_required
+@require_POST
+def delete_search_preset(request, preset_id):
+    organization = get_user_organization(request.user)
+    if organization is None:
+        messages.error(request, 'No active organization found.')
+        return redirect('contracts:global_search')
+
+    preset = get_object_or_404(
+        SearchPreset,
+        pk=preset_id,
+        organization=organization,
+        created_by=request.user,
+    )
+    preset.delete()
+    messages.success(request, f"Deleted search preset '{preset.name}'.")
+    return redirect(request.META.get('HTTP_REFERER', reverse('contracts:global_search')))

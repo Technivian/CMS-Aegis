@@ -29,11 +29,23 @@ class AuditLogListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):
 @login_required
 def notification_list(request):
     all_notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
-    unread_count = all_notifications.filter(is_read=False).count()
+    filter_type = (request.GET.get('type') or '').strip().upper()
+    filter_state = (request.GET.get('state') or '').strip().lower()
+
+    if filter_type and filter_type in {choice for choice, _ in Notification.NotificationType.choices}:
+        all_notifications = all_notifications.filter(notification_type=filter_type)
+    if filter_state == 'unread':
+        all_notifications = all_notifications.filter(is_read=False)
+    elif filter_state == 'read':
+        all_notifications = all_notifications.filter(is_read=True)
+
+    unread_count = Notification.objects.filter(recipient=request.user, is_read=False).count()
     notifications = all_notifications[:50]
     return render(request, 'contracts/notification_list.html', {
         'notifications': notifications,
         'unread_count': unread_count,
+        'filter_type': filter_type,
+        'filter_state': filter_state,
     })
 
 

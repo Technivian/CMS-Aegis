@@ -34,6 +34,55 @@
         </div>
     </div>
 </form>
+<div class="grid gap-6 lg:grid-cols-[2fr_1fr] mb-8">
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Saved Searches</h2>
+            {% if q %}
+            <span class="text-xs text-gray-500">Saving current query: {{ q }}</span>
+            {% endif %}
+        </div>
+        {% if q %}
+        <form method="post" action="{% url 'contracts:save_search_preset' %}" class="flex flex-col sm:flex-row gap-2 mb-4">
+            {% csrf_token %}
+            <input type="hidden" name="q" value="{{ current_search_params.q }}">
+            <input type="hidden" name="type" value="{{ current_search_params.type }}">
+            <input type="hidden" name="status" value="{{ current_search_params.status }}">
+            <input type="hidden" name="jurisdiction" value="{{ current_search_params.jurisdiction }}">
+            <input type="hidden" name="search_mode" value="{{ current_search_params.search_mode }}">
+            <input type="text" name="name" placeholder="Name this search" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save search</button>
+        </form>
+        {% endif %}
+        <div class="space-y-2">
+            {% for preset in saved_searches %}
+            <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2">
+                <div>
+                    <a href="{% url 'contracts:global_search' %}?preset_id={{ preset.id }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">{{ preset.name }}</a>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                        {% if preset.params.q %}{{ preset.params.q }}{% else %}Saved query{% endif %}
+                        {% if preset.params.search_mode %} · {{ preset.params.search_mode|title }}{% endif %}
+                    </p>
+                </div>
+                <form method="post" action="{% url 'contracts:delete_search_preset' preset.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="text-xs text-red-600 hover:text-red-800">Delete</button>
+                </form>
+            </div>
+            {% empty %}
+            <p class="text-sm text-gray-400">No saved searches yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">Search Tips</h2>
+        <ul class="space-y-2 text-sm text-gray-600">
+            <li>Use filters to narrow by contract status or jurisdiction.</li>
+            <li>Choose semantic mode for clause-heavy queries.</li>
+            <li>Save recurring searches for faster access later.</li>
+        </ul>
+    </div>
+</div>
 {% if q %}
 {% if results.cases %}
 <div class="mb-6">

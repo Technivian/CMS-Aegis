@@ -108,6 +108,31 @@ class WorkflowTemplateVersioningTests(TestCase):
         self.assertEqual(detail_response.status_code, 200)
         self.assertContains(detail_response, 'v1')
         self.assertContains(detail_response, 'Workflow Steps')
+        self.assertContains(detail_response, 'Add a step')
+
+    def test_template_detail_add_step_creates_step_and_redirects(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse('contracts:workflow_template_step_add', args=[self.template.pk]),
+            data={
+                'name': 'Signature',
+                'description': 'Collect signatures',
+                'order': '3',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('contracts:workflow_template_detail', args=[self.template.pk]),
+            fetch_redirect_response=False,
+        )
+
+        self.template.refresh_from_db()
+        created_step = WorkflowTemplateStep.objects.get(template=self.template, name='Signature')
+        self.assertEqual(created_step.description, 'Collect signatures')
+        self.assertEqual(created_step.order, 3)
 
     def test_template_detail_clone_action_creates_new_version(self):
         self.client.force_login(self.user)

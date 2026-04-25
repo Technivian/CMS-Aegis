@@ -13,6 +13,15 @@
     </form>
     {% endif %}
 </div>
+<div class="flex flex-wrap gap-2 mb-4">
+    <a href="{% url 'contracts:notification_list' %}" class="px-3 py-2 rounded-full text-sm {% if not filter_state and not filter_type %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">All</a>
+    <a href="{% url 'contracts:notification_list' %}?state=unread" class="px-3 py-2 rounded-full text-sm {% if filter_state == 'unread' %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">Unread</a>
+    <a href="{% url 'contracts:notification_list' %}?state=read" class="px-3 py-2 rounded-full text-sm {% if filter_state == 'read' %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">Read</a>
+    <a href="{% url 'contracts:notification_list' %}?type=SYSTEM" class="px-3 py-2 rounded-full text-sm {% if filter_type == 'SYSTEM' %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">System</a>
+    <a href="{% url 'contracts:notification_list' %}?type=APPROVAL" class="px-3 py-2 rounded-full text-sm {% if filter_type == 'APPROVAL' %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">Approvals</a>
+    <a href="{% url 'contracts:notification_list' %}?type=TASK" class="px-3 py-2 rounded-full text-sm {% if filter_type == 'TASK' %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">Tasks</a>
+    <a href="{% url 'contracts:notification_list' %}?type=DEADLINE" class="px-3 py-2 rounded-full text-sm {% if filter_type == 'DEADLINE' %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">Deadlines</a>
+</div>
 <div class="bg-white rounded-xl border border-gray-200">
     <div class="divide-y divide-gray-100">
         {% for notification in notifications %}

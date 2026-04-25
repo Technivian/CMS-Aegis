@@ -36,6 +36,7 @@ from contracts.models import (
     TrustAccount,
     UserProfile,
     Workflow,
+    WorkflowStep,
     CaseSignal,
     Deadline,
     DSARRequest,
@@ -159,6 +160,63 @@ class ContractCreateView(TenantAssignCreateMixin, LoginRequiredMixin, CreateView
     template_name = 'contracts/contract_form.html'
     success_url = reverse_lazy('contracts:contract_list')
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['organization'] = get_user_organization(self.request.user)
+        return kwargs
+
+    @staticmethod
+    def _build_preview_sections(form):
+        draft_sections = list(form.cleaned_data.get('draft_sections') or [])
+        if draft_sections:
+            preview_sections = []
+            for index, section in enumerate(draft_sections):
+                preview_sections.append({
+                    'index': index,
+                    'order': section.get('order', index + 1),
+                    'include': True,
+                    'title': section.get('title', ''),
+                    'content': section.get('content', ''),
+                    'source_label': 'Edited draft section',
+                })
+            return preview_sections
+
+        clause_templates = list(form.cleaned_data.get('clause_templates') or [])
+        preview_sections = []
+        for index, clause_template in enumerate(clause_templates, start=1):
+            section = form.build_clause_preview_section(clause_template)
+            section.update({
+                'index': index - 1,
+                'order': index,
+                'include': True,
+                'template_url': reverse('contracts:clause_template_detail', kwargs={'pk': clause_template.pk}),
+                'playbook_url': reverse('contracts:clause_template_detail', kwargs={'pk': clause_template.pk}) + '#playbooks' if section.get('resolved_playbook') else '',
+            })
+            preview_sections.append(section)
+        return preview_sections
+
+    def _render_preview(self, form):
+        draft_sections = self._build_preview_sections(form)
+        return render(
+            self.request,
+            self.template_name,
+            {
+                'form': form,
+                'form_action': reverse('contracts:contract_create'),
+                'draft_sections': draft_sections,
+                'draft_preview_selected_clause_count': len(draft_sections),
+                'preview_mode': True,
+            },
+        )
+
+    def post(self, request, *args, **kwargs):
+        if 'preview_draft' in request.POST:
+            form = self.get_form()
+            if form.is_valid():
+                return self._render_preview(form)
+            return self.form_invalid(form)
+        return super().post(request, *args, **kwargs)
+
     def form_valid(self, form):
         set_organization_on_instance(form.instance, get_user_organization(self.request.user))
         form.instance.created_by = self.request.user
@@ -190,6 +248,65 @@ class ContractUpdateView(TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateVi
     def get_queryset(self):
         org = get_user_organization(self.request.user)
         return scope_queryset_for_organization(Contract.objects.all(), org)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['organization'] = get_user_organization(self.request.user)
+        return kwargs
+
+    @staticmethod
+    def _build_preview_sections(form):
+        draft_sections = list(form.cleaned_data.get('draft_sections') or [])
+        if draft_sections:
+            preview_sections = []
+            for index, section in enumerate(draft_sections):
+                preview_sections.append({
+                    'index': index,
+                    'order': section.get('order', index + 1),
+                    'include': True,
+                    'title': section.get('title', ''),
+                    'content': section.get('content', ''),
+                    'source_label': 'Edited draft section',
+                })
+            return preview_sections
+
+        clause_templates = list(form.cleaned_data.get('clause_templates') or [])
+        preview_sections = []
+        for index, clause_template in enumerate(clause_templates, start=1):
+            section = form.build_clause_preview_section(clause_template)
+            section.update({
+                'index': index - 1,
+                'order': index,
+                'include': True,
+                'template_url': reverse('contracts:clause_template_detail', kwargs={'pk': clause_template.pk}),
+                'playbook_url': reverse('contracts:clause_template_detail', kwargs={'pk': clause_template.pk}) + '#playbooks' if section.get('resolved_playbook') else '',
+            })
+            preview_sections.append(section)
+        return preview_sections
+
+    def _render_preview(self, form):
+        draft_sections = self._build_preview_sections(form)
+        return render(
+            self.request,
+            self.template_name,
+            {
+                'form': form,
+                'contract': self.object,
+                'form_action': reverse('contracts:contract_update', kwargs={'pk': self.object.pk}),
+                'draft_sections': draft_sections,
+                'draft_preview_selected_clause_count': len(draft_sections),
+                'preview_mode': True,
+            },
+        )
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if 'preview_draft' in request.POST:
+            form = self.get_form()
+            if form.is_valid():
+                return self._render_preview(form)
+            return self.form_invalid(form)
+        return super().post(request, *args, **kwargs)
 
     def dispatch(self, request, *args, **kwargs):
         contract = self.get_object()
@@ -374,6 +491,16 @@ def dashboard(request):
     if not request.user.is_authenticated:
         return redirect(f"{settings.LOGIN_URL}?next={request.get_full_path()}")
 
+    def _normalize_sort_date(value):
+        if value is None:
+            return date.max
+        if hasattr(value, 'date'):
+            try:
+                return value.date()
+            except TypeError:
+                return value
+        return value
+
     today = date.today()
     seven_days = today + timedelta(days=7)
     thirty_days = today + timedelta(days=30)
@@ -424,6 +551,105 @@ def dashboard(request):
     upcoming_deadlines = list(deadlines_qs.select_related('contract', 'matter', 'assigned_to').filter(is_completed=False, due_date__gte=today).order_by('due_date')[:6])
     upcoming_tasks = list(legal_tasks_qs.select_related('contract', 'matter', 'assigned_to').filter(status='PENDING', due_date__gte=today).order_by('due_date')[:5])
     recent_audit = list(AuditLog.objects.select_related('user').filter(changes__organization_id=org.id).order_by('-timestamp')[:8]) if org else []
+    my_work_items = []
+    if org:
+        my_legal_tasks = list(
+            CaseSignal.objects.for_organization(org)
+            .select_related('contract', 'matter', 'assigned_to')
+            .filter(assigned_to=request.user, status__in=['PENDING', 'IN_PROGRESS'])
+            .order_by('due_date', 'created_at')[:4]
+        )
+        for task in my_legal_tasks:
+            due_text = task.due_date.isoformat() if task.due_date else 'No due date'
+            my_work_items.append({
+                'title': task.title,
+                'meta': f'Legal task · {task.get_status_display()} · Due {due_text}',
+                'badge': 'Task',
+                'badge_class': 'badge-blue',
+                'dot': 'blue',
+                'href': reverse('contracts:legal_task_update', kwargs={'pk': task.pk}),
+                'sort_key': (_normalize_sort_date(task.due_date), 10, task.pk),
+            })
+
+        for deadline in list(
+            Deadline.objects.for_organization(org)
+            .select_related('contract', 'matter', 'assigned_to')
+            .filter(assigned_to=request.user, is_completed=False)
+            .order_by('due_date')[:4]
+        ):
+            my_work_items.append({
+                'title': deadline.title,
+                'meta': f"Deadline · {deadline.contract.title if deadline.contract else deadline.matter.title if deadline.matter else 'Unlinked'} · Due {deadline.due_date.isoformat()}",
+                'badge': 'Deadline',
+                'badge_class': 'badge-red',
+                'dot': 'red',
+                'href': reverse('contracts:deadline_update', kwargs={'pk': deadline.pk}),
+                'sort_key': (_normalize_sort_date(deadline.due_date), 20, deadline.pk),
+            })
+
+        for approval in list(
+            approvals_qs.select_related('contract', 'assigned_to')
+            .filter(assigned_to=request.user, status='PENDING')
+            .order_by('due_date', 'created_at')[:4]
+        ):
+            my_work_items.append({
+                'title': approval.contract.title,
+                'meta': f"Approval · {approval.approval_step} · {approval.get_status_display()}",
+                'badge': 'Approval',
+                'badge_class': 'badge-amber',
+                'dot': 'yellow',
+                'href': reverse('contracts:approval_request_update', kwargs={'pk': approval.pk}),
+                'sort_key': (_normalize_sort_date(approval.due_date), 30, approval.pk),
+            })
+
+        for dsar in list(
+            dsars_qs.select_related('client', 'assigned_to')
+            .filter(assigned_to=request.user, status__in=['RECEIVED', 'VERIFIED', 'IN_PROGRESS'])
+            .order_by('due_date', 'received_date')[:4]
+        ):
+            client_name = dsar.client.name if dsar.client else 'Unlinked'
+            due_text = dsar.due_date.isoformat() if dsar.due_date else 'No due date'
+            my_work_items.append({
+                'title': dsar.requester_name,
+                'meta': f"DSAR · {client_name} · Due {due_text}",
+                'badge': dsar.get_status_display(),
+                'badge_class': 'badge-purple',
+                'dot': 'purple',
+                'href': reverse('contracts:dsar_update', kwargs={'pk': dsar.pk}),
+                'sort_key': (_normalize_sort_date(dsar.due_date or dsar.received_date), 40, dsar.pk),
+            })
+
+        for step in list(
+            WorkflowStep.objects.select_related('workflow', 'assigned_to')
+            .filter(workflow__organization=org, assigned_to=request.user, status='PENDING')
+            .order_by('order', 'pk')[:4]
+        ):
+            my_work_items.append({
+                'title': step.name,
+                'meta': f"Workflow · {step.workflow.title}",
+                'badge': 'Workflow',
+                'badge_class': 'badge-green',
+                'dot': 'green',
+                'href': reverse('contracts:workflow_step_update', kwargs={'pk': step.pk}),
+                'sort_key': (_normalize_sort_date(step.due_date), 50, step.order, step.pk),
+            })
+
+        for signature in list(
+            signatures_qs.select_related('contract')
+                .filter(signer_email__iexact=request.user.email, status__in=['PENDING', 'SENT', 'VIEWED'])
+                .order_by('order', 'created_at')[:4]
+        ):
+            my_work_items.append({
+                'title': signature.contract.title,
+                'meta': f"Signature · {signature.signer_name} · {signature.get_status_display()}",
+                'badge': 'Sign',
+                'badge_class': 'badge-blue',
+                'dot': 'blue',
+                'href': reverse('contracts:signature_request_detail', kwargs={'pk': signature.pk}),
+                'sort_key': (_normalize_sort_date(signature.created_at), 60, signature.order, signature.pk),
+            })
+
+    my_work_items = sorted(my_work_items, key=lambda item: item['sort_key'])[:8]
 
     case_status_data = []
     status_mapping = [('ACTIVE', 'Active'), ('DRAFT', 'Draft'), ('PENDING', 'In Review'), ('EXPIRED', 'Expired'), ('TERMINATED', 'Terminated')]
@@ -457,6 +683,7 @@ def dashboard(request):
         'upcoming_deadlines': upcoming_deadlines,
         'upcoming_tasks': upcoming_tasks,
         'recent_audit': recent_audit,
+        'my_work_items': my_work_items,
         'case_status_data': case_status_data,
         'billable_hours': billable_hours,
         'trust_balance': trust_balance,

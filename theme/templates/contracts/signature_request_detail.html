@@ -1,22 +1,139 @@
 {% extends "base.html" %}
 {% block title %}{{ object }} - CMS Aegis{% endblock %}
 {% block content %}
-<div class="max-w-3xl mx-auto">
-    <div class="flex items-center justify-between mb-6">
+<div class="max-w-5xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
         <div>
             <a href="{% url 'contracts:signature_request_list' %}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to list</a>
             <h1 class="text-2xl font-bold text-gray-900 mt-2">{{ object }}</h1>
+            <p class="text-sm text-gray-500 mt-1">
+                Routing order {{ object.order }} · {{ object.get_status_display }}
+                {% if object.signer_role %} · {{ object.signer_role }}{% endif %}
+            </p>
         </div>
         <a href="{% url 'contracts:signature_request_update' object.pk %}" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">Edit</a>
     </div>
-    <div class="bg-white rounded-xl border border-gray-200 p-6">
-            <div class="py-3 border-b border-gray-100"><span class="text-xs font-medium text-gray-500 uppercase">Contract</span><p class="mt-1 text-sm text-gray-900">{{ object.contract }}</p></div>
-            <div class="py-3 border-b border-gray-100"><span class="text-xs font-medium text-gray-500 uppercase">Signer</span><p class="mt-1 text-sm text-gray-900">{{ object.signer_name }} ({{ object.signer_email }})</p></div>
-            <div class="py-3 border-b border-gray-100"><span class="text-xs font-medium text-gray-500 uppercase">Role</span><p class="mt-1 text-sm text-gray-900">{{ object.signer_role|default:"-" }}</p></div>
-            <div class="py-3 border-b border-gray-100"><span class="text-xs font-medium text-gray-500 uppercase">Status</span><p class="mt-1 text-sm text-gray-900">{{ object.get_status_display }}</p></div>
-            <div class="py-3 border-b border-gray-100"><span class="text-xs font-medium text-gray-500 uppercase">Sent At</span><p class="mt-1 text-sm text-gray-900">{{ object.sent_at|default:"Not sent" }}</p></div>
-            <div class="py-3 border-b border-gray-100"><span class="text-xs font-medium text-gray-500 uppercase">Signed At</span><p class="mt-1 text-sm text-gray-900">{{ object.signed_at|default:"Not signed" }}</p></div>
-            <div class="py-3 border-b border-gray-100"><span class="text-xs font-medium text-gray-500 uppercase">External ID</span><p class="mt-1 text-sm text-gray-900">{{ object.external_id|default:"-" }}</p></div>
+
+    {% if needs_follow_up %}
+    <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        Follow-up recommended. This request has been waiting longer than {{ follow_up_threshold_days }} days since it was sent.
+    </div>
+    {% endif %}
+
+    {% if routing_blockers %}
+    <div class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+        {% if routing_blockers|length == 1 %}
+            Routing is waiting on one earlier signer step to complete before this request becomes active.
+        {% else %}
+            Routing is waiting on {{ routing_blockers|length }} earlier signer steps to complete before this request becomes active.
+        {% endif %}
+        <div class="mt-2 text-xs text-blue-800">
+            {% for blocker in routing_blockers %}
+                <div>{{ blocker.order }}. {{ blocker.signer_name }} · {{ blocker.get_status_display }}</div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
+        <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div class="rounded-lg bg-gray-50 p-4">
+                    <span class="block text-xs font-medium text-gray-500 uppercase">Contract</span>
+                    <p class="mt-1 text-sm text-gray-900">{{ object.contract }}</p>
+                </div>
+                <div class="rounded-lg bg-gray-50 p-4">
+                    <span class="block text-xs font-medium text-gray-500 uppercase">Signer</span>
+                    <p class="mt-1 text-sm text-gray-900">{{ object.signer_name }}</p>
+                    <p class="text-xs text-gray-500">{{ object.signer_email }}</p>
+                </div>
+                <div class="rounded-lg bg-gray-50 p-4">
+                    <span class="block text-xs font-medium text-gray-500 uppercase">Role</span>
+                    <p class="mt-1 text-sm text-gray-900">{{ object.signer_role|default:"-" }}</p>
+                </div>
+                <div class="rounded-lg bg-gray-50 p-4">
+                    <span class="block text-xs font-medium text-gray-500 uppercase">External ID</span>
+                    <p class="mt-1 text-sm text-gray-900">{{ object.external_id|default:"-" }}</p>
+                </div>
+            </div>
+
+            <div>
+                <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">Lifecycle Timeline</h2>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div class="rounded-lg border border-gray-100 bg-white p-4">
+                        <span class="block text-xs font-medium text-gray-500 uppercase">Status</span>
+                        <p class="mt-1 text-sm text-gray-900">{{ object.get_status_display }}</p>
+                    </div>
+                    <div class="rounded-lg border border-gray-100 bg-white p-4">
+                        <span class="block text-xs font-medium text-gray-500 uppercase">Order</span>
+                        <p class="mt-1 text-sm text-gray-900">{{ object.order }}</p>
+                    </div>
+                    <div class="rounded-lg border border-gray-100 bg-white p-4">
+                        <span class="block text-xs font-medium text-gray-500 uppercase">Sent At</span>
+                        <p class="mt-1 text-sm text-gray-900">{{ object.sent_at|default:"Not sent" }}</p>
+                    </div>
+                    <div class="rounded-lg border border-gray-100 bg-white p-4">
+                        <span class="block text-xs font-medium text-gray-500 uppercase">Viewed At</span>
+                        <p class="mt-1 text-sm text-gray-900">{{ object.viewed_at|default:"Not viewed" }}</p>
+                    </div>
+                    <div class="rounded-lg border border-gray-100 bg-white p-4">
+                        <span class="block text-xs font-medium text-gray-500 uppercase">Signed At</span>
+                        <p class="mt-1 text-sm text-gray-900">{{ object.signed_at|default:"Not signed" }}</p>
+                    </div>
+                    <div class="rounded-lg border border-gray-100 bg-white p-4">
+                        <span class="block text-xs font-medium text-gray-500 uppercase">Declined At</span>
+                        <p class="mt-1 text-sm text-gray-900">{{ object.declined_at|default:"Not declined" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">Quick Actions</h2>
+                {% if available_transitions %}
+                <div class="space-y-3">
+                    {% for transition in available_transitions %}
+                    <form method="post" action="{% url 'contracts:signature_request_transition' object.pk transition.value %}">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-700 hover:bg-blue-100">
+                            Mark as {{ transition.label }}
+                        </button>
+                    </form>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-sm text-gray-500">No next actions are currently available for your role.</p>
+                {% endif %}
+
+                {% if needs_follow_up and can_send_reminder %}
+                <form method="post" action="{% url 'contracts:signature_request_send_reminder' object.pk %}" class="mt-4">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm font-medium text-amber-800 hover:bg-amber-100">
+                        Send reminder
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">Execution Notes</h2>
+                <dl class="space-y-3 text-sm">
+                    <div>
+                        <dt class="text-gray-500 uppercase text-xs">Document</dt>
+                        <dd class="text-gray-900 mt-1">{{ object.document|default:"-" }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-gray-500 uppercase text-xs">Created By</dt>
+                        <dd class="text-gray-900 mt-1">{{ object.created_by|default:"-" }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-gray-500 uppercase text-xs">Created At</dt>
+                        <dd class="text-gray-900 mt-1">{{ object.created_at }}</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

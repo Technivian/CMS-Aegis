@@ -1,13 +1,15 @@
 import csv
 from datetime import date
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseForbidden
-from django.shortcuts import render
-from django.urls import reverse_lazy
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from contracts.forms import (
@@ -36,9 +38,12 @@ from contracts.models import (
     SignatureRequest,
     Subprocessor,
     TransferRecord,
+    Notification,
+    OrganizationMembership,
 )
 from contracts.middleware import log_action
 from contracts.tenancy import get_user_organization, scope_queryset_for_organization
+from contracts.services.esign import ESignTransitionError, transition_signature_request
 from contracts.view_support import (
     TenantAssignCreateMixin,
     TenantScopedFormMixin,
@@ -79,6 +84,90 @@ class SignatureRequestDetailView(TenantScopedQuerysetMixin, LoginRequiredMixin, 
     model = SignatureRequest
     template_name = 'contracts/signature_request_detail.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['available_transitions'] = self.object.available_transitions_for_actor(self.request.user)
+        context['needs_follow_up'] = self.object.is_follow_up_due()
+        context['follow_up_threshold_days'] = 7
+        context['routing_blockers'] = self.object.routing_blockers()
+        context['routing_ready'] = self.object.is_routing_ready()
+        context['can_send_reminder'] = (
+            self.object.created_by_id == self.request.user.id
+            or can_manage_organization(self.request.user, self.object.organization)
+        )
+        return context
+
+
+def _signature_reminder_recipients(signature_request):
+    recipients = set()
+    if signature_request.created_by_id:
+        recipients.add(signature_request.created_by)
+    organization = signature_request.organization
+    if organization:
+        for membership in OrganizationMembership.objects.filter(
+            organization=organization,
+            is_active=True,
+            role__in=[OrganizationMembership.Role.OWNER, OrganizationMembership.Role.ADMIN],
+        ).select_related('user'):
+            recipients.add(membership.user)
+    return recipients
+
+
+@login_required
+@require_POST
+def signature_request_send_reminder(request, pk):
+    org = get_user_organization(request.user)
+    queryset = scope_queryset_for_organization(SignatureRequest.objects.select_related('contract', 'document', 'created_by'), org)
+    signature_request = get_object_or_404(queryset, pk=pk)
+    if not (signature_request.created_by_id == request.user.id or can_manage_organization(request.user, signature_request.organization)):
+        return HttpResponseForbidden('You are not authorized to send reminders for this signature request.')
+
+    if signature_request.status not in {SignatureRequest.Status.PENDING, SignatureRequest.Status.SENT, SignatureRequest.Status.VIEWED}:
+        messages.info(request, 'This signature request is already closed.')
+        return redirect(reverse('contracts:signature_request_detail', kwargs={'pk': signature_request.pk}))
+
+    recipients = _signature_reminder_recipients(signature_request)
+    reminder_link = reverse('contracts:signature_request_detail', kwargs={'pk': signature_request.pk})
+    reminder_title = f'Signature reminder: {signature_request.contract.title} ({signature_request.signer_name})'
+    created_count = 0
+    for recipient in recipients:
+        exists = Notification.objects.filter(
+            recipient=recipient,
+            notification_type=Notification.NotificationType.SYSTEM,
+            title=reminder_title,
+            link=reminder_link,
+            created_at__date=timezone.localdate(),
+        ).exists()
+        if exists:
+            continue
+        Notification.objects.create(
+            recipient=recipient,
+            notification_type=Notification.NotificationType.SYSTEM,
+            title=reminder_title,
+            message=(
+                f'{signature_request.contract.title} is waiting on signature from '
+                f'{signature_request.signer_name} ({signature_request.signer_email}).'
+            ),
+            link=reminder_link,
+        )
+        created_count += 1
+
+    log_action(
+        request.user,
+        AuditLog.Action.UPDATE,
+        'SignatureRequest',
+        object_id=signature_request.id,
+        object_repr=str(signature_request),
+        changes={
+            'event': 'signature_request_reminder_sent',
+            'notification_count': created_count,
+            'organization_id': getattr(org, 'id', None),
+        },
+        request=request,
+    )
+    messages.success(request, f'Signature reminder queued for {created_count} recipient(s).')
+    return redirect(reverse('contracts:signature_request_detail', kwargs={'pk': signature_request.pk}))
+
 
 class SignatureRequestUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixin, LoginRequiredMixin, UpdateView):
     model = SignatureRequest
@@ -91,6 +180,34 @@ class SignatureRequestUpdateView(TenantScopedFormMixin, TenantScopedQuerysetMixi
         kwargs = super().get_form_kwargs()
         kwargs['actor'] = self.request.user
         return kwargs
+
+
+@login_required
+@require_POST
+def signature_request_transition(request, pk, new_status):
+    org = get_user_organization(request.user)
+    queryset = scope_queryset_for_organization(SignatureRequest.objects.select_related('contract', 'document', 'created_by'), org)
+    signature_request = get_object_or_404(queryset, pk=pk)
+    try:
+        transition_signature_request(signature_request, new_status, actor=request.user)
+    except ESignTransitionError as exc:
+        return HttpResponseForbidden(str(exc))
+
+    log_action(
+        request.user,
+        AuditLog.Action.UPDATE,
+        'SignatureRequest',
+        object_id=signature_request.id,
+        object_repr=str(signature_request),
+        changes={
+            'event': 'signature_request_transition',
+            'to_status': new_status,
+            'organization_id': getattr(org, 'id', None),
+        },
+        request=request,
+    )
+    messages.success(request, f'Signature request marked as {signature_request.get_status_display().lower()}.')
+    return redirect(reverse('contracts:signature_request_detail', kwargs={'pk': signature_request.pk}))
 
 
 class DataInventoryListView(TenantScopedQuerysetMixin, LoginRequiredMixin, ListView):

@@ -41,3 +41,11 @@ class ExecutiveReportsDashboardTests(TestCase):
         self.assertContains(response, 'Risk Trend (High + Critical)')
         self.assertContains(response, 'Saved Executive Dashboards')
         self.assertContains(response, 'Weekly Exec View')
+
+    def test_reports_export_returns_csv_snapshot(self):
+        self.client.login(username='report-owner', password='pass12345')
+        response = self.client.get(reverse('contracts:reports_export'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('text/csv', response['Content-Type'])
+        self.assertContains(response, 'category,metric,value', html=False)
+        self.assertContains(response, 'summary,total_clients,0', html=False)

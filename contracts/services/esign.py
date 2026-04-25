@@ -12,6 +12,10 @@ class ESignReconciliationError(RuntimeError):
     pass
 
 
+class ESignTransitionError(RuntimeError):
+    pass
+
+
 PROVIDER_STATUS_MAP = {
     'created': SignatureRequest.Status.PENDING,
     'pending': SignatureRequest.Status.PENDING,
@@ -69,6 +73,63 @@ def _is_duplicate_event(signature_request: SignatureRequest, event_id: str) -> b
     ).exists()
 
 
+def transition_signature_request(
+    signature_request: SignatureRequest,
+    new_status: str,
+    *,
+    actor=None,
+    event_at: datetime | None = None,
+    external_id: str | None = None,
+    decline_reason: str | None = None,
+    ip_address: str | None = None,
+    execution_certificate_url: str | None = None,
+    enforce_actor: bool = True,
+    dry_run: bool = False,
+):
+    from_status = signature_request.status
+    if not signature_request.can_transition_to(new_status):
+        raise ESignTransitionError('Invalid signature status transition.')
+    if enforce_actor and not signature_request.can_actor_transition(actor, new_status):
+        raise ESignTransitionError('You are not authorized to perform this signature transition.')
+
+    transition_at = event_at or timezone.now()
+    if dry_run:
+        return {
+            'from_status': from_status,
+            'to_status': new_status,
+            'applied': False,
+            'dry_run': True,
+            'event_at': transition_at,
+        }
+
+    signature_request.status = new_status
+    if external_id:
+        signature_request.external_id = str(external_id).strip()
+    if execution_certificate_url:
+        signature_request.execution_certificate_url = str(execution_certificate_url).strip()
+    if decline_reason:
+        signature_request.decline_reason = str(decline_reason).strip()
+    if ip_address:
+        signature_request.ip_address = str(ip_address).strip()
+
+    if new_status == SignatureRequest.Status.SENT:
+        signature_request.sent_at = transition_at or signature_request.sent_at or timezone.now()
+    elif new_status == SignatureRequest.Status.VIEWED:
+        signature_request.viewed_at = transition_at or signature_request.viewed_at or timezone.now()
+    elif new_status == SignatureRequest.Status.SIGNED:
+        signature_request.signed_at = transition_at or signature_request.signed_at or timezone.now()
+    elif new_status == SignatureRequest.Status.DECLINED:
+        signature_request.declined_at = transition_at or signature_request.declined_at or timezone.now()
+    signature_request.save()
+    return {
+        'from_status': from_status,
+        'to_status': new_status,
+        'applied': True,
+        'dry_run': False,
+        'event_at': transition_at,
+    }
+
+
 def apply_esign_event(signature_request: SignatureRequest, event: dict, *, dry_run: bool = False) -> dict:
     event_id = str(event.get('event_id') or '').strip()
     if not event_id:
@@ -101,25 +162,18 @@ def apply_esign_event(signature_request: SignatureRequest, event: dict, *, dry_r
     }
 
     if should_apply and not dry_run:
-        signature_request.status = target_status
         external_id = str(event.get('external_id') or '').strip()
-        if external_id:
-            signature_request.external_id = external_id
-        if event.get('execution_certificate_url'):
-            signature_request.execution_certificate_url = str(event.get('execution_certificate_url') or '').strip()
-        if event.get('decline_reason'):
-            signature_request.decline_reason = str(event.get('decline_reason') or '').strip()
-        if event.get('ip_address'):
-            signature_request.ip_address = str(event.get('ip_address') or '').strip()
-        if target_status == SignatureRequest.Status.SENT:
-            signature_request.sent_at = event_at or signature_request.sent_at or timezone.now()
-        elif target_status == SignatureRequest.Status.VIEWED:
-            signature_request.viewed_at = event_at or signature_request.viewed_at or timezone.now()
-        elif target_status == SignatureRequest.Status.SIGNED:
-            signature_request.signed_at = event_at or signature_request.signed_at or timezone.now()
-        elif target_status == SignatureRequest.Status.DECLINED:
-            signature_request.declined_at = event_at or signature_request.declined_at or timezone.now()
-        signature_request.save()
+        transition_signature_request(
+            signature_request,
+            target_status,
+            actor=None,
+            event_at=event_at,
+            external_id=external_id,
+            decline_reason=event.get('decline_reason'),
+            ip_address=event.get('ip_address'),
+            execution_certificate_url=event.get('execution_certificate_url'),
+            enforce_actor=False,
+        )
 
     if not dry_run:
         AuditLog.objects.create(

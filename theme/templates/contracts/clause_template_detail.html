@@ -24,6 +24,104 @@
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 p-6 mt-6">
+        <div class="flex items-center justify-between gap-3 mb-4">
+            <div>
+                <h2 class="font-semibold text-gray-900">Create variant</h2>
+                <p class="text-sm text-gray-500 mt-1">Add a playbook-specific fallback or negotiation position.</p>
+            </div>
+        </div>
+        <form method="post" action="{% url 'contracts:clause_variant_create' object.pk %}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ variant_form.playbook.id_for_label }}">Playbook</label>
+                {{ variant_form.playbook }}
+                {% if variant_form.playbook.errors %}<p class="mt-1 text-xs text-red-600">{{ variant_form.playbook.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ variant_form.jurisdiction_scope.id_for_label }}">Jurisdiction scope</label>
+                {{ variant_form.jurisdiction_scope }}
+                {% if variant_form.jurisdiction_scope.errors %}<p class="mt-1 text-xs text-red-600">{{ variant_form.jurisdiction_scope.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ variant_form.contract_type.id_for_label }}">Contract type</label>
+                {{ variant_form.contract_type }}
+                {% if variant_form.contract_type.errors %}<p class="mt-1 text-xs text-red-600">{{ variant_form.contract_type.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ variant_form.risk_level.id_for_label }}">Risk level</label>
+                {{ variant_form.risk_level }}
+                {% if variant_form.risk_level.errors %}<p class="mt-1 text-xs text-red-600">{{ variant_form.risk_level.errors.0 }}</p>{% endif %}
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ variant_form.fallback_content.id_for_label }}">Fallback content</label>
+                {{ variant_form.fallback_content }}
+                {% if variant_form.fallback_content.errors %}<p class="mt-1 text-xs text-red-600">{{ variant_form.fallback_content.errors.0 }}</p>{% endif %}
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ variant_form.playbook_notes.id_for_label }}">Playbook notes</label>
+                {{ variant_form.playbook_notes }}
+                {% if variant_form.playbook_notes.errors %}<p class="mt-1 text-xs text-red-600">{{ variant_form.playbook_notes.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ variant_form.priority.id_for_label }}">Priority</label>
+                {{ variant_form.priority }}
+                {% if variant_form.priority.errors %}<p class="mt-1 text-xs text-red-600">{{ variant_form.priority.errors.0 }}</p>{% endif %}
+            </div>
+            <div class="flex items-center gap-2 pt-7">
+                {{ variant_form.is_active }}
+                <label class="text-sm font-medium text-gray-700" for="{{ variant_form.is_active.id_for_label }}">Active</label>
+            </div>
+            <div class="md:col-span-2 flex justify-end">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">Add variant</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 p-6 mt-6">
+        <div class="flex items-center justify-between gap-3 mb-4">
+            <div>
+                <h2 class="font-semibold text-gray-900">Create playbook</h2>
+                <p class="text-sm text-gray-500 mt-1">Add the guidance that variants can reference.</p>
+            </div>
+        </div>
+        <form method="post" action="{% url 'contracts:clause_playbook_create' object.pk %}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ playbook_form.name.id_for_label }}">Name</label>
+                {{ playbook_form.name }}
+                {% if playbook_form.name.errors %}<p class="mt-1 text-xs text-red-600">{{ playbook_form.name.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ playbook_form.jurisdiction_scope.id_for_label }}">Jurisdiction scope</label>
+                {{ playbook_form.jurisdiction_scope }}
+                {% if playbook_form.jurisdiction_scope.errors %}<p class="mt-1 text-xs text-red-600">{{ playbook_form.jurisdiction_scope.errors.0 }}</p>{% endif %}
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ playbook_form.description.id_for_label }}">Description</label>
+                {{ playbook_form.description }}
+                {% if playbook_form.description.errors %}<p class="mt-1 text-xs text-red-600">{{ playbook_form.description.errors.0 }}</p>{% endif %}
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ playbook_form.fallback_position.id_for_label }}">Fallback position</label>
+                {{ playbook_form.fallback_position }}
+                {% if playbook_form.fallback_position.errors %}<p class="mt-1 text-xs text-red-600">{{ playbook_form.fallback_position.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ playbook_form.risk_level.id_for_label }}">Risk level</label>
+                {{ playbook_form.risk_level }}
+                {% if playbook_form.risk_level.errors %}<p class="mt-1 text-xs text-red-600">{{ playbook_form.risk_level.errors.0 }}</p>{% endif %}
+            </div>
+            <div class="flex items-center gap-2 pt-7">
+                {{ playbook_form.is_active }}
+                <label class="text-sm font-medium text-gray-700" for="{{ playbook_form.is_active.id_for_label }}">Active</label>
+            </div>
+            <div class="md:col-span-2 flex justify-end">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">Add playbook</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 p-6 mt-6">
         <h2 class="font-semibold text-gray-900 mb-3">Resolved playbook</h2>
         <p class="text-sm text-gray-600 mb-2">Best-fit variant score: {{ resolved_variant.score }}</p>
         <div class="space-y-3">

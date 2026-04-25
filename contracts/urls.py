@@ -107,6 +107,7 @@ urlpatterns = [
 
     # Reports
     path('reports/', views.reports_dashboard, name='reports_dashboard'),
+    path('reports/export/', views.reports_export, name='reports_export'),
 
     # Due Diligence
     path('due-diligence/', views.DueDiligenceListView.as_view(), name='due_diligence_list'),
@@ -158,11 +159,14 @@ urlpatterns = [
     path('workflows/templates/', views.workflow_template_list, name='workflow_template_list'),
     path('workflows/templates/create/', views.workflow_template_create, name='workflow_template_create'),
     path('workflows/templates/<int:pk>/', views.workflow_template_detail, name='workflow_template_detail'),
+    path('workflows/templates/<int:pk>/steps/add/', views.AddWorkflowTemplateStepView.as_view(), name='workflow_template_step_add'),
     path('workflows/templates/<int:pk>/clone-version/', views.workflow_template_clone_version, name='workflow_template_clone_version'),
     path('workflows/templates/<int:pk>/restore-version/', views.workflow_template_restore_version, name='workflow_template_restore_version'),
     path('workflows/templates/<int:pk>/compare/<int:other_pk>/', views.workflow_template_compare, name='workflow_template_compare'),
     path('workflows/<int:pk>/', views.workflow_detail, name='workflow_detail'),
+    path('workflows/<int:pk>/steps/add/', views.AddWorkflowStepView.as_view(), name='workflow_step_add'),
     path('workflows/step/<int:pk>/update/', views.update_workflow_step, name='update_workflow_step'),
+    path('workflows/step/<int:pk>/edit/', views.WorkflowStepUpdateView.as_view(), name='workflow_step_update'),
 
     # Templates
     path('templates/', views.WorkflowTemplateListView.as_view(), name='templates_list'),
@@ -183,7 +187,11 @@ urlpatterns = [
     path('clause-library/', views.ClauseTemplateListView.as_view(), name='clause_template_list'),
     path('clause-library/new/', views.ClauseTemplateCreateView.as_view(), name='clause_template_create'),
     path('clause-library/<int:pk>/', views.ClauseTemplateDetailView.as_view(), name='clause_template_detail'),
+    path('clause-library/<int:pk>/variants/add/', views.clause_variant_create, name='clause_variant_create'),
+    path('clause-library/<int:pk>/playbooks/add/', views.clause_playbook_create, name='clause_playbook_create'),
     path('clause-library/<int:pk>/edit/', views.ClauseTemplateUpdateView.as_view(), name='clause_template_update'),
+    path('search/save/', views.save_search_preset, name='save_search_preset'),
+    path('search/presets/<int:preset_id>/delete/', views.delete_search_preset, name='delete_search_preset'),
 
     # Ethical Walls
     path('ethical-walls/', views.EthicalWallListView.as_view(), name='ethical_wall_list'),
@@ -195,6 +203,8 @@ urlpatterns = [
     path('signatures/new/', views.SignatureRequestCreateView.as_view(), name='signature_request_create'),
     path('signatures/<int:pk>/', views.SignatureRequestDetailView.as_view(), name='signature_request_detail'),
     path('signatures/<int:pk>/edit/', views.SignatureRequestUpdateView.as_view(), name='signature_request_update'),
+    path('signatures/<int:pk>/transition/<str:new_status>/', views.signature_request_transition, name='signature_request_transition'),
+    path('signatures/<int:pk>/reminder/', views.signature_request_send_reminder, name='signature_request_send_reminder'),
 
     # Privacy & GDPR
     path('privacy/', views.privacy_dashboard, name='privacy_dashboard'),

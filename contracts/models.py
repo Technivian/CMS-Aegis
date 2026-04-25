@@ -520,6 +520,36 @@ class ExecutiveDashboardPreset(models.Model):
         return f'{self.organization.slug}:{self.name}'
 
 
+class SearchPreset(models.Model):
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name='search_presets',
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='search_presets',
+    )
+    name = models.CharField(max_length=120)
+    params = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['organization__name', 'name']
+        unique_together = ('organization', 'created_by', 'name')
+        indexes = [
+            models.Index(fields=['organization', 'created_by', 'name'], name='searchpreset_org_user_name_ix'),
+            models.Index(fields=['organization', 'name'], name='searchpreset_org_name_ix'),
+        ]
+
+    def __str__(self):
+        return f'{self.organization.slug}:{self.name}'
+
+
 class Client(models.Model):
     class ClientType(models.TextChoices):
         INDIVIDUAL = 'INDIVIDUAL', 'Individual'
@@ -1226,6 +1256,10 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['recipient', 'is_read', '-created_at'], name='notif_rec_read_created_ix'),
+            models.Index(fields=['recipient', '-created_at'], name='notif_rec_created_ix'),
+        ]
 
     def __str__(self):
         return f'{self.title} -> {self.recipient.username}'
@@ -2015,8 +2049,62 @@ class SignatureRequest(models.Model):
         signer_email = (self.signer_email or '').strip().lower()
         actor_email = (actor.email or '').strip().lower()
         if new_status in signer_actions and signer_email and actor_email:
+            if not self.is_routing_ready():
+                return False
             return signer_email == actor_email
         return False
+
+    def routing_blockers(self):
+        if not self.order:
+            return []
+        terminal_statuses = {
+            self.Status.SIGNED,
+            self.Status.DECLINED,
+            self.Status.EXPIRED,
+            self.Status.CANCELLED,
+        }
+        return list(
+            SignatureRequest.objects.select_related('contract')
+            .filter(
+                contract_id=self.contract_id,
+                order__lt=self.order,
+            )
+            .exclude(status__in=terminal_statuses)
+            .order_by('order', 'created_at')
+        )
+
+    def is_routing_ready(self):
+        return not self.routing_blockers()
+
+    def available_transitions_for_actor(self, actor):
+        if not self.is_routing_ready():
+            signer_email = (getattr(actor, 'email', '') or '').strip().lower()
+            if signer_email and signer_email == (self.signer_email or '').strip().lower():
+                return []
+        ordered_statuses = [
+            self.Status.SENT,
+            self.Status.VIEWED,
+            self.Status.SIGNED,
+            self.Status.DECLINED,
+            self.Status.EXPIRED,
+            self.Status.CANCELLED,
+        ]
+        labels = dict(self.Status.choices)
+        return [
+            {
+                'value': status,
+                'label': labels.get(status, status.title()),
+            }
+            for status in ordered_statuses
+            if self.can_transition_to(status) and self.can_actor_transition(actor, status)
+        ]
+
+    def is_follow_up_due(self, threshold_days: int = 7) -> bool:
+        if self.status not in {self.Status.PENDING, self.Status.SENT, self.Status.VIEWED}:
+            return False
+        if not self.sent_at:
+            return self.status in {self.Status.SENT, self.Status.VIEWED}
+        return self.sent_at <= timezone.now() - timedelta(days=threshold_days)
 
 
 class DataInventoryRecord(models.Model):

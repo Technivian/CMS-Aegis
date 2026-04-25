@@ -3,21 +3,229 @@
 {% block content %}
 <div class="max-w-3xl">
     <div class="mb-6"><h1 class="text-2xl font-bold text-gray-900">{% if form.instance.pk %}Edit Contract{% else %}New Contract{% endif %}</h1></div>
-    <form method="post" class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+    <form method="post" action="{{ form_action|default:request.path }}" class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
         {% csrf_token %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             {% for field in form %}
-            <div class="{% if field.name == 'content' or field.name == 'title' %}md:col-span-2{% endif %}">
+            <div class="{% if field.name == 'content' or field.name == 'title' or field.name == 'clause_templates' %}md:col-span-2{% endif %}">
                 <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+                {% if field.help_text %}<p class="text-xs text-gray-500 mb-1">{{ field.help_text }}</p>{% endif %}
                 {{ field }}
                 {% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
             </div>
             {% endfor %}
         </div>
+        {% if preview_mode and draft_sections %}
+        <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 space-y-4">
+            <div>
+                <h2 class="text-sm font-semibold text-blue-900">Draft sections</h2>
+                <p class="text-xs text-blue-700">Reorder, remove, or edit generated sections before saving. Generated from {{ draft_preview_selected_clause_count }} selected clause template{{ draft_preview_selected_clause_count|pluralize }}.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button" id="add-draft-section" class="px-3 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700">Add section</button>
+                <span class="text-xs text-blue-700">Drag the handle to reorder.</span>
+            </div>
+            <input type="hidden" name="draft_section_count" value="{{ draft_sections|length }}">
+            <div id="draft-section-list" class="space-y-4" data-draft-section-list>
+                {% for section in draft_sections %}
+                <div class="rounded-xl border border-blue-100 bg-white p-4 space-y-3 shadow-sm" data-draft-section-card draggable="true">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-blue-200 text-blue-700 bg-blue-50 cursor-grab" title="Drag to reorder" data-draft-drag-handle aria-label="Drag section to reorder">⋮⋮</button>
+                            <label class="inline-flex items-center gap-2 text-xs font-medium text-blue-900">
+                                <input type="checkbox" name="draft_section_{{ section.index }}_include" value="on" {% if section.include %}checked{% endif %} class="h-4 w-4 text-blue-600 border-gray-300 rounded" data-draft-field="include">
+                                Include section
+                            </label>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 text-xs text-blue-700">
+                            <span>Order</span>
+                            <input type="number" name="draft_section_{{ section.index }}_order" value="{{ section.order }}" min="1" class="w-20 rounded-lg border border-blue-200 px-2 py-1 text-sm" data-draft-field="order" data-draft-section-order>
+                            <button type="button" class="px-3 py-1.5 rounded-lg border border-blue-200 bg-white text-blue-700 hover:bg-blue-50 text-xs font-medium" data-draft-insert-below>Insert below</button>
+                            <button type="button" class="px-3 py-1.5 rounded-lg border border-red-200 bg-white text-red-700 hover:bg-red-50 text-xs font-medium" data-draft-remove-section>Remove</button>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold uppercase tracking-wide text-blue-900">Section title</label>
+                        <input type="text" name="draft_section_{{ section.index }}_title" value="{{ section.title }}" class="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm" data-draft-field="title">
+                    </div>
+                    {% if section.badges %}
+                    <div class="flex flex-wrap gap-2">
+                        {% for badge in section.badges %}
+                        <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold {% if badge.tone == 'indigo' %}bg-indigo-100 text-indigo-800{% elif badge.tone == 'blue' %}bg-blue-100 text-blue-800{% elif badge.tone == 'red' %}bg-red-100 text-red-800{% elif badge.tone == 'amber' %}bg-amber-100 text-amber-800{% elif badge.tone == 'emerald' %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-slate-800{% endif %}" title="{{ badge.label }}">
+                            {{ badge.label }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                        {% if section.template_url %}
+                        <a href="{{ section.template_url }}" class="text-blue-700 hover:text-blue-900 font-medium">Open source clause</a>
+                        {% endif %}
+                        {% if section.playbook_url %}
+                        <a href="{{ section.playbook_url }}" class="text-blue-700 hover:text-blue-900 font-medium">Open playbook context</a>
+                        {% endif %}
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold uppercase tracking-wide text-blue-900">Section content</label>
+                        <textarea name="draft_section_{{ section.index }}_content" rows="8" class="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm" data-draft-field="content">{{ section.content }}</textarea>
+                    </div>
+                    <p class="text-xs text-blue-700">Source: {{ section.source_label }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
         <div class="flex gap-3 pt-4">
+            <button type="submit" name="preview_draft" value="1" class="px-4 py-2 bg-white border border-blue-200 text-blue-700 text-sm font-medium rounded-lg hover:bg-blue-50">Preview draft</button>
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">{% if form.instance.pk %}Update{% else %}Create{% endif %} Contract</button>
             <a href="{% url 'contracts:contract_list' %}" class="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200">Cancel</a>
         </div>
     </form>
 </div>
+{% if preview_mode and draft_sections %}
+<template id="draft-section-template">
+    <div class="rounded-xl border border-blue-100 bg-white p-4 space-y-3 shadow-sm" data-draft-section-card draggable="true">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-blue-200 text-blue-700 bg-blue-50 cursor-grab" title="Drag to reorder" data-draft-drag-handle aria-label="Drag section to reorder">⋮⋮</button>
+                <label class="inline-flex items-center gap-2 text-xs font-medium text-blue-900">
+                    <input type="checkbox" value="on" checked class="h-4 w-4 text-blue-600 border-gray-300 rounded" data-draft-field="include">
+                    Include section
+                </label>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-xs text-blue-700">
+                <span>Order</span>
+                <input type="number" min="1" class="w-20 rounded-lg border border-blue-200 px-2 py-1 text-sm" data-draft-field="order" data-draft-section-order>
+                <button type="button" class="px-3 py-1.5 rounded-lg border border-blue-200 bg-white text-blue-700 hover:bg-blue-50 text-xs font-medium" data-draft-insert-below>Insert below</button>
+                <button type="button" class="px-3 py-1.5 rounded-lg border border-red-200 bg-white text-red-700 hover:bg-red-50 text-xs font-medium" data-draft-remove-section>Remove</button>
+            </div>
+        </div>
+        <div class="space-y-2">
+            <label class="block text-xs font-semibold uppercase tracking-wide text-blue-900">Section title</label>
+            <input type="text" class="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm" data-draft-field="title">
+        </div>
+        <div class="flex flex-wrap gap-2" data-draft-badges></div>
+        <div class="flex flex-wrap items-center gap-2 text-xs" data-draft-links></div>
+        <div class="space-y-2">
+            <label class="block text-xs font-semibold uppercase tracking-wide text-blue-900">Section content</label>
+            <textarea rows="8" class="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm" data-draft-field="content"></textarea>
+        </div>
+        <p class="text-xs text-blue-700" data-draft-section-source>Source: Inserted section</p>
+    </div>
+</template>
+<script>
+(function () {
+    const list = document.querySelector('[data-draft-section-list]');
+    const template = document.getElementById('draft-section-template');
+    const addButton = document.getElementById('add-draft-section');
+    const countInput = document.querySelector('input[name="draft_section_count"]');
+    if (!list || !template || !addButton || !countInput) {
+        return;
+    }
+
+    let dragSource = null;
+
+    function renumberSections() {
+        const cards = Array.from(list.querySelectorAll('[data-draft-section-card]'));
+        cards.forEach((card, index) => {
+            card.dataset.draftSectionIndex = String(index);
+            card.querySelectorAll('[data-draft-field]').forEach((field) => {
+                field.name = `draft_section_${index}_${field.dataset.draftField}`;
+            });
+            const orderField = card.querySelector('[data-draft-section-order]');
+            if (orderField) {
+                orderField.value = String(index + 1);
+            }
+        });
+        countInput.value = String(cards.length);
+    }
+
+    function bindCard(card) {
+        card.addEventListener('dragstart', (event) => {
+            dragSource = card;
+            card.classList.add('opacity-60');
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', '');
+        });
+        card.addEventListener('dragend', () => {
+            dragSource = null;
+            card.classList.remove('opacity-60');
+        });
+        card.addEventListener('dragover', (event) => {
+            event.preventDefault();
+        });
+        card.addEventListener('drop', (event) => {
+            event.preventDefault();
+            if (!dragSource || dragSource === card) {
+                return;
+            }
+            const cards = Array.from(list.querySelectorAll('[data-draft-section-card]'));
+            const sourceIndex = cards.indexOf(dragSource);
+            const targetIndex = cards.indexOf(card);
+            if (sourceIndex === -1 || targetIndex === -1) {
+                return;
+            }
+            if (sourceIndex < targetIndex) {
+                list.insertBefore(dragSource, card.nextSibling);
+            } else {
+                list.insertBefore(dragSource, card);
+            }
+            renumberSections();
+        });
+
+        const insertBelow = card.querySelector('[data-draft-insert-below]');
+        if (insertBelow) {
+            insertBelow.addEventListener('click', () => {
+                insertSectionAfter(card);
+            });
+        }
+
+        const removeButton = card.querySelector('[data-draft-remove-section]');
+        if (removeButton) {
+            removeButton.addEventListener('click', () => {
+                card.remove();
+                renumberSections();
+            });
+        }
+    }
+
+    function buildBlankSection() {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = template.innerHTML.trim();
+        const card = wrapper.firstElementChild;
+        bindCard(card);
+        return card;
+    }
+
+    function insertSectionAfter(referenceCard) {
+        const card = buildBlankSection();
+        const sourceLabel = card.querySelector('[data-draft-section-source]');
+        if (sourceLabel) {
+            sourceLabel.textContent = 'Source: Inserted section';
+        }
+        const badges = card.querySelector('[data-draft-badges]');
+        if (badges) {
+            badges.innerHTML = '<span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-800">New section</span>';
+        }
+        const links = card.querySelector('[data-draft-links]');
+        if (links) {
+            links.innerHTML = '<span class="text-slate-500">Inserted sections have no source clause yet.</span>';
+        }
+        if (referenceCard && referenceCard.nextSibling) {
+            list.insertBefore(card, referenceCard.nextSibling);
+        } else {
+            list.appendChild(card);
+        }
+        renumberSections();
+    }
+
+    addButton.addEventListener('click', () => {
+        insertSectionAfter(list.querySelector('[data-draft-section-card]:last-child'));
+    });
+
+    list.querySelectorAll('[data-draft-section-card]').forEach((card) => bindCard(card));
+    renumberSections();
+})();
+</script>
+{% endif %}
 {% endblock %}

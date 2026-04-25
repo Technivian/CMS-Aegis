@@ -99,6 +99,32 @@
         </div>
     </div>
 
+    <div class="panel mb-6">
+        <div class="panel-head">
+            <div class="panel-head-inner">
+                <div class="dot dot-green"></div>
+                <span class="panel-title">My Work Queue</span>
+            </div>
+            <span class="panel-link">{{ my_work_items|length }} items</span>
+        </div>
+        {% for item in my_work_items %}
+        <a href="{{ item.href }}" class="list-row">
+            <div class="item-row">
+                <div class="status-dot {{ item.dot }}"></div>
+                <div class="min-w-0">
+                    <div class="item-title">{{ item.title|truncatechars:52 }}</div>
+                    <div class="item-meta">{{ item.meta }}</div>
+                </div>
+            </div>
+            <span class="badge-sm {{ item.badge_class }}">{{ item.badge }}</span>
+        </a>
+        {% empty %}
+        <div class="empty-state">
+            No assigned work items yet.
+        </div>
+        {% endfor %}
+    </div>
+
     <div class="dash-grid dash-grid-2-1 mb-6">
         <div class="panel">
             <div class="panel-head">
@@ -114,14 +140,14 @@
             {% for contract in recent_cases %}
             <a href="{% url 'contracts:contract_detail' contract.pk %}" class="list-row">
                 <div class="item-row">
-                    <div class="status-dot {% if item.badge_class == 'badge-red' %}red{% elif item.badge_class == 'badge-yellow' %}yellow{% elif item.badge_class == 'badge-purple' %}blue{% else %}gray{% endif %}"></div>
+                    <div class="status-dot {% if contract.status == 'ACTIVE' %}green{% elif contract.status == 'PENDING' %}yellow{% elif contract.status == 'EXPIRED' %}red{% elif contract.status == 'DRAFT' %}blue{% else %}gray{% endif %}"></div>
                     <div class="min-w-0">
-                        <div class="item-title">{{ item.title|truncatechars:52 }}</div>
-                        <div class="item-meta">{{ item.meta }}</div>
+                        <div class="item-title">{{ contract.title|truncatechars:52 }}</div>
+                        <div class="item-meta">{{ contract.client.name|default:'No client' }} &middot; {{ contract.get_status_display }}{% if contract.value %} &middot; {{ contract.value }}{% endif %}</div>
                     </div>
                 </div>
-                <span class="badge-sm {{ item.badge_class }}">
-                    {{ item.badge }}
+                <span class="badge-sm {% if contract.status == 'ACTIVE' %}badge-green{% elif contract.status == 'PENDING' %}badge-yellow{% elif contract.status == 'EXPIRED' %}badge-red{% elif contract.status == 'DRAFT' %}badge-blue{% else %}badge-gray{% endif %}">
+                    {{ contract.get_status_display }}
                 </span>
             </a>
             {% empty %}

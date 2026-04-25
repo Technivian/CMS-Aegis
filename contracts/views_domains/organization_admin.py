@@ -765,3 +765,65 @@ def reports_dashboard(request):
         'executive_saved_dashboards': executive_saved_dashboards,
     }
     return render(request, 'contracts/reports_dashboard.html', context)
+
+
+@login_required
+def reports_export(request):
+    organization = get_user_organization(request.user)
+    if not organization:
+        messages.error(request, 'No active organization found.')
+        return redirect('dashboard')
+
+    today = date.today()
+    month_start = today.replace(day=1)
+    year_start = today.replace(month=1, day=1)
+
+    case_qs = get_scoped_queryset_for_request(request, Case)
+    clients_qs = get_scoped_queryset_for_request(request, Client)
+    case_matter_qs = get_scoped_queryset_for_request(request, CaseMatter)
+    time_entries_qs = get_scoped_queryset_for_request(request, TimeEntry)
+    invoices_qs = get_scoped_queryset_for_request(request, Invoice)
+    deadlines_qs = Deadline.objects.filter(Q(contract__organization=organization) | Q(matter__organization=organization))
+    risks_qs = RiskLog.objects.filter(Q(contract__organization=organization) | Q(matter__organization=organization))
+
+    case_stats = case_qs.aggregate(
+        total=Count('id'),
+        active=Count('id', filter=Q(status='ACTIVE')),
+        total_value=Coalesce(Sum('value', filter=Q(value__isnull=False)), Decimal('0')),
+    )
+    client_stats = clients_qs.aggregate(total=Count('id'), active=Count('id', filter=Q(status='ACTIVE')))
+    matter_stats = case_matter_qs.aggregate(total=Count('id'), active=Count('id', filter=Q(status='ACTIVE')))
+    monthly_hours = time_entries_qs.filter(date__gte=month_start).aggregate(total=Sum('hours'))['total'] or Decimal('0')
+    invoice_stats = invoices_qs.aggregate(
+        yearly_revenue=Coalesce(Sum('total_amount', filter=Q(status='PAID', issue_date__gte=year_start)), Decimal('0')),
+        outstanding=Coalesce(Sum('total_amount', filter=Q(status__in=['SENT', 'OVERDUE'])), Decimal('0')),
+    )
+    deadline_stats = deadlines_qs.aggregate(
+        overdue=Count('id', filter=Q(is_completed=False, due_date__lt=today)),
+        upcoming=Count('id', filter=Q(is_completed=False, due_date__gte=today, due_date__lte=today + timedelta(days=7))),
+    )
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="reports-export-{organization.slug}-{date.today().isoformat()}.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['category', 'metric', 'value'])
+    writer.writerow(['summary', 'total_clients', client_stats['total']])
+    writer.writerow(['summary', 'active_clients', client_stats['active']])
+    writer.writerow(['summary', 'total_matters', matter_stats['total']])
+    writer.writerow(['summary', 'active_matters', matter_stats['active']])
+    writer.writerow(['summary', 'total_contracts', case_stats['total']])
+    writer.writerow(['summary', 'active_contracts', case_stats['active']])
+    writer.writerow(['summary', 'total_contract_value', case_stats['total_value']])
+    writer.writerow(['summary', 'case_workload_hours', monthly_hours])
+    writer.writerow(['summary', 'yearly_revenue', invoice_stats['yearly_revenue']])
+    writer.writerow(['summary', 'outstanding', invoice_stats['outstanding']])
+    writer.writerow(['summary', 'overdue_deadlines', deadline_stats['overdue']])
+    writer.writerow(['summary', 'upcoming_deadlines', deadline_stats['upcoming']])
+    writer.writerow(['summary', 'high_risks', risks_qs.filter(risk_level__in=['HIGH', 'CRITICAL']).count()])
+    for item in build_executive_bottlenecks(organization, limit=5):
+        writer.writerow(['bottleneck', item['stage'], item['count']])
+    for item in build_executive_risk_trend(organization, months=6):
+        writer.writerow(['risk_trend', item['month'], item['high_or_critical_count']])
+    for preset in build_executive_saved_dashboards(organization, limit=10):
+        writer.writerow(['saved_dashboard', preset['name'], preset['updated_at'] or ''])
+    return response

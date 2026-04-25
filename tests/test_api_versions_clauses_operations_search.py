@@ -131,6 +131,78 @@ class ApiVersionsClausesOperationsSearchTests(TestCase):
         self.assertContains(response, 'EU Privacy Playbook', html=False)
         self.assertContains(response, 'EU fallback', html=False)
         self.assertContains(response, 'EU negotiation notes', html=False)
+        self.assertContains(response, 'Create variant', html=False)
+        self.assertContains(response, 'Create playbook', html=False)
+
+    def test_clause_variant_create_action_adds_variant(self):
+        category = ClauseCategory.objects.create(organization=self.organization, name='General', description='')
+        template = ClauseTemplate.objects.create(
+            organization=self.organization,
+            title='Security Clause',
+            category=category,
+            content='Standard content',
+            fallback_content='Template fallback',
+            jurisdiction_scope=ClauseTemplate.JurisdictionScope.GLOBAL,
+            applicable_contract_types='MSA',
+            playbook_notes='Template notes',
+            tags='security',
+        )
+        playbook = ClausePlaybook.objects.create(
+            organization=self.organization,
+            name='Security Playbook',
+            fallback_position='Use fallback',
+            jurisdiction_scope=ClausePlaybook.JurisdictionScope.GLOBAL,
+            risk_level='MEDIUM',
+        )
+
+        response = self.client.post(
+            reverse('contracts:clause_variant_create', kwargs={'pk': template.pk}),
+            data={
+                'playbook': playbook.pk,
+                'jurisdiction_scope': ClauseTemplate.JurisdictionScope.GLOBAL,
+                'contract_type': 'MSA',
+                'risk_level': 'MEDIUM',
+                'fallback_content': 'Negotiated fallback',
+                'playbook_notes': 'Use this when customer objects',
+                'priority': 5,
+                'is_active': 'on',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        variant = ClauseVariant.objects.get(template=template, playbook=playbook)
+        self.assertEqual(variant.fallback_content, 'Negotiated fallback')
+        self.assertEqual(variant.priority, 5)
+        self.assertTrue(variant.is_active)
+
+    def test_clause_playbook_create_action_adds_playbook(self):
+        category = ClauseCategory.objects.create(organization=self.organization, name='General', description='')
+        template = ClauseTemplate.objects.create(
+            organization=self.organization,
+            title='Confidentiality',
+            category=category,
+            content='Base text',
+            fallback_content='Fallback',
+            jurisdiction_scope=ClauseTemplate.JurisdictionScope.GLOBAL,
+            tags='confidentiality',
+        )
+
+        response = self.client.post(
+            reverse('contracts:clause_playbook_create', kwargs={'pk': template.pk}),
+            data={
+                'name': 'Confidentiality Playbook',
+                'description': 'Guidance for confidentiality clauses',
+                'fallback_position': 'Prefer stronger protections',
+                'jurisdiction_scope': ClausePlaybook.JurisdictionScope.GLOBAL,
+                'risk_level': 'LOW',
+                'is_active': 'on',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        playbook = ClausePlaybook.objects.get(name='Confidentiality Playbook')
+        self.assertEqual(playbook.description, 'Guidance for confidentiality clauses')
+        self.assertTrue(playbook.is_active)
 
     def test_approval_request_delegation_updates_assignee(self):
         delegate = User.objects.create_user(username='delegate', email='delegate@example.com', password='testpass123')

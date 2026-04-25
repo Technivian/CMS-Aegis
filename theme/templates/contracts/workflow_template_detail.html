@@ -72,6 +72,39 @@
         <!-- Template Steps -->
         <div class="mb-8">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Workflow Steps</h2>
+            <div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 class="text-sm font-semibold text-blue-900 mb-3">Add a step</h3>
+                <form method="post" action="{% url 'contracts:workflow_template_step_add' workflow_template.pk %}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {% csrf_token %}
+                    <div class="md:col-span-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ step_form.name.id_for_label }}">Step name</label>
+                        {{ step_form.name }}
+                        {% if step_form.name.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ step_form.name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ step_form.description.id_for_label }}">Description</label>
+                        {{ step_form.description }}
+                        {% if step_form.description.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ step_form.description.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="md:col-span-1 flex items-end gap-3">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ step_form.order.id_for_label }}">Order</label>
+                            {{ step_form.order }}
+                            {% if step_form.order.errors %}
+                            <p class="mt-1 text-xs text-red-600">{{ step_form.order.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn-primary h-10 px-4">
+                            Add
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             <div class="space-y-4">
                 {% for step in steps %}
                 <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">

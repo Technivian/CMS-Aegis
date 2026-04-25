@@ -113,3 +113,38 @@ class SecurityGuardrailsTests(TestCase):
                 changes__event='mark_all_notifications_read',
             ).exists()
         )
+
+    def test_notification_list_filters_by_state_and_type(self):
+        self.client.login(username='security-user', password='testpass123')
+        unread_system = Notification.objects.create(
+            recipient=self.user,
+            notification_type=Notification.NotificationType.SYSTEM,
+            title='Unread system',
+            message='Test',
+        )
+        read_task = Notification.objects.create(
+            recipient=self.user,
+            notification_type=Notification.NotificationType.TASK,
+            title='Read task',
+            message='Test',
+            is_read=True,
+        )
+        self.assertIsNotNone(unread_system.pk)
+        self.assertIsNotNone(read_task.pk)
+
+        response_all = self.client.get(reverse('contracts:notification_list'))
+        self.assertEqual(response_all.status_code, 200)
+        self.assertContains(response_all, 'Unread system')
+        self.assertContains(response_all, 'Read task')
+        self.assertContains(response_all, 'All')
+        self.assertContains(response_all, 'Unread')
+
+        response_unread = self.client.get(reverse('contracts:notification_list'), {'state': 'unread'})
+        self.assertEqual(response_unread.status_code, 200)
+        self.assertContains(response_unread, 'Unread system')
+        self.assertNotContains(response_unread, 'Read task')
+
+        response_system = self.client.get(reverse('contracts:notification_list'), {'type': 'SYSTEM'})
+        self.assertEqual(response_system.status_code, 200)
+        self.assertContains(response_system, 'Unread system')
+        self.assertNotContains(response_system, 'Read task')
